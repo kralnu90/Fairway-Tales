@@ -14,7 +14,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Solo round:** 9 holes, par 36. Earn coins and club XP.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice:** any hole, unlimited undo.
-- **Bag & pro shop:** 23 clubs to collect, level and tune up.
+- **Bag & pro shop:** 26 clubs to collect, level and tune up.
+- **Leave a review:** tell the developer what you think, right from the menu.
 
 ## How to play
 
@@ -26,6 +27,9 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.3 · 23 October 2026
+- New **Leave a review** button on the main menu. Rate the game and say what you'd change, and it goes straight to the developer.
 
 ### 0.2 · 23 October 2026
 - Chapter 1 complete: new rivals Dot Ainsworth and Marcus Vane, and a 9-hole Club Championship against Duncan Moray.

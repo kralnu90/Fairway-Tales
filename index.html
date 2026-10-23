@@ -167,6 +167,14 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .mbtn.pri span{color:#4a3f17}
 .mbtn:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
 .bk{width:100%;min-height:84px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--chalk);font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px;resize:vertical;word-break:break-all}
+.stars{display:flex;gap:6px}
+.star{width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--line);font-size:28px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.star.on{color:var(--flag);border-color:var(--flag)}
+span.star{cursor:default}
+.star:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
+.bk.rv{font:inherit;font-size:15px;word-break:normal;min-height:70px}
+#rvMsg a{color:var(--flag)}
+label.group-h{display:block}
 .screen-h{display:flex;align-items:center;gap:10px;padding-top:8px}
 .screen-h .sheet-title{flex:1}
 .seg{display:flex;gap:6px}
@@ -1655,6 +1663,17 @@ function drawWorld(){
 }
 function worldFrame(dt){worldStep(dt);drawWorld()}
 
+/* ---------- Player reviews (sent to Kris's Google Form) ---------- */
+const GAME_VERSION='0.3';
+const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
+const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
+function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
+const reviewFormUrl=r=>`https://docs.google.com/forms/d/e/${FORM_ID}/viewform?usp=pp_url&${reviewParams(r).toString()}`;
+function sendReview(r){
+  // Google Forms accepts a plain form post; the reply can't be read (no-cors), so success means it reached Google
+  return fetch(`https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`,{method:'POST',mode:'no-cors',body:reviewParams(r)});
+}
+
 /* ---------- Main menu ---------- */
 let pnpCount=2, pnpNames=['Player 1','Player 2','Player 3','Player 4'];
 try{const n=JSON.parse(localStorage.getItem('fsl-names'));if(Array.isArray(n)&&n.length===4)pnpNames=n;const c=+localStorage.getItem('fsl-pcount');if(c>=2&&c<=4)pnpCount=c}catch(e){}
@@ -1675,6 +1694,43 @@ function openMenu(screen){
     b.querySelectorAll('.seg button').forEach(x=>x.onclick=()=>{pnpCount=+x.dataset.n;keepNames();openMenu('pnp')});
     $('#mBack').onclick=()=>{keepNames();openMenu('home')};
     $('#mGo').onclick=()=>{keepNames();const names=pnpNames.slice(0,pnpCount).map((n,k)=>n.trim()||`Player ${k+1}`);startGame({mode:'pnp',names})};
+    return;
+  }
+  if(screen==='review'){
+    let stars=0,sending=false;
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Leave a review</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="blurb">Your review goes straight to Kris, the developer. Only the rating is needed.</div>
+      <div class="group-h">Your rating</div>
+      <div class="stars" role="radiogroup" aria-label="Rating">${[1,2,3,4,5].map(n=>`<button class="star" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} star${n>1?'s':''}">★</button>`).join('')}</div>
+      <label class="group-h" for="rvLiked">What did you enjoy?</label>
+      <textarea id="rvLiked" class="bk rv" maxlength="800" placeholder="Optional"></textarea>
+      <label class="group-h" for="rvChange">What should change or be fixed?</label>
+      <textarea id="rvChange" class="bk rv" maxlength="800" placeholder="Optional"></textarea>
+      <label class="group-h" for="rvName">Your name</label>
+      <div class="prow"><input id="rvName" maxlength="30" placeholder="Optional" autocomplete="off"></div>
+      <div class="acts"><button id="rvSend" class="sbtn pri" disabled>Pick a rating to send</button></div>
+      <div id="rvMsg" class="blurb"></div>
+      <div class="blurb">Fairway Tales v${GAME_VERSION}</div>`;
+    try{$('#rvName').value=localStorage.getItem('fsl-rv-name')||''}catch(e){}
+    $('#mBack').onclick=()=>openMenu('home');
+    b.querySelectorAll('.star').forEach(x=>x.onclick=()=>{stars=+x.dataset.n;b.querySelectorAll('.star').forEach(y=>{const on=+y.dataset.n<=stars;y.classList.toggle('on',on);y.setAttribute('aria-checked',+y.dataset.n===stars)});
+      $('#rvSend').disabled=false;$('#rvSend').textContent='Send review'});
+    $('#rvSend').onclick=()=>{
+      if(sending||!stars)return;sending=true;
+      const r={rating:stars,liked:$('#rvLiked').value.trim(),change:$('#rvChange').value.trim(),name:$('#rvName').value.trim()};
+      try{localStorage.setItem('fsl-rv-name',r.name)}catch(e){}
+      $('#rvSend').disabled=true;$('#rvSend').textContent='Sending…';$('#rvMsg').textContent='';
+      sendReview(r).then(()=>{
+        b.innerHTML=`<div class="screen-h"><div class="sheet-title">Thank you!</div><button id="mBack" class="ghost">Back</button></div>
+          <div class="stars">${[1,2,3,4,5].map(n=>`<span class="star${n<=stars?' on':''}">★</span>`).join('')}</div>
+          <div class="blurb">Your review is on its way to Kris. Every one gets read.</div>
+          <button id="mHome" class="mbtn pri"><b>Back to the menu</b><span>Fancy another round?</span></button>`;
+        $('#mBack').onclick=$('#mHome').onclick=()=>openMenu('home');
+      }).catch(()=>{
+        sending=false;$('#rvSend').disabled=false;$('#rvSend').textContent='Try again';
+        $('#rvMsg').innerHTML=`Couldn't send. Check you're online and try again, or <a href="${esc(reviewFormUrl(r))}" target="_blank" rel="noopener">open the review form</a> instead.`;
+      });
+    };
     return;
   }
   if(screen==='backup'){
@@ -1718,6 +1774,7 @@ function openMenu(screen){
     <button id="mPnp" class="mbtn"><b>Pass &amp; play</b><span>2 to 4 players on one phone. Everyone on the Clubhouse set.</span></button>
     <button id="mPractice" class="mbtn"><b>Practice</b><span>Pick any hole. Unlimited undo, no rewards.</span></button>
     <button id="mBag" class="mbtn"><b>Bag &amp; pro shop</b><span>${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs</span></button>
+    <button id="mReview" class="mbtn"><b>Leave a review</b><span>Tell Kris what you think. It goes straight to him.</span></button>
     <button id="mBackup" class="mbtn"><b>Backup &amp; restore</b><span>Move your clubs, coins and story to another phone or app.</span></button>
     <div class="blurb" style="text-align:center;margin-top:8px">© 2026 kralnu90. All rights reserved.</div>`;
   if(resume)$('#mResume').onclick=()=>{$('#menu').hidden=true;if(players.length>1&&state==='ready')showPass(false)};
@@ -1727,6 +1784,7 @@ function openMenu(screen){
   $('#mPractice').onclick=()=>openMenu('practice');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
+  $('#mReview').onclick=()=>openMenu('review');
 }
 function makeBackup(){
   const ls={};try{for(const k of ['fsl-preview','fsl-names','fsl-pcount']){const v=localStorage.getItem(k);if(v!=null)ls[k]=v}}catch(e){}
