@@ -175,6 +175,19 @@ span.star{cursor:default}
 .bk.rv{font:inherit;font-size:15px;word-break:normal;min-height:70px}
 #rvMsg a{color:var(--flag)}
 label.group-h{display:block}
+.loot{z-index:27}
+.loot-bag{width:64px;height:64px;border-radius:18px;background:linear-gradient(160deg,#2f6b5a,#1c3628);border:2px solid var(--flag);position:relative;animation:bagpop .5s ease-out}
+.loot-bag::after{content:"";position:absolute;left:22px;top:-12px;width:20px;height:16px;border:3px solid var(--flag);border-bottom:0;border-radius:10px 10px 0 0}
+.loot-items{display:flex;flex-direction:column;gap:8px;width:100%;margin-block:8px}
+.li{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;font-weight:800;opacity:0;animation:lootin .35s ease-out forwards}
+.li b{font-size:10px;letter-spacing:.8px;background:var(--flag);color:#1d1a0e;border-radius:999px;padding:2px 7px;flex:none}
+.li span{flex:1;min-width:0}
+.li-coins{color:var(--flag)}.li-kit{color:var(--chalk)}.li-dup{color:var(--muted)}
+.li-shard{color:#c58af0;border-color:#5b3f73}
+.li-rare{color:#6fb3e8;border-color:#2e5878}.li-epic{color:#c58af0;border-color:#c58af0}.li-legendary{color:var(--flag);border-color:var(--flag)}
+@keyframes lootin{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes bagpop{0%{transform:scale(.6) rotate(-8deg)}60%{transform:scale(1.1) rotate(4deg)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.li{animation:none;opacity:1}.loot-bag{animation:none}}
 .screen-h{display:flex;align-items:center;gap:10px;padding-top:8px}
 .screen-h .sheet-title{flex:1}
 .seg{display:flex;gap:6px}
@@ -253,7 +266,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
 <div id="sheet" class="sheet" hidden>
   <div class="sheet-head">
     <div class="sheet-title">Your bag</div>
-    <div class="wallet"><span class="chip"><span id="coins">0</span> coins</span><span class="chip"><span id="kits">0</span> kits</span></div>
+    <div class="wallet"><span class="chip"><span id="coins">0</span> coins</span><span class="chip"><span id="kits">0</span> kits</span><span class="chip">HCP <span id="hcpChip">36</span></span></div>
     <button id="sheetClose" class="ghost">Done</button>
   </div>
   <div class="tabs" role="tablist">
@@ -277,6 +290,14 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
   </div>
 </div>
 
+<div id="loot" class="pass loot" hidden>
+  <div class="pass-card">
+    <div class="loot-bag" aria-hidden="true"></div>
+    <div id="lootTitle" class="k"></div>
+    <div id="lootItems" class="loot-items"></div>
+    <button id="lootGo" class="btn">Nice</button>
+  </div>
+</div>
 <div id="pass" class="pass" hidden>
   <div class="pass-card">
     <div id="passHole" class="k"></div>
@@ -336,29 +357,33 @@ const inStock=d=>d.src==='shop'&&(!d.unlock||storyFlags()[d.unlock]);
 const SRC={rival:'Beat a rival in Story mode',daily:'Daily challenge drop · coming soon',hidden:'Secret course challenge · coming soon'};
 const DEFS=[
   {id:'cd',t:'driver',n:'Clubhouse Driver',r:'common',st:[6,5,4,6],f:['P'],src:'starter'},
-  {id:'thunder',t:'driver',n:'Thunderhead',r:'rare',st:[11,4,5,5],f:['P'],src:'shop',price:2400,blurb:'Massive carry. Mind the miss.'},
-  {id:'needle',t:'driver',n:'Needle',r:'rare',st:[6,11,5,6],f:['C'],src:'shop',price:2400,blurb:'Threads the tightest fairways.'},
-  {id:'gale',t:'driver',n:'Gale Breaker',r:'epic',st:[11,8,6,7],f:['P','C'],src:'rival',srcText:'Beat Toby Crane in Story mode',perk:'wind',perkText:'Wind moves your shots 30% less.'},
+  {id:'thunder',tier:'low',t:'driver',n:'Thunderhead',r:'rare',st:[11,4,5,5],f:['P'],src:'shop',price:2400,blurb:'Massive carry. Mind the miss.'},
+  {id:'needle',tier:'low',t:'driver',n:'Needle',r:'rare',st:[6,11,5,6],f:['C'],src:'shop',price:2400,blurb:'Threads the tightest fairways.'},
+  {id:'gale',t:'driver',n:'Gale Breaker',r:'epic',st:[11,8,6,7],f:['P','C'],src:'rival',srcText:'Beat Toby Crane for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 30% less.'},
   {id:'sun',t:'driver',n:'Sunforged',r:'legendary',st:[14,10,8,10],f:['P','F'],src:'hidden',perk:'roll',perkText:'+25% rollout on every landing.'},
   {id:'c3',t:'wood3',n:'Clubhouse 3 Wood',r:'common',st:[6,5,4,6],f:['C'],src:'starter'},
-  {id:'finder',t:'wood3',n:'Fairway Finder',r:'rare',st:[7,9,4,9],f:['F'],src:'shop',price:1800,blurb:'Sweeps it clean from any lie.'},
-  {id:'hollow',t:'wood3',n:'Hollow Point',r:'epic',st:[12,8,6,7],f:['P'],src:'rival',srcText:'Beat Marcus Vane in Story mode',blurb:'A second driver you can hit off the deck.'},
+  {id:'finder',tier:'low',t:'wood3',n:'Fairway Finder',r:'rare',st:[7,9,4,9],f:['F'],src:'shop',price:1800,blurb:'Sweeps it clean from any lie.'},
+  {id:'hollow',t:'wood3',n:'Hollow Point',r:'epic',st:[12,8,6,7],f:['P'],src:'rival',srcText:'Beat Marcus Vane for shards, then collect 5 to forge it',blurb:'A second driver you can hit off the deck.'},
   {id:'c5',t:'iron5',n:'Clubhouse 5 Iron',r:'common',st:[6,5,5,5],f:['C'],src:'starter'},
-  {id:'longbow',t:'iron5',n:'Longbow',r:'rare',st:[9,8,6,6],f:['P'],src:'shop',price:1500,blurb:'Long irons made friendly.'},
+  {id:'longbow',tier:'member',t:'iron5',n:'Longbow',r:'rare',st:[9,8,6,6],f:['P'],src:'shop',price:1500,blurb:'Long irons made friendly.'},
   {id:'c7',t:'iron7',n:'Clubhouse 7 Iron',r:'common',st:[5,6,5,5],f:['C'],src:'starter'},
-  {id:'blade7',t:'iron7',n:'Blade 7',r:'rare',st:[6,10,8,4],f:['C','S'],src:'shop',price:1500,blurb:'Precise and spinny. Unforgiving.'},
-  {id:'lowrider',t:'iron5',n:'Low Rider',r:'rare',st:[7,9,6,8],f:['F'],src:'shop',price:1500,unlock:'beatDot',blurb:'Punches it under the wind.'},
+  {id:'blade7',tier:'member',t:'iron7',n:'Blade 7',r:'rare',st:[6,10,8,4],f:['C','S'],src:'shop',price:1500,blurb:'Precise and spinny. Unforgiving.'},
+  {id:'lowrider',tier:'member',t:'iron5',n:'Low Rider',r:'rare',st:[7,9,6,8],f:['F'],src:'shop',price:1500,unlock:'beatDot',blurb:'Punches it under the wind.'},
   {id:'c9',t:'iron9',n:'Clubhouse 9 Iron',r:'common',st:[5,6,5,5],f:['S'],src:'starter'},
-  {id:'dart',t:'iron9',n:'Dart',r:'rare',st:[6,10,9,5],f:['C'],src:'shop',price:1500,unlock:'beatToby',blurb:'Throws darts at flags.'},
+  {id:'dart',tier:'member',t:'iron9',n:'Dart',r:'rare',st:[6,10,9,5],f:['C'],src:'shop',price:1500,unlock:'beatToby',blurb:'Throws darts at flags.'},
   {id:'kestrel',t:'iron9',n:'Kestrel',r:'epic',st:[7,10,11,7],f:['S','C'],src:'rival',srcText:'Win the Club Championship in Story mode',blurb:'Drops out of the sky and stops.'},
   {id:'cpw',t:'pw',n:'Clubhouse Wedge',r:'common',st:[5,6,6,5],f:['S'],src:'starter'},
-  {id:'pitch',t:'pw',n:'Pitch Perfect',r:'rare',st:[6,9,10,6],f:['S'],src:'shop',price:1200,blurb:'Checks up on demand.'},
+  {id:'pitch',tier:'member',t:'pw',n:'Pitch Perfect',r:'rare',st:[6,9,10,6],f:['S'],src:'shop',price:1200,blurb:'Checks up on demand.'},
   {id:'csw',t:'sw',n:'Clubhouse Sand Wedge',r:'common',st:[5,5,6,6],f:['F'],src:'starter'},
-  {id:'viper',t:'sw',n:'Sand Viper',r:'rare',st:[5,7,8,10],f:['F'],src:'shop',price:1200,perk:'sand',perkText:'No distance lost from bunkers.'},
-  {id:'backdraft',t:'sw',n:'Backdraft',r:'epic',st:[6,9,14,7],f:['S'],src:'rival',srcText:'Beat Dot Ainsworth in Story mode',perk:'spinback',perkText:'Spin-back is 50% stronger.'},
+  {id:'viper',tier:'member',t:'sw',n:'Sand Viper',r:'rare',st:[5,7,8,10],f:['F'],src:'shop',price:1200,perk:'sand',perkText:'No distance lost from bunkers.'},
+  {id:'backdraft',t:'sw',n:'Backdraft',r:'epic',st:[6,9,14,7],f:['S'],src:'rival',srcText:'Beat Dot Ainsworth for shards, then collect 5 to forge it',perk:'spinback',perkText:'Spin-back is 50% stronger.'},
   {id:'cput',t:'putter',n:'Clubhouse Putter',r:'common',st:[0,6,0,5],f:['C'],src:'starter'},
-  {id:'trueroll',t:'putter',n:'True Roll',r:'rare',st:[0,10,0,7],f:['C'],src:'shop',price:1800,blurb:'Starts it on your line.'},
-  {id:'feather',t:'putter',n:'Featherweight',r:'rare',st:[0,9,0,10],f:['F'],src:'shop',price:1800,unlock:'beatMarcus',blurb:'Soft face, big sweet spot.'},
+  {id:'trueroll',tier:'low',t:'putter',n:'True Roll',r:'rare',st:[0,10,0,7],f:['C'],src:'shop',price:1800,blurb:'Starts it on your line.'},
+  {id:'apex',tier:'tour',t:'driver',n:'Apex Tour',r:'epic',st:[12,9,6,8],f:['P','C'],src:'shop',price:5000,blurb:'Long and honest. For players who earned it.'},
+  {id:'arrow',tier:'tour',t:'wood3',n:'Arrowhead',r:'epic',st:[10,10,6,8],f:['C'],src:'shop',price:4200,blurb:'Finds fairways from anywhere.'},
+  {id:'scalpel',tier:'tour',t:'iron7',n:'Scalpel',r:'epic',st:[7,13,11,6],f:['C','S'],src:'shop',price:4000,blurb:'Surgical. Miss it and you\'ll know.'},
+  {id:'velvet',tier:'tour',t:'putter',n:'Velvet',r:'epic',st:[0,13,0,11],f:['C'],src:'shop',price:4500,blurb:'Rolls like it\'s on rails.'},
+  {id:'feather',tier:'low',t:'putter',n:'Featherweight',r:'rare',st:[0,9,0,10],f:['F'],src:'shop',price:1800,unlock:'beatMarcus',blurb:'Soft face, big sweet spot.'},
   {id:'hawkeye',t:'putter',n:'Hawkeye',r:'epic',st:[0,10,0,10],f:['F'],src:'daily',perk:'capture',perkText:'The cup plays 40% bigger.'},
   {id:'oracle',t:'putter',n:'Oracle',r:'legendary',st:[0,14,0,13],f:['C','F'],src:'hidden',perk:'capture',perkText:'The cup plays 40% bigger.'}
 ];
@@ -370,10 +395,12 @@ const needXp=l=>40+30*l;
 function freshSave(){
   const owned={},bag={};
   for(const d of DEFS)if(d.src==='starter'){owned[d.id]={lvl:1,xp:0,tuned:[]};bag[d.t]=d.id}
-  return{coins:150,kits:0,owned,bag};
+  return{coins:150,kits:0,owned,bag,shards:{},pity:0,rounds:[]};
 }
 let save; try{save=JSON.parse(localStorage.getItem('fsl-save'))}catch(e){}
 if(!save||!save.owned)save=freshSave();
+function ensureSave(){save.shards=save.shards||{};save.pity=save.pity||0;save.rounds=save.rounds||[]}
+ensureSave();
 function persist(){try{localStorage.setItem('fsl-save',JSON.stringify(save))}catch(e){}}
 
 // Game mode: 'solo' (your bag, rewards), 'pnp' (pass and play, everyone on the Clubhouse set, no rewards),
@@ -398,7 +425,10 @@ function isCapped(o){return CAPS[o.lvl]&&!o.tuned.includes(o.lvl)}
 // Adds XP to the equipped club (solo rounds only); returns a short line for the shot toast
 function gainXp(amt){
   if(mode!=='solo'&&mode!=='rival')return '';
-  const id=eqId(),o=save.owned[id],d=DEF[id];let msg=`+${amt} XP · ${d.n}`;
+  return addXp(eqId(),amt);
+}
+function addXp(id,amt){
+  const o=save.owned[id],d=DEF[id];let msg=`+${amt} XP · ${d.n}`;
   if(o.lvl>=MAX_LV){persist();return `${d.n} is maxed out`}
   o.xp+=amt;let up=false;
   while(o.lvl<MAX_LV&&o.xp>=needXp(o.lvl)){
@@ -408,6 +438,71 @@ function gainXp(amt){
   if(up)msg+=` · <b>Level up! Lv ${o.lvl}</b>`;
   persist();return msg;
 }
+
+/* ---------- Handicap ---------- */
+// Best 3 of your last 5 counting nine-hole rounds (solo rounds and the Club Championship), averaged over par and doubled
+function hcp(){const r=save.rounds.slice(-5);if(r.length<3)return null;const b=r.map(x=>x.d).sort((a,c)=>a-c).slice(0,3);return Math.max(-5,Math.min(36,Math.round(b.reduce((a,c)=>a+c,0)/3*2*10)/10))}
+const hcpVal=()=>hcp()??36;
+const fmtH=v=>v<0?`+${(-v).toFixed(1)}`:v.toFixed(1);
+function hcpLabel(){const h=hcp();return h==null?`36 (provisional · ${3-save.rounds.length} more round${3-save.rounds.length>1?'s':''})`:fmtH(h)}
+function recordRound(overPar,src){const before=hcp();save.rounds.push({d:overPar,src,t:Date.now()});save.rounds=save.rounds.slice(-20);persist();return{before,after:hcp()}}
+function hcpChangeHTML(c){
+  if(c.after==null)return `<div class="blurb">Handicap: provisional · ${3-save.rounds.length} more round${3-save.rounds.length>1?'s':''} to go</div>`;
+  if(c.before==null)return `<div class="reward">First handicap: ${fmtH(c.after)}</div>`;
+  const d=c.after-c.before;return `<div class="${d<0?'reward':'blurb'}">Handicap ${fmtH(c.before)} → ${fmtH(c.after)}${d<0?' ▼':d>0?' ▲':''}</div>`;
+}
+const TIERS={member:{n:'Member',max:28},low:{n:'Low handicapper',max:20},tour:{n:'Tour line',max:12}};
+const tierOk=d=>!d.tier||hcpVal()<=TIERS[d.tier].max;
+
+/* ---------- Loot ---------- */
+// Chance of each drop = its weight / the table's total weight. 'good' drops reset the pity counter.
+const SHARDS_NEEDED=5, PITY_AT=6, DUP_XP=150, SHARD_DUP_XP=60;
+const LOOT={
+  toby:[{w:35,t:'coins',n:40},{w:15,t:'coins',n:80},{w:25,t:'shard',c:'gale',n:1},{w:10,t:'shard',c:'gale',n:2},{w:8,t:'kit',n:1},{w:6,t:'rare'},{w:1,t:'club',c:'gale'}],
+  dot:[{w:35,t:'coins',n:50},{w:15,t:'coins',n:100},{w:24,t:'shard',c:'backdraft',n:1},{w:10,t:'shard',c:'backdraft',n:2},{w:8,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'backdraft'}],
+  marcus:[{w:35,t:'coins',n:60},{w:15,t:'coins',n:120},{w:23,t:'shard',c:'hollow',n:1},{w:10,t:'shard',c:'hollow',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'hollow'}],
+  duncan:[{w:30,t:'coins',n:150},{w:15,t:'coins',n:300},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  clubhouse:[{w:40,t:'coins',n:30},{w:25,t:'coins',n:60},{w:10,t:'coins',n:120},{w:15,t:'kit',n:1},{w:7,t:'shardAny',n:1},{w:3,t:'rare'}]
+};
+const SHARD_CLUBS=['gale','backdraft','hollow'];
+const isGood=e=>e.t==='shard'||e.t==='shardAny'||e.t==='rare'||e.t==='club';
+function pickWeighted(list){const tot=list.reduce((a,e)=>a+e.w,0);let r=Math.random()*tot;for(const e of list){if((r-=e.w)<0)return e}return list[list.length-1]}
+function rollTable(name){
+  let list=LOOT[name];
+  if(save.pity>=PITY_AT)list=list.filter(isGood);           // safety net after a run of plain drops
+  const e=pickWeighted(list);
+  save.pity=isGood(e)?0:save.pity+1;
+  return e;
+}
+const newOwned=()=>({lvl:1,xp:0,tuned:[]});
+// Turns a drop into real rewards and returns lines describing what happened
+function grant(e){
+  const out=[];
+  const dupClub=id=>{const o=save.owned[id];if(o.lvl>=MAX_LV){save.kits++;out.push({cls:'dup',txt:`Duplicate ${DEF[id].n} · maxed, so +1 tuning kit`})}else{addXp(id,DUP_XP);out.push({cls:'dup',txt:`Duplicate ${DEF[id].n} → +${DUP_XP} XP for it`})}};
+  const giveClub=id=>{if(save.owned[id])return dupClub(id);save.owned[id]=newOwned();out.push({cls:DEF[id].r,txt:`${DEF[id].n} · ${RAR[DEF[id].r].n} ${TYPE_NAME[DEF[id].t].toLowerCase()}`,tag:'NEW'})};
+  const giveShards=(id,n)=>{
+    if(save.owned[id]){addXp(id,SHARD_DUP_XP*n);out.push({cls:'dup',txt:`${n} ${DEF[id].n} shard${n>1?'s':''} → +${SHARD_DUP_XP*n} XP (already forged)`});return}
+    save.shards[id]=(save.shards[id]||0)+n;
+    out.push({cls:'shard',txt:`${DEF[id].n} shard${n>1?'s':''} ×${n} · ${Math.min(save.shards[id],SHARDS_NEEDED)}/${SHARDS_NEEDED}`});
+    if(save.shards[id]>=SHARDS_NEEDED){save.shards[id]-=SHARDS_NEEDED;save.owned[id]=newOwned();out.push({cls:'epic',txt:`Forged ${DEF[id].n}! · Epic ${TYPE_NAME[DEF[id].t].toLowerCase()}`,tag:'FORGED'})}
+  };
+  if(e.t==='coins'){save.coins+=e.n;out.push({cls:'coins',txt:`+${e.n} coins`})}
+  else if(e.t==='kit'){save.kits+=e.n;out.push({cls:'kit',txt:`+${e.n} tuning kit${e.n>1?'s':''}`})}
+  else if(e.t==='shard')giveShards(e.c,e.n);
+  else if(e.t==='shardAny'){const open=SHARD_CLUBS.filter(c=>!save.owned[c]);giveShards(open.length?open[Math.floor(Math.random()*open.length)]:SHARD_CLUBS[Math.floor(Math.random()*SHARD_CLUBS.length)],e.n)}
+  else if(e.t==='rare'){const rares=DEFS.filter(d=>d.r==='rare'),fresh=rares.filter(d=>!save.owned[d.id]),pool=fresh.length?fresh:rares;giveClub(pool[Math.floor(Math.random()*pool.length)].id)}
+  else if(e.t==='club')giveClub(e.c);
+  persist();return out;
+}
+function openBag(name,rolls){let lines=[];for(let k=0;k<rolls;k++)lines=lines.concat(grant(rollTable(name)));return lines}
+let lootDone=null;
+function showLoot(title,lines,done){
+  $('#lootTitle').textContent=title;
+  $('#lootItems').innerHTML=lines.map((l,k)=>`<div class="li li-${l.cls}" style="animation-delay:${k*.25}s">${l.tag?`<b>${l.tag}</b>`:''}<span>${esc(l.txt)}</span></div>`).join('');
+  lootDone=done;$('#loot').hidden=false;
+  if(typeof updateCoins==='function')updateCoins();
+}
+$('#lootGo').onclick=()=>{$('#loot').hidden=true;const d=lootDone;lootDone=null;d&&d()};
 
 /* ---------- The course: 9 holes, par 36 (yards; tee at 0,0 and +y runs towards the green) ---------- */
 // trees: [count, x0, x1, y0, y1, minRadius, maxRadius]; sl: green slope (base x/y, ripple a/b)
@@ -756,7 +851,7 @@ function endHole(){
   const diff=strokes-H.par, last=holeIdx===HOLES.length-1;
   // Rewards: coins per hole; a tuning kit only for finishing the round under par
   let coins=strokes===1?300:diff<=-2?150:diff===-1?60:diff===0?25:diff===1?10:0, kits=0;
-  if(last){coins+=100;if(playedStrokes()<COURSE_PAR)kits=1}
+  if(last)coins+=100;
   save.coins+=coins; save.kits+=kits; persist();
   const rw=`<div class="reward">+${coins} coins${kits?` · +${kits} tuning kit${kits>1?'s':''}`:''}${last?' (includes 100 round bonus)':''}</div>`;
   setTimeout(()=>{
@@ -768,7 +863,10 @@ function endHole(){
     }else{
       const tot=playedStrokes(),rel=tot-COURSE_PAR,isBest=!best||tot<best;
       if(isBest){best=tot;try{localStorage.setItem('fsl-best-round',best)}catch(e){}}
-      showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${best}`}</div>${rw}${cardHTML()}<div class="btns"><button id="again" class="btn">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
+      const hc=recordRound(rel,'solo'),bags=rel<0?2:rel===0?1:0;
+      const bagBtn=bags?`<button id="openLoot" class="btn">Open reward bag${bags>1?` ×${bags}`:''}</button>`:'';
+      showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${best}`}</div>${rw}${hcpChangeHTML(hc)}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
+      if(bags)$('#openLoot').onclick=()=>{$('#openLoot').remove();$('#again').classList.remove('alt');showLoot(bags>1?'Under par · 2 reward bags':'Level par · reward bag',openBag('clubhouse',bags))};
       $('#endBag').onclick=()=>openSheet('shop');
       $('#again').onclick=newRound;
       gameOn=false;
@@ -813,7 +911,8 @@ function endHoleRival(){
     return;
   }
   const res=d>0?'win':d<0?'lose':'draw';
-  showEnd(`<div class="k">${esc(label)} · Final</div><div class="big">${res==='win'?'You win!':res==='lose'?`${esc(first)} wins`:'All square'}</div><div class="sub">You ${t.me} · ${esc(first)} ${t.him} over ${rival.holes} holes</div>${cardHTML()}<div class="btns"><button id="toClub" class="btn">Back to the club</button></div>`);
+  const hc=rival.holes===9?recordRound(t.me-COURSE_PAR,'championship'):null;
+  showEnd(`<div class="k">${esc(label)} · Final</div><div class="big">${res==='win'?'You win!':res==='lose'?`${esc(first)} wins`:'All square'}</div><div class="sub">You ${t.me} · ${esc(first)} ${t.him} over ${rival.holes} holes</div>${hc?hcpChangeHTML(hc):''}${cardHTML()}<div class="btns"><button id="toClub" class="btn">Back to the club</button></div>`);
   gameOn=false;
   $('#toClub').onclick=()=>{$('#end').hidden=true;openWorld({after:{rival:rival.id,res}})};
 }
@@ -989,7 +1088,7 @@ $('#undo').onclick=()=>{
 /* ---------- Bag, pro shop & collection ---------- */
 let sheetTab='bag', swapOpen=null, wipeArm=false;
 let sheetFromMenu=false;
-function openSheet(tab,fromMenu=false){if(state==='flight'||state==='roll')return;sheetFromMenu=fromMenu;sheetTab=tab||'bag';swapOpen=null;$('#sheet').hidden=false;renderSheet()}
+function openSheet(tab,fromMenu=false){if(state==='flight'||state==='roll')return;sheetFromMenu=fromMenu;if(fromMenu)$('#menu').hidden=true;sheetTab=tab||'bag';swapOpen=null;$('#sheet').hidden=false;renderSheet()}
 $('#sheetClose').onclick=()=>{$('#sheet').hidden=true;if(sheetFromMenu){openMenu('home');return}if(state==='ready'&&mode!=='pnp'){ci=Math.min(ci,PUTTER);aim=defaultAim()}hud()};
 $('#bagBtn').onclick=()=>openSheet('bag');
 $('#clubBtn').onclick=()=>openSheet('bag');
@@ -1019,22 +1118,31 @@ function clubCard(id,mode){
     else if(save.bag[d.t]!==id)acts.push(`<button class="sbtn" data-act="equip" data-id="${id}">Put in bag</button>`);
     else acts.push(`<span class="blurb">In your bag</span>`);
   }else if(d.src==='shop'&&!inStock(d))acts.push(`<span class="blurb">Locked · ${UNLOCK_TEXT[d.unlock]}</span>`);
+  else if(d.src==='shop'&&!tierOk(d))acts.push(`<span class="blurb">Locked · Handicap ${TIERS[d.tier].max} needed. Yours is ${fmtH(hcpVal())}.</span>`);
   else if(d.src==='shop')acts.push(`<button class="sbtn pri" data-act="buy" data-id="${id}" ${save.coins>=d.price?'':'disabled'}>Buy · ${d.price} coins</button>`);
   else if(SRC[d.src])acts.push(`<span class="blurb">Locked · ${d.srcText||SRC[d.src]}</span>`);
+  if(!o&&SHARD_CLUBS.includes(id)){const n=save.shards[id]||0;h+=`<div class="lvrow"><span>Shards</span><div class="bar"><i style="width:${n/SHARDS_NEEDED*100}%;background:#c58af0"></i></div><span>${n}/${SHARDS_NEEDED}</span></div>`}
   if(acts.length)h+=`<div class="acts">${acts.join('')}</div>`;
   if(mode==='bag'&&swapOpen===d.t)h+=`<div class="swap">${DEFS.filter(x=>x.t===d.t&&x.id!==id&&save.owned[x.id]).map(x=>`<div class="swap-row"><span style="color:${RAR[x.r].col}">${x.n} · Lv ${save.owned[x.id].lvl}</span><button class="sbtn" data-act="equip" data-id="${x.id}">Equip</button></div>`).join('')}</div>`;
   return h+'</div>';
 }
 function renderSheet(){
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===sheetTab));
-  $('#coins').textContent=save.coins;$('#kits').textContent=save.kits;
+  $('#coins').textContent=save.coins;$('#kits').textContent=save.kits;$('#hcpChip').textContent=hcp()==null?'36*':fmtH(hcp());
   $('.sheet-title').textContent=sheetTab==='shop'?'Pro shop':sheetTab==='all'?'Collection':'Your bag';
   let h='';
   if(sheetTab==='bag')h=TYPES.map(t=>clubCard(save.bag[t],'bag')).join('');
   else if(sheetTab==='shop'){
-    h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. You also earn one for finishing a round under par.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
+    h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. They also drop from reward bags and rival rematches.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
+    h=`<div class="cc hcp-card"><div class="cc-top"><div class="cc-name">Your handicap: ${hcpLabel()}</div></div><div class="blurb">Lower your handicap to unlock better stock. It's worked out from your best 3 of your last 5 solo rounds or Club Championships.</div></div>`+h;
     const forSale=DEFS.filter(d=>inStock(d)&&!save.owned[d.id]),coming=DEFS.filter(d=>d.src==='shop'&&!inStock(d)).length;
-    h+=forSale.length?forSale.map(d=>clubCard(d.id,'shop')).join(''):`<div class="blurb">You own everything in stock.</div>`;
+    if(!forSale.length)h+=`<div class="blurb">You own everything in stock.</div>`;
+    for(const [key,label] of [[null,'Clubhouse · any handicap'],['member',`Member · handicap ${TIERS.member.max} or lower`],['low',`Low handicapper · ${TIERS.low.max} or lower`],['tour',`Tour line · ${TIERS.tour.max} or lower`]]){
+      const items=forSale.filter(d=>(d.tier||null)===key).sort((a,b)=>a.price-b.price);
+      if(!items.length)continue;
+      const open=!key||hcpVal()<=TIERS[key].max;
+      h+=`<div class="group-h">${open?'':'🔒 '}${label}</div>`+items.map(d=>clubCard(d.id,'shop')).join('');
+    }
     if(coming)h+=`<div class="blurb">${coming} more club${coming>1?'s':''} arriving as you beat the members of Ashby Green.</div>`;
   }else{
     h+=`<div class="blurb">${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs collected</div>`;
@@ -1052,7 +1160,7 @@ $('#sheetBody').addEventListener('click',e=>{
   }
   if(act==='swap')swapOpen=swapOpen===b.dataset.t?null:b.dataset.t;
   else if(act==='equip'){save.bag[DEF[id].t]=id;swapOpen=null}
-  else if(act==='buy'){const d=DEF[id];if(save.coins<d.price)return;save.coins-=d.price;save.owned[id]={lvl:1,xp:0,tuned:[]};save.bag[d.t]=id;clearUndo()}
+  else if(act==='buy'){const d=DEF[id];if(save.coins<d.price||!tierOk(d)||!inStock(d))return;save.coins-=d.price;save.owned[id]={lvl:1,xp:0,tuned:[]};save.bag[d.t]=id;clearUndo()}
   else if(act==='kit'){if(save.coins<KIT_PRICE)return;save.coins-=KIT_PRICE;save.kits++;clearUndo()}
   else if(act==='tune'){
     const o=save.owned[id],c=CAPS[o.lvl];if(!c||save.kits<c.kits||save.coins<c.coins)return;
@@ -1291,6 +1399,7 @@ const NPCS=[
   {id:'pip',name:'Pip',x:420,y:640,face:1,dog:true,home:{x0:330,x1:600,y0:590,y1:760}}
 ];
 const NPC=Object.fromEntries(NPCS.map(n=>[n.id,n]));
+const NPC_HCP={toby:4,dot:8,marcus:6,duncan:-1};
 const FACE_COL={dot:'#2a7f8f',marcus:'#ff6a1a',duncan:'#7a2430',hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
 const PLAYER_LOOK={skin:'#f0c4a0',hair:'#5a3a22',top:'#f4f1e6',legs:'#3c4a5e',cap:'#1c3628'};
 let me={x:save.story.x,y:save.story.y,face:0,walk:0,moving:false};
@@ -1302,7 +1411,7 @@ function say(lines,done){dlg={lines,i:0,done,shown:0};$('#dlg').hidden=false;$('
 function showLine(){
   const L=dlg.lines[dlg.i],npc=L.who&&NPC[L.who];
   $('#dlgWho').hidden=!npc;
-  if(npc){$('#dlgName').textContent=npc.name;$('#dlgFace').style.background=FACE_COL[L.who]}
+  if(npc){$('#dlgName').textContent=npc.name+(NPC_HCP[L.who]!=null?` · HCP ${fmtH(NPC_HCP[L.who])}`:'');$('#dlgFace').style.background=FACE_COL[L.who]}
   $('#dlgText').classList.toggle('narr',!npc);
   dlg.shown=0;dlg.full=L.text;$('#dlgText').textContent='';
   $('#dlgChoices').innerHTML='';$('#dlgMore').hidden=true;
@@ -1415,35 +1524,35 @@ function talk(id){
 }
 // What happens back at the club after a story match
 const MATCH={
-  toby:{flag:'beatToby',played:'tobyPlayed',club:'gale',clubText:'Gale Breaker (Epic driver)',again:50,
-    win:[N('toby','...'),N('toby','Fine. Fair\'s fair. That was proper golf.'),N('toby','The Gale Breaker. Keeps the ball down in the wind. Look after it.')],
-    next:'Captain Hartley wants a word.',rematch:'Again?! Right. Here, 50 coins. Don\'t tell Hartley.',
+  toby:{flag:'beatToby',played:'tobyPlayed',shard:'gale',
+    win:[N('toby','...'),N('toby','Fine. Fair\'s fair. That was proper golf.'),N('toby','Here, take this. And a couple of bits off my Gale Breaker. Beat me enough and you can build your own.')],
+    next:'Collect 5 Gale Breaker shards to forge it. Toby drops more in rematches. Captain Hartley wants a word.',rematch:'Again?! Right. Take your winnings and don\'t tell Hartley.',
     draw:'All square? That doesn\'t count. Come back and we\'ll settle it properly.',lose:['Ha! Still unbeaten.','Get some practice in and come back. I\'ll be right here.']},
-  dot:{flag:'beatDot',played:'dotPlayed',club:'backdraft',clubText:'Backdraft (Epic sand wedge)',again:60,
-    win:[N('dot','Well played, dear. That\'s how it\'s done.'),N('dot','Here. The Backdraft. Hit the bottom of the ball and watch it spin back.')],
-    next:'New stock has arrived at the pro shop. And Captain Hartley has news.',rematch:'Lovely game. Here\'s 60 coins for the bar, dear.',
+  dot:{flag:'beatDot',played:'dotPlayed',shard:'backdraft',
+    win:[N('dot','Well played, dear. That\'s how it\'s done.'),N('dot','Something for your bag, and two pieces of my Backdraft. Earn the rest and it\'s yours.')],
+    next:'Collect 5 Backdraft shards to forge it. New stock has arrived at the pro shop, and Captain Hartley has news.',rematch:'Lovely game. Here\'s a little something, dear.',
     draw:'Honours even. Come back and we\'ll play it off.',lose:['Short game, dear. It\'s always the short game.','Come back when you\'re ready.']},
-  marcus:{flag:'beatMarcus',played:'marcusPlayed',club:'hollow',clubText:'Hollow Point (Epic 3 wood)',again:75,
-    win:[N('marcus','That was luck.'),N('marcus','...Mostly luck. Fine. Hollow Point. Don\'t scratch it.')],
-    next:'More stock at the pro shop. Captain Hartley is waiting.',rematch:'Lucky again. Take 75 coins and stop smiling.',
+  marcus:{flag:'beatMarcus',played:'marcusPlayed',shard:'hollow',
+    win:[N('marcus','That was luck.'),N('marcus','...Mostly luck. Fine. Have this. And two shards off Hollow Point. You\'re not getting the whole thing in one go.')],
+    next:'Collect 5 Hollow Point shards to forge it. More stock at the pro shop. Captain Hartley is waiting.',rematch:'Lucky again. Take it and stop smiling.',
     draw:'A draw? I\'ll take that as a moral victory.',lose:['Did you see that drive? Course you did.','Come back when you can keep up.']},
-  duncan:{flag:'champion',played:'duncanPlayed',club:'kestrel',clubText:'Kestrel (Epic 9 iron)',again:150,bonus:{coins:500,kits:1},
+  duncan:{flag:'champion',played:'duncanPlayed',
     win:[N('duncan','Twelve years.'),N('duncan','...Well. The club\'s in good hands.'),N('duncan','The Kestrel. It drops out of the sky and stops. Look after it, champion.')],
-    next:'Chapter 1 complete. You\'re the Ashby Green Club Champion.',rematch:'Still got it. 150 coins, champion.',
+    next:'Chapter 1 complete. You\'re the Ashby Green Club Champion.',rematch:'Still got it, champion.',
     draw:'Level after nine? Then neither of us is done yet.',lose:['Not today.','Come back when you\'re ready. I\'ll be here. I always am.']}
 };
 function afterMatch(id,res){
-  const f=SF(),M=MATCH[id];
+  const f=SF(),M=MATCH[id],name=RIVALS[id].name;
   f[M.played]=true;
   if(res==='win'&&!f[M.flag]){
     f[M.flag]=true;
-    if(!save.owned[M.club])save.owned[M.club]={lvl:1,xp:0,tuned:[]};
-    const extra=[];
-    if(M.bonus){save.coins+=M.bonus.coins;save.kits+=M.bonus.kits;extra.push(NARR(`Champion's purse: ${M.bonus.coins} coins and a tuning kit.`))}
+    let lines;
+    if(id==='duncan'){lines=[...grant({t:'club',c:'kestrel'}),...grant({t:'coins',n:500}),...grant({t:'kit',n:1})]}
+    else lines=[...grant({t:'rare'}),...grant({t:'shard',c:M.shard,n:2})];
     persist();updateGoal();updateCoins();
-    return say([...M.win,NARR(`${M.clubText} added to your collection. Put it in your bag from the Bag button.`),...extra,NARR(M.next)]);
+    return say(M.win,()=>showLoot(id==='duncan'?'Champion\'s prize':`Beat ${name} · first win`,lines,()=>say([NARR(M.next)])));
   }
-  if(res==='win'){save.coins+=M.again;persist();updateCoins();return say([N(id,M.rematch)])}
+  if(res==='win'){const lines=openBag(id,1);updateCoins();return say([N(id,M.rematch)],()=>showLoot(`Beat ${name} · rematch`,lines))}
   persist();
   if(res==='draw')return say([N(id,M.draw)]);
   return say(M.lose.map(t=>N(id,t)));
@@ -1664,7 +1773,7 @@ function drawWorld(){
 function worldFrame(dt){worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.3';
+const GAME_VERSION='0.4';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -1751,7 +1860,7 @@ function openMenu(screen){
       let data;try{data=JSON.parse(decodeURIComponent(escape(atob(code))));if(!data||!data.save||!data.save.owned)throw 0}catch(e){$('#bkMsg').textContent='That code doesn\'t look right. Copy the whole code and try again.';return}
       if(!armed){armed=true;$('#bkGo').textContent='Tap again to replace this save';$('#bkMsg').textContent='This replaces the progress on this device.';return}
       try{for(const [k,v] of Object.entries(data.ls||{}))localStorage.setItem(k,v)}catch(e){}
-      save=data.save;persist();best=data.best||null;try{if(best)localStorage.setItem('fsl-best-round',best)}catch(e){}
+      save=data.save;ensureSave();persist();best=data.best||null;try{if(best)localStorage.setItem('fsl-best-round',best)}catch(e){}
       me.x=save.story?save.story.x:320;me.y=save.story?save.story.y:840;
       $('#bkGo').textContent='Restore';armed=false;$('#bkMsg').textContent=`Restored: ${save.coins} coins, ${DEFS.filter(d=>save.owned[d.id]).length} clubs.`;
     };
@@ -1767,7 +1876,7 @@ function openMenu(screen){
   }
   const resume=gameOn&&state!=='done';
   const where=mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
-  b.innerHTML=`<div class="menu-hero"><div class="k">A golf RPG</div><div class="menu-title">Fairway<br><span>Tales</span></div><div class="blurb">9 holes · par ${COURSE_PAR}${best?` · Best solo round ${best}`:''}</div></div>
+  b.innerHTML=`<div class="menu-hero"><div class="k">A golf RPG</div><div class="menu-title">Fairway<br><span>Tales</span></div><div class="blurb">Handicap ${hcpLabel()}${best?` · Best round ${best}`:''}</div></div>
     ${resume?`<button id="mResume" class="mbtn pri"><b>Resume</b><span>${esc(where)}</span></button>`:''}
     <button id="mStory" class="mbtn"><b>Story · Chapter 1</b><span>${SF().champion?'Ashby Green Club Champion. Chapter 2 coming soon.':SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
     <button id="mSolo" class="mbtn"><b>Solo round</b><span>9 holes with your own bag. Earn coins and club XP.</span></button>

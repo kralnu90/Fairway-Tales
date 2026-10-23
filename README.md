@@ -14,7 +14,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Solo round:** 9 holes, par 36. Earn coins and club XP.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice:** any hole, unlimited undo.
-- **Bag & pro shop:** 26 clubs to collect, level and tune up.
+- **Bag & pro shop:** 30 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
 ## How to play
@@ -27,6 +27,15 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.4 · 23 October 2026
+- **Handicap:** worked out from your best 3 of your last 5 solo rounds or Club Championships. Shown on the menu and in the shop.
+- **Pro shop tiers:** lower your handicap to unlock better stock (28, 20, then the new Tour line at 12).
+- **Tour line:** four new Epics in the shop: Apex Tour, Arrowhead, Scalpel, Velvet.
+- **Loot:** rival rematches and par-or-better solo rounds open reward bags with weighted drops.
+- **Shards:** first wins give a Rare club plus 2 shards. Collect 5 to forge Gale Breaker, Backdraft or Hollow Point.
+- **Safety net:** never more than 6 plain drops in a row.
+- **Duplicates** turn into XP for that club (or a tuning kit if it's maxed).
 
 ### 0.3 · 23 October 2026
 - New **Leave a review** button on the main menu. Rate the game and say what you'd change, and it goes straight to the developer.
