@@ -10,7 +10,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 
 ## What's in it
 
-- **Story · Chapter 1:** walk around Ashby Green, meet the members and take on your first rival, Toby Crane.
+- **Story · Chapter 1:** walk around Ashby Green, meet the members, beat Toby, Dot and Marcus, then win the Club Championship.
 - **Solo round:** 9 holes, par 36. Earn coins and club XP.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice:** any hole, unlimited undo.
@@ -23,8 +23,15 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Strike ball:** drag the dot for topspin, backspin, draw or fade.
 - **Putt:** pull down on the pad and let go. Chevrons on the green show the slope.
 - **Changed your mind?** Slide your thumb into the red zone to cancel a swing.
+- **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.2 · 23 October 2026
+- Chapter 1 complete: new rivals Dot Ainsworth and Marcus Vane, and a 9-hole Club Championship against Duncan Moray.
+- Rival rewards: Backdraft, Hollow Point and Kestrel.
+- New pro shop stock unlocks as you beat rivals: Dart, Low Rider, Featherweight.
+- One Mulligan per round (like a provisional ball) and one green read per hole. Practice still has unlimited undo.
 
 ### 0.1 · 23 October 2026
 - Renamed to Fairway Tales.

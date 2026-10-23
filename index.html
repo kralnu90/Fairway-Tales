@@ -322,7 +322,10 @@ const SURF={
 const TYPES=['driver','wood3','iron5','iron7','iron9','pw','sw','putter']; // same order as CLUBS
 const TYPE_NAME={driver:'Driver',wood3:'3 Wood',iron5:'5 Iron',iron7:'7 Iron',iron9:'9 Iron',pw:'Pitching Wedge',sw:'Sand Wedge',putter:'Putter'};
 const RAR={common:{n:'Common',col:'#b8c4b0'},rare:{n:'Rare',col:'#6fb3e8'},epic:{n:'Epic',col:'#c58af0'},legendary:{n:'Legendary',col:'#f2c14e'}};
-const SRC={rival:'Beat a rival · coming with chapter 1',daily:'Daily challenge drop · coming soon',hidden:'Secret course challenge · coming soon'};
+const UNLOCK_TEXT={beatToby:'Arrives at the pro shop once you beat Toby Crane',beatDot:'Arrives at the pro shop once you beat Dot Ainsworth',beatMarcus:'Arrives at the pro shop once you beat Marcus Vane'};
+const storyFlags=()=>(save.story&&save.story.flags)||{};
+const inStock=d=>d.src==='shop'&&(!d.unlock||storyFlags()[d.unlock]);
+const SRC={rival:'Beat a rival in Story mode',daily:'Daily challenge drop · coming soon',hidden:'Secret course challenge · coming soon'};
 const DEFS=[
   {id:'cd',t:'driver',n:'Clubhouse Driver',r:'common',st:[6,5,4,6],f:['P'],src:'starter'},
   {id:'thunder',t:'driver',n:'Thunderhead',r:'rare',st:[11,4,5,5],f:['P'],src:'shop',price:2400,blurb:'Massive carry. Mind the miss.'},
@@ -331,20 +334,23 @@ const DEFS=[
   {id:'sun',t:'driver',n:'Sunforged',r:'legendary',st:[14,10,8,10],f:['P','F'],src:'hidden',perk:'roll',perkText:'+25% rollout on every landing.'},
   {id:'c3',t:'wood3',n:'Clubhouse 3 Wood',r:'common',st:[6,5,4,6],f:['C'],src:'starter'},
   {id:'finder',t:'wood3',n:'Fairway Finder',r:'rare',st:[7,9,4,9],f:['F'],src:'shop',price:1800,blurb:'Sweeps it clean from any lie.'},
-  {id:'hollow',t:'wood3',n:'Hollow Point',r:'epic',st:[12,8,6,7],f:['P'],src:'daily',blurb:'A second driver you can hit off the deck.'},
+  {id:'hollow',t:'wood3',n:'Hollow Point',r:'epic',st:[12,8,6,7],f:['P'],src:'rival',srcText:'Beat Marcus Vane in Story mode',blurb:'A second driver you can hit off the deck.'},
   {id:'c5',t:'iron5',n:'Clubhouse 5 Iron',r:'common',st:[6,5,5,5],f:['C'],src:'starter'},
   {id:'longbow',t:'iron5',n:'Longbow',r:'rare',st:[9,8,6,6],f:['P'],src:'shop',price:1500,blurb:'Long irons made friendly.'},
   {id:'c7',t:'iron7',n:'Clubhouse 7 Iron',r:'common',st:[5,6,5,5],f:['C'],src:'starter'},
   {id:'blade7',t:'iron7',n:'Blade 7',r:'rare',st:[6,10,8,4],f:['C','S'],src:'shop',price:1500,blurb:'Precise and spinny. Unforgiving.'},
+  {id:'lowrider',t:'iron5',n:'Low Rider',r:'rare',st:[7,9,6,8],f:['F'],src:'shop',price:1500,unlock:'beatDot',blurb:'Punches it under the wind.'},
   {id:'c9',t:'iron9',n:'Clubhouse 9 Iron',r:'common',st:[5,6,5,5],f:['S'],src:'starter'},
-  {id:'kestrel',t:'iron9',n:'Kestrel',r:'epic',st:[7,10,11,7],f:['S','C'],src:'hidden',blurb:'Drops out of the sky and stops.'},
+  {id:'dart',t:'iron9',n:'Dart',r:'rare',st:[6,10,9,5],f:['C'],src:'shop',price:1500,unlock:'beatToby',blurb:'Throws darts at flags.'},
+  {id:'kestrel',t:'iron9',n:'Kestrel',r:'epic',st:[7,10,11,7],f:['S','C'],src:'rival',srcText:'Win the Club Championship in Story mode',blurb:'Drops out of the sky and stops.'},
   {id:'cpw',t:'pw',n:'Clubhouse Wedge',r:'common',st:[5,6,6,5],f:['S'],src:'starter'},
   {id:'pitch',t:'pw',n:'Pitch Perfect',r:'rare',st:[6,9,10,6],f:['S'],src:'shop',price:1200,blurb:'Checks up on demand.'},
   {id:'csw',t:'sw',n:'Clubhouse Sand Wedge',r:'common',st:[5,5,6,6],f:['F'],src:'starter'},
   {id:'viper',t:'sw',n:'Sand Viper',r:'rare',st:[5,7,8,10],f:['F'],src:'shop',price:1200,perk:'sand',perkText:'No distance lost from bunkers.'},
-  {id:'backdraft',t:'sw',n:'Backdraft',r:'epic',st:[6,9,14,7],f:['S'],src:'rival',perk:'spinback',perkText:'Spin-back is 50% stronger.'},
+  {id:'backdraft',t:'sw',n:'Backdraft',r:'epic',st:[6,9,14,7],f:['S'],src:'rival',srcText:'Beat Dot Ainsworth in Story mode',perk:'spinback',perkText:'Spin-back is 50% stronger.'},
   {id:'cput',t:'putter',n:'Clubhouse Putter',r:'common',st:[0,6,0,5],f:['C'],src:'starter'},
   {id:'trueroll',t:'putter',n:'True Roll',r:'rare',st:[0,10,0,7],f:['C'],src:'shop',price:1800,blurb:'Starts it on your line.'},
+  {id:'feather',t:'putter',n:'Featherweight',r:'rare',st:[0,9,0,10],f:['F'],src:'shop',price:1800,unlock:'beatMarcus',blurb:'Soft face, big sweet spot.'},
   {id:'hawkeye',t:'putter',n:'Hawkeye',r:'epic',st:[0,10,0,10],f:['F'],src:'daily',perk:'capture',perkText:'The cup plays 40% bigger.'},
   {id:'oracle',t:'putter',n:'Oracle',r:'legendary',st:[0,14,0,13],f:['C','F'],src:'hidden',perk:'capture',perkText:'The cup plays 40% bigger.'}
 ];
@@ -501,7 +507,7 @@ function loadHole(i){
   // Honours: on later holes the best score on the previous hole tees off first
   order=players.map((_,k)=>k);
   if(i>0&&mode==='pnp')order.sort((a,b)=>(players[a].scores[i-1]||99)-(players[b].scores[i-1]||99)||a-b);
-  for(const p of players){p.ball={x:0,y:1};p.strokes=0;p.holed=false}
+  for(const p of players){p.ball={x:0,y:1};p.strokes=0;p.holed=false;p.pvUsed=false}
   state='ready'; clearUndo(); gameOn=true;
   $('#end').hidden=true; $('#toast').hidden=true;
   useTurn(order[0]);
@@ -516,14 +522,14 @@ function loadHole(i){
 // Start a game. cfg: {mode, names?, hole?}
 let lastCfg={mode:'solo'};
 function startGame(cfg){
-  lastCfg=cfg; mode=cfg.mode;
+  lastCfg=cfg; mode=cfg.mode; mulls=(mode==='solo'||mode==='rival')?1:0;
   const names=cfg.mode==='pnp'?cfg.names:['You'];
   $('#world').hidden=true; worldOn=false;
   if(cfg.mode==='rival')rival=makeRival(cfg.rival);
   players=names.map((n,k)=>({name:n,col:PCOLS[k],ball:{x:0,y:1},strokes:0,holed:false,scores:[]}));
   pi=0; scores=players[0].scores;
   $('#menu').hidden=true;
-  loadHole(cfg.mode==='practice'?cfg.hole:0);
+  loadHole(cfg.mode==='practice'?cfg.hole:cfg.mode==='rival'?rival.s:0);
 }
 const newRound=()=>startGame(lastCfg);
 function storeTurn(){const p=players[pi];p.ball={...ball};p.strokes=strokes}
@@ -582,7 +588,6 @@ function hud(){
   $('#who').hidden=!multi;
   if(multi)$('#who').innerHTML=`<i style="background:${P.col}"></i>${esc(P.name)}`;
   $('#bagBtn').hidden=mode==='pnp'; $('#cardBtn').hidden=mode==='practice';
-  $('#undo').hidden=mode==='pnp'||mode==='rival';
   $('#clubName').textContent=ed.n;
   $('#clubName').style.color=ed.r==='common'?'':RAR[ed.r].col;
   $('#clubCarry').textContent=c.putter?`Lv ${lv}`:`${carryOf(ci)} yds · Lv ${lv}`;
@@ -590,7 +595,7 @@ function hud(){
   const onG=s==='green'||s==='fringe'; $('#slope').hidden=!onG;
   if(onG)$('#slope').textContent=`${slopeWord(ball.x,ball.y)} slope`;
   $('#topin').textContent=`${fmtDist(dist(ball,PIN),c.putter)} to pin`;
-  $('#preview').hidden=!c.putter||mode==='rival';
+  $('#preview').hidden=!c.putter; previewBtn(); undoBtn();
   $('#spin').hidden=c.putter; $('.stage').classList.toggle('has-spin',!c.putter);
   $('#padHint').textContent=c.putter?'Pull down and let go':'Swipe down · pause · swipe up';
 }
@@ -656,6 +661,7 @@ function startPutt(r){
   const a=angTo(ball,aim)+r.tilt*tiltK()*RAD;
   const v=Math.sqrt(2*SURF.green.fric*r.yd);
   saveUndo();
+  if(previewAvail()&&mode!=='practice')players[pi].pvUsed=true;
   shotStart={...ball}; shotClub=club(); strokes++; lastDry={...ball};
   vel={x:Math.sin(a)*v,y:Math.cos(a)*v}; trace=[]; frozen=null;
   flight={head:`<b>Putt</b> · hit for ${Math.round(r.yd*3)} ft`,cap:capR(),putt:true}; state='roll'; lipped=false; $('#toast').hidden=true;
@@ -718,7 +724,7 @@ function cardHTML(){
     const tot=p.scores.reduce((a,s)=>a+(s||0),0);
     return `<tr class="now"><th class="pn">${multi?`<span class="who"><i style="background:${p.col}"></i>${esc(p.name)}</span>`:'Score'}</th>${sc}<td class="tot">${tot||'–'}</td></tr>`}).join('');
   let rrow='';
-  if(mode==='rival'&&rival){const shown=k=>k<rival.holes&&scores[k]!=null;
+  if(mode==='rival'&&rival){const shown=k=>k>=rival.s&&k<rival.s+rival.holes&&scores[k]!=null;
     rrow=`<tr class="now"><th class="pn"><span class="who"><i style="background:${rival.col}"></i>${esc(rival.name.split(' ')[0])}</span></th>${HOLES.map((h,k)=>`<td>${shown(k)?scoreCell(rival.scores[k],h.par):''}</td>`).join('')}<td class="tot">${rival.scores.filter((_,k)=>shown(k)).reduce((a,b)=>a+b,0)||'–'}</td></tr>`}
   return `<div class="card-wrap"><table class="card"><tr><th>Hole</th>${head}<td class="tot">Tot</td></tr><tr><th>Par</th>${pars}<td class="tot">${COURSE_PAR}</td></tr>${rows}${rrow}</table></div>`;
 }
@@ -763,32 +769,43 @@ function endHole(){
 }
 /* ---------- Rival matches (story mode) ---------- */
 let rival=null;
-const RIVALS={toby:{name:'Toby Crane',col:'#e05a4f',holes:3,odds:[[-1,.15],[0,.5],[1,.3],[2,.05]]}};
+// s = first hole, odds = chance of each score against par, quips = what they say when they win, halve or lose a hole
+const RIVALS={
+  toby:{name:'Toby Crane',col:'#e05a4f',s:0,holes:3,odds:[[-1,.15],[0,.5],[1,.3],[2,.05]],
+    quips:{won:['Too easy.','Read it and weep.'],half:['Fine. Next.'],lost:['The wind gusted.','Whatever.']}},
+  dot:{name:'Dot Ainsworth',col:'#2a7f8f',s:3,holes:3,odds:[[-1,.12],[0,.66],[1,.2],[2,.02]],
+    quips:{won:['Lovely.','Steady wins it, dear.'],half:['Honours even.'],lost:['Oh, well struck!','Good for you, dear.']}},
+  marcus:{name:'Marcus Vane',col:'#ff6a1a',s:6,holes:3,odds:[[-2,.07],[-1,.28],[0,.22],[1,.25],[2,.18]],
+    quips:{won:['Boom. Did you see that?','The sponsors will love that.'],half:['Should have been a birdie.'],lost:['These greens are a disgrace.','My glove slipped.']}},
+  duncan:{name:'Duncan Moray',col:'#7a2430',s:0,holes:9,title:'Club Championship',odds:[[-1,.22],[0,.56],[1,.19],[2,.03]],
+    quips:{won:['Aye.','That\'s how it\'s done.'],half:['Hm.'],lost:['Good shot.','You\'ve been practising.']}}
+};
 function makeRival(id){
   const R=RIVALS[id];
   // the rival's score on each hole is rolled before you tee off, and revealed once you hole out
-  const scores=HOLES.slice(0,R.holes).map(h=>{let r=Math.random(),d=0;for(const [v,p] of R.odds){if(r<p){d=v;break}r-=p}return h.par+d});
+  const scores=[];for(let k=R.s;k<R.s+R.holes;k++){let r=Math.random(),d=0;for(const [v,p] of R.odds){if(r<p){d=v;break}r-=p}scores[k]=HOLES[k].par+d}
   return{id,...R,scores};
 }
-function rivalTotals(upTo){let me=0,him=0;for(let k=0;k<=upTo;k++){me+=scores[k]||0;him+=rival.scores[k]}return{me,him}}
+function rivalTotals(upTo){let me=0,him=0;for(let k=rival.s;k<=upTo;k++){me+=scores[k]||0;him+=rival.scores[k]}return{me,him}}
 function rivalLine(){
   if(!rival)return '';
-  const done=scores.filter(x=>x!=null).length;
-  if(!done)return `vs ${rival.name.split(' ')[0]}`;
-  const t=rivalTotals(done-1),d=t.him-t.me;
+  let lastDone=-1;for(let k=rival.s;k<rival.s+rival.holes;k++)if(scores[k]!=null)lastDone=k;
+  if(lastDone<0)return `vs ${rival.name.split(' ')[0]}`;
+  const t=rivalTotals(lastDone),d=t.him-t.me;
   return d===0?'All square':d>0?`${d} up`:`${-d} down`;
 }
 function endHoleRival(){
-  const h=holeIdx,mine=scores[h],his=rival.scores[h],t=rivalTotals(h),d=t.him-t.me,last=h===rival.holes-1;
-  const first=rival.name.split(' ')[0];
+  const h=holeIdx,mine=scores[h],his=rival.scores[h],t=rivalTotals(h),d=t.him-t.me,last=h===rival.s+rival.holes-1;
+  const first=rival.name.split(' ')[0],label=rival.title||`${rival.name} match`;
   const lead=d===0?'All square':d>0?`You lead by ${d}`:`${first} leads by ${-d}`;
+  const qs=rival.quips[his<mine?'won':his===mine?'half':'lost'],quip=`<div class="blurb">“${esc(qs[Math.floor(Math.random()*qs.length)])}” · ${esc(first)}</div>`;
   if(!last){
-    showEnd(`<div class="k">${esc(rival.name)} match · Hole ${h+1} of ${rival.holes}</div><div class="big">${lead}</div><div class="sub">You ${mine} · ${esc(first)} ${his}</div>${cardHTML()}<div class="btns"><button id="nextHole" class="btn">Hole ${h+2}</button></div>`);
+    showEnd(`<div class="k">${esc(label)} · Hole ${h-rival.s+1} of ${rival.holes}</div><div class="big">${lead}</div><div class="sub">You ${mine} · ${esc(first)} ${his}</div>${quip}${cardHTML()}<div class="btns"><button id="nextHole" class="btn">Hole ${h+2}</button></div>`);
     $('#nextHole').onclick=()=>loadHole(h+1);
     return;
   }
   const res=d>0?'win':d<0?'lose':'draw';
-  showEnd(`<div class="k">${esc(rival.name)} match · Final</div><div class="big">${res==='win'?'You win!':res==='lose'?`${esc(first)} wins`:'All square'}</div><div class="sub">You ${t.me} · ${esc(first)} ${t.him} over ${rival.holes} holes</div>${cardHTML()}<div class="btns"><button id="toClub" class="btn">Back to the club</button></div>`);
+  showEnd(`<div class="k">${esc(label)} · Final</div><div class="big">${res==='win'?'You win!':res==='lose'?`${esc(first)} wins`:'All square'}</div><div class="sub">You ${t.me} · ${esc(first)} ${t.him} over ${rival.holes} holes</div>${cardHTML()}<div class="btns"><button id="toClub" class="btn">Back to the club</button></div>`);
   gameOn=false;
   $('#toClub').onclick=()=>{$('#end').hidden=true;openWorld({after:{rival:rival.id,res}})};
 }
@@ -936,21 +953,29 @@ function simPutt(yd,tilt){
 }
 // Undo: one shot back in a solo round, as many as you like in practice, none in pass and play
 let undoStack=[];
-const undoLimit=()=>mode==='practice'?99:mode==='solo'?1:0; // rival matches and pass and play: none
+// Practice: unlimited undo. Solo and story matches: one Mulligan per round, like a provisional ball. Pass and play: none.
+let mulls=0;
+const undoLimit=()=>mode==='practice'?99:(mode==='solo'||mode==='rival')&&mulls>0?1:0;
+function undoBtn(){const b=$('#undo');b.hidden=mode==='pnp';b.textContent=mode==='practice'?'Undo':`Mulligan · ${mulls}`}
+// One putt preview per hole for each player, except in practice
+const previewAvail=()=>previewOn&&(mode==='practice'||!players[pi].pvUsed);
+function previewBtn(){const b=$('#preview');if(mode==='practice'){b.textContent='Preview';b.disabled=false;return}
+  const used=players[pi].pvUsed;b.disabled=used;b.textContent=used?'Read used':'Preview · 1'}
 function clearUndo(){undoStack=[];$('#undo').disabled=true}
 function saveUndo(){
   if(!undoLimit())return;
-  const id=eqId();undoStack.push({ball:{...ball},strokes,ci,aim:{...aim},cid:id,co:JSON.stringify(save.owned[id]||null)});
+  const id=eqId();undoStack.push({ball:{...ball},strokes,ci,aim:{...aim},cid:id,co:JSON.stringify(save.owned[id]||null),pv:!!players[pi].pvUsed});
   while(undoStack.length>undoLimit())undoStack.shift();
   $('#undo').disabled=true;
 }
 $('#undo').onclick=()=>{
   if(state!=='ready'||!undoStack.length)return;
   const u=undoStack.pop();
-  ({ball,strokes,ci}=u);ball={...ball};aim={...u.aim};
+  ({ball,strokes,ci}=u);ball={...ball};aim={...u.aim};players[pi].pvUsed=u.pv;
+  if(mode!=='practice'){mulls--;undoStack=[]}
   if(u.co!=='null'){save.owned[u.cid]=JSON.parse(u.co);persist()} // XP from the undone shot goes too
   trace=[];frozen=null;$('#undo').disabled=!undoStack.length;$('#toast').hidden=true;
-  $('#log').textContent=undoStack.length?`Shot undone. ${undoStack.length} more available.`:'Last shot undone.';hud();
+  $('#log').textContent=mode!=='practice'?'Mulligan taken. Replay the shot.':undoStack.length?`Shot undone. ${undoStack.length} more available.`:'Last shot undone.';hud();
 };
 
 /* ---------- Bag, pro shop & collection ---------- */
@@ -985,7 +1010,8 @@ function clubCard(id,mode){
     if(mode==='bag'){const n=DEFS.filter(x=>x.t===d.t&&x.id!==id&&save.owned[x.id]).length;acts.push(`<button class="sbtn" data-act="swap" data-t="${d.t}" ${n?'':'disabled'}>${n?`Swap (${n} more)`:`Only ${TYPE_NAME[d.t].toLowerCase()} you own`}</button>`)}
     else if(save.bag[d.t]!==id)acts.push(`<button class="sbtn" data-act="equip" data-id="${id}">Put in bag</button>`);
     else acts.push(`<span class="blurb">In your bag</span>`);
-  }else if(d.src==='shop')acts.push(`<button class="sbtn pri" data-act="buy" data-id="${id}" ${save.coins>=d.price?'':'disabled'}>Buy · ${d.price} coins</button>`);
+  }else if(d.src==='shop'&&!inStock(d))acts.push(`<span class="blurb">Locked · ${UNLOCK_TEXT[d.unlock]}</span>`);
+  else if(d.src==='shop')acts.push(`<button class="sbtn pri" data-act="buy" data-id="${id}" ${save.coins>=d.price?'':'disabled'}>Buy · ${d.price} coins</button>`);
   else if(SRC[d.src])acts.push(`<span class="blurb">Locked · ${d.srcText||SRC[d.src]}</span>`);
   if(acts.length)h+=`<div class="acts">${acts.join('')}</div>`;
   if(mode==='bag'&&swapOpen===d.t)h+=`<div class="swap">${DEFS.filter(x=>x.t===d.t&&x.id!==id&&save.owned[x.id]).map(x=>`<div class="swap-row"><span style="color:${RAR[x.r].col}">${x.n} · Lv ${save.owned[x.id].lvl}</span><button class="sbtn" data-act="equip" data-id="${x.id}">Equip</button></div>`).join('')}</div>`;
@@ -999,8 +1025,9 @@ function renderSheet(){
   if(sheetTab==='bag')h=TYPES.map(t=>clubCard(save.bag[t],'bag')).join('');
   else if(sheetTab==='shop'){
     h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. You also earn one for finishing a round under par.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
-    const forSale=DEFS.filter(d=>d.src==='shop'&&!save.owned[d.id]);
-    h+=forSale.length?forSale.map(d=>clubCard(d.id,'shop')).join(''):`<div class="blurb">You own everything in the shop. New stock arrives with chapter 1.</div>`;
+    const forSale=DEFS.filter(d=>inStock(d)&&!save.owned[d.id]),coming=DEFS.filter(d=>d.src==='shop'&&!inStock(d)).length;
+    h+=forSale.length?forSale.map(d=>clubCard(d.id,'shop')).join(''):`<div class="blurb">You own everything in stock.</div>`;
+    if(coming)h+=`<div class="blurb">${coming} more club${coming>1?'s':''} arriving as you beat the members of Ashby Green.</div>`;
   }else{
     h+=`<div class="blurb">${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs collected</div>`;
     for(const t of TYPES)h+=`<div class="group-h">${TYPE_NAME[t]}</div>`+DEFS.filter(d=>d.t===t).map(d=>clubCard(d.id,'all')).join('');
@@ -1155,7 +1182,7 @@ function draw(){
   }
   // putt preview: live while pulling back, otherwise a putt struck the aim distance
   previewEnd=null;
-  if(state==='ready'&&c.putter&&previewOn&&mode!=='rival'){
+  if(state==='ready'&&c.putter&&previewAvail()){
     let yd=dist(ball,aim),tilt=0;
     if(sw&&sw.putt){const back=Math.max(0,sw.low.y-sw.s.y);yd=Math.pow(Math.min(1,back/(PH*.7)),1.3)*30;tilt=Math.atan2(sw.low.x-sw.s.x,Math.max(1,back))/RAD}
     if(yd>.1){
@@ -1211,7 +1238,7 @@ const BUILDINGS=[
   {id:'shop',x:462,y:420,w:132,h:96,roof:'#2f6b5a',ridge:'#22514a',wall:'#f2ead6',sign:'PRO SHOP',door:528},
   {id:'hut',x:52,y:262,w:74,h:54,roof:'#6b4a2e',ridge:'#563a22',wall:'#eadfc6',sign:'STARTER',door:89}
 ];
-const CARS=[{x:206,y:792,c:'#c0392b'},{x:256,y:792,c:'#2e6fb5'},{x:398,y:792,c:'#e3e3dc'},{x:448,y:792,c:'#2c2f33'},{x:498,y:792,c:'#e0a526'}];
+const CARS=[{x:206,y:792,c:'#c0392b'},{x:256,y:792,c:'#2e6fb5'},{x:398,y:792,c:'#e3e3dc'},{x:448,y:792,c:'#2c2f33'},{x:498,y:792,c:'#ff6a1a',sport:true}];
 const POND={x:510,y:672,rx:78,ry:50};
 const PGREEN={x:160,y:520,rx:96,ry:58};
 const TEEBOX={x:30,y:120,w:132,h:74};
@@ -1250,10 +1277,13 @@ const NPCS=[
   {id:'reg',name:'Reg the Starter',x:150,y:300,face:2,look:{skin:'#e8b892',hair:'#bdb6a8',top:'#2f5d8a',legs:'#3d3a35',cap:'#6b5a42',flat:true}},
   {id:'dev',name:'Dev',x:500,y:540,face:0,look:{skin:'#b8794f',hair:'#1f1a17',top:'#f2ead6',legs:'#2f3640',extra:'apron',beard:true}},
   {id:'mags',name:'Mags',x:268,y:556,face:3,look:{skin:'#efc19d',hair:'#b5562e',top:'#3f7a3a',legs:'#3f7a3a',cap:'#2c5a33',extra:'rake'}},
+  {id:'dot',name:'Dot Ainsworth',x:206,y:500,face:1,look:{skin:'#f3d3b8',hair:'#efece6',top:'#2a7f8f',legs:'#d9cfb8',cap:'#f4f4f0',extra:'club'}},
+  {id:'marcus',name:'Marcus Vane',x:516,y:762,face:0,look:{skin:'#8d5a3b',hair:'#141414',top:'#15181f',legs:'#e8e3d8',cap:'#ff6a1a',shades:true}},
+  {id:'duncan',name:'Duncan Moray',x:282,y:338,face:0,look:{skin:'#f0c8a8',hair:'#c9c2b6',top:'#7a2430',legs:'#3b3f45',cap:'#4a4a3a',flat:true,beard:true}},
   {id:'pip',name:'Pip',x:420,y:640,face:1,dog:true,home:{x0:330,x1:600,y0:590,y1:760}}
 ];
 const NPC=Object.fromEntries(NPCS.map(n=>[n.id,n]));
-const FACE_COL={hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
+const FACE_COL={dot:'#2a7f8f',marcus:'#ff6a1a',duncan:'#7a2430',hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
 const PLAYER_LOOK={skin:'#f0c4a0',hair:'#5a3a22',top:'#f4f1e6',legs:'#3c4a5e',cap:'#1c3628'};
 let me={x:save.story.x,y:save.story.y,face:0,walk:0,moving:false};
 let target=null, holding=false, pendingTalk=null, stuckT=0;
@@ -1298,7 +1328,10 @@ const MAGS_TIPS=[
   'Hit the bottom of the ball for backspin. Lovely on Mill Pond, that is. It stops dead.',
   'Topspin off the tee and the ball runs and runs. Long Acre loves a runner.',
   'Make a mess of your backswing? Slide your thumb into the red and nobody\'s any the wiser.',
-  'Toby always plays it safe on Long Acre. Take the creek on and you can steal a shot off him.'
+  'Toby always plays it safe on Long Acre. Take the creek on and you can steal a shot off him.',
+  'Dot never misses a fairway. You won\'t beat her by playing safe, you\'ll need a birdie somewhere.',
+  'Marcus goes for everything. Some days it\'s eagles, some days it\'s the lake on Windgate. Stay patient.',
+  'You get one Mulligan a round, and one proper read of each green. Save the read for the long putts.'
 ];
 function talk(id){
   const f=SF(),n=NPC[id];
@@ -1312,7 +1345,10 @@ function talk(id){
       N('hartley','Take him on over three holes. He\'s promised his Gale Breaker driver to anyone who beats him. Nobody has yet.')
     ],()=>{f.metCaptain=true;persist();updateGoal()});
     if(!f.beatToby)return say([N('hartley','Toby\'s on the 1st tee, just past the starter\'s hut. Go and show him how it\'s done.')]);
-    return say([N('hartley','You beat Toby Crane on your first day? Well, I never.'),N('hartley','Word travels fast round here. There\'ll be others wanting a crack at you soon enough.')]);
+    if(!f.beatDot)return say([N('hartley','You beat Toby Crane on your first day? Well, I never.'),N('hartley','Dot Ainsworth has been asking about you. Ladies\' champion four times, with a short game like a surgeon.'),N('hartley','She\'s on the practice green. Don\'t let the cardigan fool you.')]);
+    if(!f.beatMarcus)return say([N('hartley','Dot too! The bar\'s talking about nothing else.'),N('hartley','Marcus Vane wants a game. Hits it a mile, talks about it for two. You\'ll find him in the car park, admiring his car.')]);
+    if(!f.champion)return say([N('hartley','That leaves one. Duncan Moray, club champion twelve years running.'),N('hartley','The Club Championship is all nine holes. He\'s by the clubhouse door, if you\'re ready.')]);
+    return say([N('hartley','Our Club Champion! I knew it the day you walked in.'),N('hartley','The county qualifiers are coming up. Ashby Green has never sent anyone. Until now, perhaps.'),NARR('Chapter 2 is on its way.')]);
   }
   if(id==='toby'){
     if(!f.metCaptain)return say([N('toby','Do you mind? I\'m working on my takeaway.'),N('toby','Members on the 1st only. Go and say hello to the captain first, new kid.')]);
@@ -1321,9 +1357,34 @@ function talk(id){
     if(f.tobyPlayed)return say([N('toby','Back for more? Go on then. Same three holes, lowest total wins.',go)]);
     return say([
       N('toby','So you\'re the new member. Hartley sent you, didn\'t she?'),
-      N('toby','Three holes: The Spinney, Mill Pond, Long Acre. Lowest total wins. No mulligans, no putt previews.'),
+      N('toby','Three holes: The Spinney, Mill Pond, Long Acre. Lowest total wins. One mulligan, one read of each green.'),
       N('toby','Beat me and the Gale Breaker is yours. Lose and you\'re buying the drinks. Deal?',go)
     ]);
+  }
+  if(id==='dot'){
+    if(!f.beatToby)return say([N('dot','Lovely morning for it.'),N('dot','Come and find me once you\'ve sorted Toby out, dear. I\'ve heard he\'s been unbearable.')]);
+    const go=[{t:'Let\'s play',fn:()=>startRivalMatch('dot')},{t:'Not just now',fn:()=>say([N('dot','Whenever you\'re ready, dear.')])}];
+    if(f.beatDot)return say([N('dot','Fancy another? I\'ve been working on my lag putting.',go)]);
+    if(f.dotPlayed)return say([N('dot','Back for another go? Same three holes.',go)]);
+    return say([N('dot','So you\'re the one who sent Toby home sulking. Good. He needed it.'),N('dot','I don\'t hit it far, but I never hit it anywhere silly.'),
+      N('dot','Holes 4 to 6: Fox Corner, Barley Field, Heron\'s Reach. Beat me and you can have my Backdraft. It stops on a sixpence.',go)]);
+  }
+  if(id==='marcus'){
+    if(!f.beatDot)return say([N('marcus','Mind the paintwork.'),N('marcus','I only play people worth playing. Beat Dot Ainsworth and maybe we\'ll talk.')]);
+    const go=[{t:'Let\'s go',fn:()=>startRivalMatch('marcus')},{t:'Maybe later',fn:()=>say([N('marcus','Scared of a bit of distance? Fair enough.')])}];
+    if(f.beatMarcus)return say([N('marcus','Rematch. Today. I\'ve had a lesson.',go)]);
+    if(f.marcusPlayed)return say([N('marcus','Back for another beating? Holes 7 to 9.',go)]);
+    return say([N('marcus','Marcus Vane. You\'ve probably seen the car.'),N('marcus','Twin-turbo, carbon wheels, launch control. I\'d let you sit in it, but no.'),
+      N('marcus','Holes 7 to 9: The Chalk Pit, Windgate, Homeward. I go for everything.'),
+      N('marcus','Beat me and you get Hollow Point. A 3 wood that thinks it\'s a driver. Deal?',go)]);
+  }
+  if(id==='duncan'){
+    if(!f.beatMarcus)return say([N('duncan','...'),N('duncan','The champion doesn\'t play just anyone. Beat the others first.')]);
+    const go=[{t:'I\'m ready',fn:()=>startRivalMatch('duncan')},{t:'Not yet',fn:()=>say([N('duncan','Aye. Wise.')])}];
+    if(f.champion)return say([N('duncan','Defending champion now, are you? I\'ll take that title back one day.'),N('duncan','All nine again?',go)]);
+    if(f.duncanPlayed)return say([N('duncan','Back again. Good. All nine holes.',go)]);
+    return say([N('duncan','Duncan Moray. Twelve years club champion.'),N('duncan','The Club Championship is the full nine. No shortcuts, no excuses.'),
+      N('duncan','Win, and you\'re champion. And the Kestrel is yours. Won it in my first year here.',go)]);
   }
   if(id==='reg')return say([N('reg','Morning! I keep the tee sheet. Fancy a game?',[
     {t:'Full 9 holes on my own',fn:()=>startGame({mode:'solo'})},
@@ -1344,31 +1405,50 @@ function talk(id){
     return say([NARR(lines[Math.floor(Math.random()*lines.length)])]);
   }
 }
+// What happens back at the club after a story match
+const MATCH={
+  toby:{flag:'beatToby',played:'tobyPlayed',club:'gale',clubText:'Gale Breaker (Epic driver)',again:50,
+    win:[N('toby','...'),N('toby','Fine. Fair\'s fair. That was proper golf.'),N('toby','The Gale Breaker. Keeps the ball down in the wind. Look after it.')],
+    next:'Captain Hartley wants a word.',rematch:'Again?! Right. Here, 50 coins. Don\'t tell Hartley.',
+    draw:'All square? That doesn\'t count. Come back and we\'ll settle it properly.',lose:['Ha! Still unbeaten.','Get some practice in and come back. I\'ll be right here.']},
+  dot:{flag:'beatDot',played:'dotPlayed',club:'backdraft',clubText:'Backdraft (Epic sand wedge)',again:60,
+    win:[N('dot','Well played, dear. That\'s how it\'s done.'),N('dot','Here. The Backdraft. Hit the bottom of the ball and watch it spin back.')],
+    next:'New stock has arrived at the pro shop. And Captain Hartley has news.',rematch:'Lovely game. Here\'s 60 coins for the bar, dear.',
+    draw:'Honours even. Come back and we\'ll play it off.',lose:['Short game, dear. It\'s always the short game.','Come back when you\'re ready.']},
+  marcus:{flag:'beatMarcus',played:'marcusPlayed',club:'hollow',clubText:'Hollow Point (Epic 3 wood)',again:75,
+    win:[N('marcus','That was luck.'),N('marcus','...Mostly luck. Fine. Hollow Point. Don\'t scratch it.')],
+    next:'More stock at the pro shop. Captain Hartley is waiting.',rematch:'Lucky again. Take 75 coins and stop smiling.',
+    draw:'A draw? I\'ll take that as a moral victory.',lose:['Did you see that drive? Course you did.','Come back when you can keep up.']},
+  duncan:{flag:'champion',played:'duncanPlayed',club:'kestrel',clubText:'Kestrel (Epic 9 iron)',again:150,bonus:{coins:500,kits:1},
+    win:[N('duncan','Twelve years.'),N('duncan','...Well. The club\'s in good hands.'),N('duncan','The Kestrel. It drops out of the sky and stops. Look after it, champion.')],
+    next:'Chapter 1 complete. You\'re the Ashby Green Club Champion.',rematch:'Still got it. 150 coins, champion.',
+    draw:'Level after nine? Then neither of us is done yet.',lose:['Not today.','Come back when you\'re ready. I\'ll be here. I always am.']}
+};
 function afterMatch(id,res){
-  const f=SF();
-  if(id==='toby'){
-    const firstWin=res==='win'&&!f.beatToby;
-    f.tobyPlayed=true;
-    if(firstWin){
-      f.beatToby=true;
-      if(!save.owned.gale)save.owned.gale={lvl:1,xp:0,tuned:[]};
-      persist();updateGoal();
-      return say([N('toby','...'),N('toby','Fine. Fair\'s fair. That was proper golf.'),N('toby','The Gale Breaker. Keeps the ball down in the wind. Look after it.'),
-        NARR('Gale Breaker (Epic driver) added to your collection. Put it in your bag from the Bag button.'),
-        NARR('That\'s the end of this slice of chapter 1. More rivals are coming.')]);
-    }
-    if(res==='win'){save.coins+=50;persist();updateCoins();return say([N('toby','Again?! Right. Here, 50 coins. Don\'t tell Hartley.')])}
-    if(res==='draw')return say([N('toby','All square? That doesn\'t count. Come back and we\'ll settle it properly.')]);
-    persist();
-    return say([N('toby','Ha! Still unbeaten.'),N('toby','Get some practice in and come back. I\'ll be right here.')]);
+  const f=SF(),M=MATCH[id];
+  f[M.played]=true;
+  if(res==='win'&&!f[M.flag]){
+    f[M.flag]=true;
+    if(!save.owned[M.club])save.owned[M.club]={lvl:1,xp:0,tuned:[]};
+    const extra=[];
+    if(M.bonus){save.coins+=M.bonus.coins;save.kits+=M.bonus.kits;extra.push(NARR(`Champion's purse: ${M.bonus.coins} coins and a tuning kit.`))}
+    persist();updateGoal();updateCoins();
+    return say([...M.win,NARR(`${M.clubText} added to your collection. Put it in your bag from the Bag button.`),...extra,NARR(M.next)]);
   }
+  if(res==='win'){save.coins+=M.again;persist();updateCoins();return say([N(id,M.rematch)])}
+  persist();
+  if(res==='draw')return say([N(id,M.draw)]);
+  return say(M.lose.map(t=>N(id,t)));
 }
 function startRivalMatch(id){save.story.x=me.x;save.story.y=me.y;persist();startGame({mode:'rival',rival:id})}
 function updateGoal(){
   const f=SF();
   $('#wGoal').innerHTML=!f.metCaptain?'<b>Goal</b> · Find the club captain outside the clubhouse'
     :!f.beatToby?'<b>Goal</b> · Beat Toby Crane on the 1st tee'
-    :'<b>Done</b> · Toby beaten. More rivals coming soon';
+    :!f.beatDot?'<b>Goal</b> · Beat Dot Ainsworth on the practice green'
+    :!f.beatMarcus?'<b>Goal</b> · Beat Marcus Vane in the car park'
+    :!f.champion?'<b>Goal</b> · Win the Club Championship against Duncan Moray'
+    :'<b>Champion</b> · Chapter 1 complete. Chapter 2 coming soon';
 }
 const updateCoins=()=>{$('#wcoins').textContent=`${save.coins} coins`};
 
@@ -1474,6 +1554,7 @@ function drawPerson(c,p,look,t){
   // face
   if(f!==2){c.fillStyle='#1d1a17';const ex=f===1?-3:f===3?3:0;
     if(f===0){c.fillRect(-4,-31,2,2.5);c.fillRect(2,-31,2,2.5)}else c.fillRect(ex+(f===1?-1:0),-31,2,2.5);
+    if(look.shades){c.fillStyle='#111';if(f===0)c.fillRect(-6,-32,12,3.5);else c.fillRect(f===1?-7:1,-32,6,3.5)}
     c.fillStyle='rgba(225,120,110,.45)';if(f===0){c.beginPath();c.arc(-5,-27.5,1.6,0,7);c.arc(5,-27.5,1.6,0,7);c.fill()}}
   // cap
   if(look.cap){c.fillStyle=look.cap;c.beginPath();c.arc(0,-34,8.8,Math.PI,Math.PI*2);c.fill();
@@ -1515,6 +1596,7 @@ function drawCar(c,k){
   c.fillStyle='#1d2a33';c.beginPath();c.roundRect(k.x+5,k.y+12,26,12,3);c.fill();c.beginPath();c.roundRect(k.x+5,k.y+40,26,10,3);c.fill();
   c.fillStyle='rgba(255,255,255,.25)';c.fillRect(k.x+6,k.y+26,24,12);
   c.fillStyle='#f6e7a1';c.fillRect(k.x+4,k.y+1,7,3);c.fillRect(k.x+25,k.y+1,7,3);
+  if(k.sport){c.fillStyle='#111';c.fillRect(k.x+14,k.y,3,62);c.fillRect(k.x+19,k.y,3,62);c.fillStyle='#222';c.fillRect(k.x+3,k.y+58,30,4)}
 }
 function drawWorld(){
   const d=devicePixelRatio||1,c=wctx,z=wzoom,T=performance.now()/1000;
@@ -1561,7 +1643,7 @@ function drawWorld(){
   const f=SF(),near=nearNpc();
   c.font='800 9px "Nunito Sans",system-ui,sans-serif';c.textAlign='center';
   for(const n of NPCS){
-    const quest=(n.id==='hartley'&&!f.metCaptain)||(n.id==='toby'&&f.metCaptain&&!f.beatToby);
+    const quest=(n.id==='hartley'&&!f.metCaptain)||(n.id==='toby'&&f.metCaptain&&!f.beatToby)||(n.id==='dot'&&f.beatToby&&!f.beatDot)||(n.id==='marcus'&&f.beatDot&&!f.beatMarcus)||(n.id==='duncan'&&f.beatMarcus&&!f.champion);
     const top=n.dog?n.y-26:n.y-50;
     const tag=n===near||Math.hypot(n.x-me.x,n.y-me.y)<90;
     if(tag){const w=c.measureText(n.name).width+10;c.fillStyle='rgba(14,29,21,.8)';c.beginPath();c.roundRect(n.x-w/2,top-14,w,13,5);c.fill();c.fillStyle='#eef3e4';c.fillText(n.name,n.x,top-4)}
@@ -1628,10 +1710,10 @@ function openMenu(screen){
     return;
   }
   const resume=gameOn&&state!=='done';
-  const where=mode==='rival'&&rival?`${rival.name} match · hole ${holeIdx+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
+  const where=mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
   b.innerHTML=`<div class="menu-hero"><div class="k">A golf RPG</div><div class="menu-title">Fairway<br><span>Tales</span></div><div class="blurb">9 holes · par ${COURSE_PAR}${best?` · Best solo round ${best}`:''}</div></div>
     ${resume?`<button id="mResume" class="mbtn pri"><b>Resume</b><span>${esc(where)}</span></button>`:''}
-    <button id="mStory" class="mbtn"><b>Story · Chapter 1</b><span>${SF().beatToby?'Ashby Green Golf Club. Toby Crane beaten, more rivals coming.':SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
+    <button id="mStory" class="mbtn"><b>Story · Chapter 1</b><span>${SF().champion?'Ashby Green Club Champion. Chapter 2 coming soon.':SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
     <button id="mSolo" class="mbtn"><b>Solo round</b><span>9 holes with your own bag. Earn coins and club XP.</span></button>
     <button id="mPnp" class="mbtn"><b>Pass &amp; play</b><span>2 to 4 players on one phone. Everyone on the Clubhouse set.</span></button>
     <button id="mPractice" class="mbtn"><b>Practice</b><span>Pick any hole. Unlimited undo, no rewards.</span></button>
