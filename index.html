@@ -219,6 +219,30 @@ body.lefty .read{left:auto;right:14px}
 @keyframes meter{0%{height:0}30%{height:70px}45%{height:70px}62%{height:0}100%{height:0}}
 @media (prefers-reduced-motion:reduce){.demo-dot,.demo-line,.fly{animation:none}}
 @media (max-width:360px){.mgrid{grid-template-columns:1fr}}
+.app.editing>.hud:not(.ed-head),.app.editing>.clubrow,.app.editing>#pad,.app.editing>#log,.app.editing .chips,.app.editing .spin{display:none!important}
+.ed-head .k{margin-bottom:1px}
+.ed-panel{flex:none;max-height:min(48vh,360px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:4px;overscroll-behavior:contain}
+.ed-panel>*{flex:none}
+.tools{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tools button,.dirs button,.seg.small button{flex:none;min-height:40px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;font-size:13px;padding:0 12px;cursor:pointer}
+.tools button[aria-pressed="true"],.dirs button[aria-pressed="true"],.seg.small button[aria-pressed="true"]{background:var(--flag);color:#1d1a0e;border-color:var(--flag)}
+.dirs{display:flex;gap:4px;flex-wrap:wrap;flex:1}.dirs button{min-width:36px;flex:1;max-width:44px;padding:0;font-size:17px}
+.seg.small{flex:1;display:flex;gap:6px}.seg.small button{flex:1;font-family:inherit;font-size:13px;height:auto}
+.ed-ctx{display:flex;flex-direction:column;gap:8px;min-height:44px;justify-content:center}
+.ed-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ed-row label,.ed-lab{font-size:12px;font-weight:800;color:var(--muted);min-width:64px}
+.ed-row input[type=range]{flex:1;min-width:120px;accent-color:var(--flag)}
+.ed-row>span:last-child{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.ed-row input:not([type]),.ed-row input[type=text]{flex:1;min-width:0;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--chalk);font:inherit;font-weight:800;font-size:15px;padding:0 10px}
+.ed-hint,.ed-note{font-size:12px;font-weight:700;color:var(--muted);line-height:1.4}
+.ed-hint b{color:var(--chalk)}
+.ed-actions{display:flex;gap:8px}.ed-actions .sbtn{flex:1;height:42px}
+.ed-zoom{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.ed-zoom button{width:44px;height:40px;border-radius:12px;border:1px solid var(--line);background:rgba(14,29,21,.85);color:var(--chalk);font:inherit;font-weight:800;font-size:18px;cursor:pointer}
+.ed-zoom button:last-child{font-size:12px}
+.sel{width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--chalk);font:inherit;font-weight:800;font-size:15px;padding:0 10px}
+.crow .acts .sbtn{padding:0 10px}
+.hrow.static{cursor:default}.hrow.static .sbtn{height:34px;min-width:38px;padding:0 8px}
 .screen-h{display:flex;align-items:center;gap:10px;padding-top:8px}
 .screen-h .sheet-title{flex:1}
 .seg{display:flex;gap:6px}
@@ -259,6 +283,9 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
       <div><span id="windMph" class="v">0</span><span class="k">mph</span></div>
     </div>
   </header>
+  <header id="edHead" class="hud ed-head" hidden>
+    <div class="hole"><div class="k">Hole editor</div><div id="edName" class="hname">New hole</div><div id="edMeta" class="hmeta"></div></div>
+  </header>
 
   <div class="stage">
     <canvas id="course" aria-label="Golf hole. Drag to aim."></canvas>
@@ -276,6 +303,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
       </svg>
       <div id="spinLabel" class="spl">Centre</div>
     </div>
+    <div id="edZoom" class="ed-zoom" hidden><button id="edIn" aria-label="Zoom in">+</button><button id="edOut" aria-label="Zoom out">−</button><button id="edFitBtn">Fit</button></div>
     <div id="end" class="end" hidden></div>
   </div>
 
@@ -293,6 +321,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
     <div id="padRead" class="read"></div>
   </div>
   <div id="log" class="log">Drag anywhere on the course to nudge your aim, or tap to jump it.</div>
+  <div id="edPanel" class="ed-panel" hidden></div>
 </div>
 
 <div id="sheet" class="sheet" hidden>
@@ -502,7 +531,7 @@ const carryOf=i=>Math.round(CLUBS[i].c*(1+statsOf(bagOf(TYPES[i])).P*.008));
 function isCapped(o){return CAPS[o.lvl]&&!o.tuned.includes(o.lvl)}
 // Adds XP to the equipped club (solo rounds only); returns a short line for the shot toast
 function gainXp(amt){
-  if(mode!=='solo'&&mode!=='rival')return '';
+  if((mode!=='solo'&&mode!=='rival')||isCustom())return '';
   return addXp(eqId(),amt);
 }
 function addXp(id,amt){
@@ -633,19 +662,34 @@ function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay;let t=((px-ax)*dx+(p
 function polyDist(x,y,P){let m=1e9;for(let i=0;i<P.length-1;i++)m=Math.min(m,segDist(x,y,P[i][0],P[i][1],P[i+1][0],P[i+1][1]));return m}
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
-// Build each hole's trees, centre line and yardage stakes once (seeded, so every round looks the same)
-HOLES.forEach((h,hi)=>{
-  sd=11+hi*97; h.treesList=[];
+// Build a hole's trees, centre line, length, yardage stakes and bounds (seeded, so every round looks the same)
+function prepHole(h,hi){
+  if(!h.treesList){sd=11+hi*97; h.treesList=[];
   for(const [n0,x0,x1,y0,y1,r0,r1] of h.trees){let n=n0,tries=0;while(n>0&&tries++<900){
     const t={x:x0+rnd()*(x1-x0),y:y0+rnd()*(y1-y0),r:r0+rnd()*(r1-r0)};
     if(polyDist(t.x,t.y,h.fw)<h.hw+t.r+3||inEll(t.x,t.y,h.green,1.7)||(t.y<16&&Math.abs(t.x)<22))continue;
     if(h.water.some(w=>inEll(t.x,t.y,w,1.25))||h.bunkers.some(b=>inEll(t.x,t.y,b,1.5)))continue;
-    if(h.treesList.some(o=>Math.hypot(o.x-t.x,o.y-t.y)<(o.r+t.r)*.7))continue;h.treesList.push(t);n--;}}
+    if(h.treesList.some(o=>Math.hypot(o.x-t.x,o.y-t.y)<(o.r+t.r)*.7))continue;h.treesList.push(t);n--;}}}
   const P=[[0,0],...h.fw,[h.green.x,h.green.y]];h.cl=[];
   for(let i=0;i<P.length-1;i++){const[a,b]=[P[i],P[i+1]];const L=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let s=0;s<L;s+=1)h.cl.push({x:a[0]+(b[0]-a[0])*s/L,y:a[1]+(b[1]-a[1])*s/L})}
   h.cl.push({x:h.green.x,y:h.green.y}); h.len=h.cl.length-1;
   h.stakes=[[200,'#4c7fd6'],[150,'#f4f4f0'],[100,'#d8433a']].filter(([d])=>d<h.len-20).map(([d,col])=>{let best=h.cl[0],be=1e9;for(const p of h.cl){const e=Math.abs(dist(p,h.green)-d);if(e<be&&p.y<h.green.y){be=e;best=p}}return{...best,col}});
-});
+  if(!h.bounds)h.bounds=autoBounds(h);
+  return h;
+}
+function autoBounds(h){
+  let x0=-20,x1=20,y1=20;
+  const add=(x,y)=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y1=Math.max(y1,y)};
+  h.fw.forEach(p=>add(p[0],p[1]));
+  for(const e of [h.green,...h.water,...h.bunkers])add(e.x-e.rx*1.3,e.y+e.ry*1.3),add(e.x+e.rx*1.3,e.y-e.ry);
+  h.treesList.forEach(t=>add(t.x,t.y));
+  return{x0:Math.floor(x0-30),x1:Math.ceil(x1+30),y0:-14,y1:Math.ceil(y1+25)};
+}
+HOLES.forEach((h,hi)=>prepHole(h,hi));
+// The course being played: the built-in 9 holes, or a custom course from the creator
+let COURSE=HOLES;
+const isCustom=()=>COURSE!==HOLES;
+const coursePar=()=>COURSE.reduce((a,h)=>a+h.par,0);
 
 let H=HOLES[0];
 function surfaceAt(x,y){
@@ -677,11 +721,11 @@ let best=null; try{best=+localStorage.getItem('fsl-best-round')||null}catch(e){}
 const cam={x:20,y:190,s:2};
 
 const toPar=n=>n===0?'E':n>0?`+${n}`:`${n}`;
-const playedPar=()=>scores.reduce((a,s,i)=>a+(s?HOLES[i].par:0),0);
+const playedPar=()=>scores.reduce((a,s,i)=>a+(s?COURSE[i].par:0),0);
 const playedStrokes=()=>scores.reduce((a,s)=>a+(s||0),0);
 
 function loadHole(i){
-  holeIdx=i; H=HOLES[i];
+  holeIdx=i; H=COURSE[i];
   const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random())*.6;
   PIN={x:H.green.x+Math.cos(a)*r*H.green.rx,y:H.green.y+Math.sin(a)*r*H.green.ry};
   const wa=Math.random()*Math.PI*2, ws=Math.round(Math.random()*14);
@@ -706,6 +750,7 @@ function loadHole(i){
 let lastCfg={mode:'solo'};
 function startGame(cfg){
   lastCfg=cfg; mode=cfg.mode; mulls=(mode==='solo'||mode==='rival')?1:0;
+  COURSE=cfg.course||HOLES; exitEditorUI();
   const names=cfg.mode==='pnp'?cfg.names:['You'];
   $('#world').hidden=true; worldOn=false;
   if(cfg.mode==='rival')rival=makeRival(cfg.rival);
@@ -731,7 +776,7 @@ function nextTurn(){
   state='ready'; useTurn(n); showPass(false);
 }
 function standingsHTML(){
-  return players.map(p=>{const pl=p.scores.reduce((a,s,k)=>a+(s?HOLES[k].par:0),0),st=p.scores.reduce((a,s)=>a+(s||0),0);
+  return players.map(p=>{const pl=p.scores.reduce((a,s,k)=>a+(s?COURSE[k].par:0),0),st=p.scores.reduce((a,s)=>a+(s||0),0);
     return `<span class="chip who"><i style="background:${p.col}"></i>${esc(p.name)} ${toPar(st-pl)}</span>`}).join('');
 }
 function showPass(newHole){
@@ -917,16 +962,16 @@ function penalty(head){
 const NAMES={'-3':'Albatross','-2':'Eagle','-1':'Birdie','0':'Par','1':'Bogey','2':'Double Bogey','3':'Triple Bogey'};
 function scoreCell(s,par){if(!s)return '';const d=s-par,c=d<=-2?'uu':d===-1?'u':d===1?'o':d>=2?'oo':'';return `<span class="sc ${c}">${s}</span>`}
 function cardHTML(){
-  const head=HOLES.map((_,i)=>`<td>${i+1}</td>`).join(''),pars=HOLES.map(h=>`<td>${h.par}</td>`).join('');
+  const head=COURSE.map((_,i)=>`<td>${i+1}</td>`).join(''),pars=COURSE.map(h=>`<td>${h.par}</td>`).join('');
   const multi=players.length>1;
   const rows=players.map((p,k)=>{
-    const sc=HOLES.map((h,i)=>`<td class="${k===pi&&i===holeIdx&&!p.scores[i]?'cur':''}">${scoreCell(p.scores[i],h.par)}</td>`).join('');
+    const sc=COURSE.map((h,i)=>`<td class="${k===pi&&i===holeIdx&&!p.scores[i]?'cur':''}">${scoreCell(p.scores[i],h.par)}</td>`).join('');
     const tot=p.scores.reduce((a,s)=>a+(s||0),0);
     return `<tr class="now"><th class="pn">${multi?`<span class="who"><i style="background:${p.col}"></i>${esc(p.name)}</span>`:'Score'}</th>${sc}<td class="tot">${tot||'–'}</td></tr>`}).join('');
   let rrow='';
   if(mode==='rival'&&rival){const shown=k=>k>=rival.s&&k<rival.s+rival.holes&&scores[k]!=null;
     rrow=`<tr class="now"><th class="pn"><span class="who"><i style="background:${rival.col}"></i>${esc(rival.name.split(' ')[0])}</span></th>${HOLES.map((h,k)=>`<td>${shown(k)?scoreCell(rival.scores[k],h.par):''}</td>`).join('')}<td class="tot">${rival.scores.filter((_,k)=>shown(k)).reduce((a,b)=>a+b,0)||'–'}</td></tr>`}
-  return `<div class="card-wrap"><table class="card"><tr><th>Hole</th>${head}<td class="tot">Tot</td></tr><tr><th>Par</th>${pars}<td class="tot">${COURSE_PAR}</td></tr>${rows}${rrow}</table></div>`;
+  return `<div class="card-wrap"><table class="card"><tr><th>Hole</th>${head}<td class="tot">Tot</td></tr><tr><th>Par</th>${pars}<td class="tot">${coursePar()}</td></tr>${rows}${rrow}</table></div>`;
 }
 function showEnd(html){const e=$('#end');e.innerHTML=html;e.hidden=false}
 function holeOut(){
@@ -947,7 +992,8 @@ function endHole(){
   if(mode==='pnp')return setTimeout(endHolePnp,500);
   if(mode==='practice')return setTimeout(endHolePractice,700);
   if(mode==='rival')return setTimeout(endHoleRival,700);
-  const diff=strokes-H.par, last=holeIdx===HOLES.length-1;
+  if(isCustom())return setTimeout(endHoleCustom,700);
+  const diff=strokes-H.par, last=holeIdx===COURSE.length-1;
   // Rewards: coins per hole; a tuning kit only for finishing the round under par
   let coins=strokes===1?300:diff<=-2?150:diff===-1?60:diff===0?25:diff===1?10:0, kits=0;
   if(last)coins+=100;
@@ -960,7 +1006,7 @@ function endHole(){
       $('#nextHole').onclick=()=>loadHole(holeIdx+1);
       $('#endBag').onclick=()=>openSheet('bag');
     }else{
-      const tot=playedStrokes(),rel=tot-COURSE_PAR,isBest=!best||tot<best;
+      const tot=playedStrokes(),rel=tot-coursePar(),isBest=!best||tot<best;
       if(isBest){best=tot;try{localStorage.setItem('fsl-best-round',best)}catch(e){}}
       const hc=recordRound(rel,'solo'),bags=rel<0?2:rel===0?1:0;
       const bagBtn=bags?`<button id="openLoot" class="btn">Open reward bag${bags>1?` ×${bags}`:''}</button>`:'';
@@ -971,6 +1017,17 @@ function endHole(){
       gameOn=false;
     }
   },700);
+}
+function endHoleCustom(){
+  const diff=strokes-H.par,last=holeIdx===COURSE.length-1,label=strokes===1?'Hole in one!':(NAMES[diff]||`+${diff}`);
+  const nm=esc(lastCfg.courseName||'Custom course');
+  if(!last){
+    showEnd(`<div class="k">${nm} · Hole ${holeIdx+1} · ${esc(H.name)}</div><div class="big">${label}</div><div class="sub">${strokes} stroke${strokes>1?'s':''} · Round ${toPar(playedStrokes()-playedPar())}</div>${cardHTML()}<div class="btns"><button id="nextHole" class="btn">Hole ${holeIdx+2}</button></div>`);
+    $('#nextHole').onclick=()=>loadHole(holeIdx+1);return;
+  }
+  const tot=playedStrokes();
+  showEnd(`<div class="k">${nm} · Round complete</div><div class="big">${tot} (${toPar(tot-coursePar())})</div><div class="sub">Custom courses don't count towards your handicap or rewards.</div>${cardHTML()}<div class="btns"><button id="again" class="btn">Play again</button><button id="cMenu" class="btn alt">My courses</button></div>`);
+  $('#again').onclick=newRound;$('#cMenu').onclick=()=>openMenu('courses');gameOn=false;
 }
 /* ---------- Rival matches (story mode) ---------- */
 let rival=null;
@@ -1017,14 +1074,15 @@ function endHoleRival(){
 }
 function endHolePractice(){
   const diff=strokes-H.par,label=strokes===1?'Hole in one!':(NAMES[diff]||`+${diff}`);
-  showEnd(`<div class="k">Practice · Hole ${holeIdx+1} · ${H.name}</div><div class="big">${label}</div><div class="sub">${strokes} stroke${strokes>1?'s':''} on a par ${H.par}</div><div class="btns"><button id="pAgain" class="btn">Play it again</button>${holeIdx<HOLES.length-1?'<button id="pNext" class="btn alt">Next hole</button>':''}<button id="pMenu" class="btn alt">Menu</button></div>`);
+  showEnd(`<div class="k">Practice · Hole ${holeIdx+1} · ${H.name}</div><div class="big">${label}</div><div class="sub">${strokes} stroke${strokes>1?'s':''} on a par ${H.par}</div><div class="btns"><button id="pAgain" class="btn">Play it again</button>${holeIdx<COURSE.length-1&&!lastCfg.test?'<button id="pNext" class="btn alt">Next hole</button>':''}${lastCfg.test?'<button id="pEdit" class="btn alt">Back to editor</button>':'<button id="pMenu" class="btn alt">Menu</button>'}</div>`);
   $('#pAgain').onclick=()=>loadHole(holeIdx);
   if($('#pNext'))$('#pNext').onclick=()=>loadHole(holeIdx+1);
-  $('#pMenu').onclick=()=>openMenu('home');
+  if($('#pMenu'))$('#pMenu').onclick=()=>openMenu('home');
+  if($('#pEdit'))$('#pEdit').onclick=()=>openEditor(ED.hole);
 }
 function endHolePnp(){
-  const last=holeIdx===HOLES.length-1;
-  const rows=players.map(p=>{const pl=p.scores.reduce((a,s,k)=>a+(s?HOLES[k].par:0),0),st=p.scores.reduce((a,s)=>a+(s||0),0);return{p,st,rel:st-pl,h:p.scores[holeIdx]}}).sort((a,b)=>a.st-b.st);
+  const last=holeIdx===COURSE.length-1;
+  const rows=players.map(p=>{const pl=p.scores.reduce((a,s,k)=>a+(s?COURSE[k].par:0),0),st=p.scores.reduce((a,s)=>a+(s||0),0);return{p,st,rel:st-pl,h:p.scores[holeIdx]}}).sort((a,b)=>a.st-b.st);
   const lead=rows[0].st,winners=rows.filter(r=>r.st===lead);
   const top=last?(winners.length>1?`Tie: ${winners.map(r=>esc(r.p.name)).join(' & ')}`:`${esc(winners[0].p.name)} wins!`):`Hole ${holeIdx+1} done`;
   const list=rows.map(r=>`<span class="chip who"><i style="background:${r.p.col}"></i>${esc(r.p.name)} · ${r.h} on this hole · ${r.st} (${toPar(r.rel)})</span>`).join('');
@@ -1130,7 +1188,7 @@ function toWorld(e){const r=cv.getBoundingClientRect();const sx=e.clientX-r.left
 // so your thumb never has to sit on the lines. Putting uses fine control (about a third of the movement).
 // A quick tap on a full shot still jumps the aim straight to that spot.
 let aimDrag=null;
-cv.addEventListener('pointerdown',e=>{if(fly){endFly();return}if(state!=='ready')return;cv.setPointerCapture(e.pointerId);aimDrag={x:e.clientX,y:e.clientY,a:{...aim},moved:false}});
+cv.addEventListener('pointerdown',e=>{if(editMode){edDown(e);return}if(fly){endFly();return}if(state!=='ready')return;cv.setPointerCapture(e.pointerId);aimDrag={x:e.clientX,y:e.clientY,a:{...aim},moved:false}});
 cv.addEventListener('pointermove',e=>{
   if(!aimDrag)return;const dx=e.clientX-aimDrag.x,dy=e.clientY-aimDrag.y;
   if(!aimDrag.moved&&Math.hypot(dx,dy)<6)return;aimDrag.moved=true;
@@ -1303,6 +1361,8 @@ function resize(){
   pcv.width=Math.round(PW*d);pcv.height=Math.round(PH*d); drawPad();
 }
 addEventListener('resize',resize);
+// keep canvas sizes right when panels above or below it change height (e.g. the editor's tool panel)
+if(window.ResizeObserver)new ResizeObserver(()=>{const r=cv.getBoundingClientRect();if(Math.abs(r.width-W)>.5||Math.abs(r.height-H2)>.5)resize()}).observe(cv);
 // Hole flyover: start over the green, follow the hole back to the tee, then settle on the normal view
 let fly=null,flyPending=false,lastFlyKey='';
 function startFly(){
@@ -1899,7 +1959,7 @@ function drawWorld(){
 function worldFrame(dt){worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.5';
+const GAME_VERSION='0.6';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -1908,6 +1968,228 @@ function sendReview(r){
   // Google Forms accepts a plain form post; the reply can't be read (no-cors), so success means it reached Google
   return fetch(`https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`,{method:'POST',mode:'no-cors',body:reviewParams(r)});
 }
+
+/* ---------- Course creator: custom holes, courses and share codes ---------- */
+// Custom holes are stored in a simple format and turned into playable holes with prepHole.
+// Yards; the tee is always at (0,0) and +y runs towards the green. slope.dir: 0 = falls away to the back, 90 = right, 180 = towards the tee.
+let CUST={holes:[],courses:[]};
+try{const c=JSON.parse(localStorage.getItem('fsl-custom'));if(c&&Array.isArray(c.holes))CUST=c}catch(e){}
+function saveCust(){try{localStorage.setItem('fsl-custom',JSON.stringify(CUST))}catch(e){}}
+const uid=()=>Math.random().toString(36).slice(2,9);
+const autoPar=len=>len<=230?3:len<=460?4:5;
+const r1=v=>Math.round(v*10)/10;
+function slopeFrom(sl){const k=Math.max(0,Math.min(1,sl.k)),a=sl.dir*RAD;return{x:Math.sin(a)*k*.7,y:Math.cos(a)*k*.7,a:.05+.25*k,b:.05+.22*k}}
+function toPlayable(c){
+  const h={name:c.name||'Custom hole',par:4,fw:c.fw.map(p=>[p[0],p[1]]),hw:c.hw,green:{...c.green},water:c.water.map(e=>({...e})),bunkers:c.bunkers.map(e=>({...e})),
+    trees:[],treesList:c.trees.map(t=>({...t})),sl:slopeFrom(c.slope)};
+  prepHole(h,0);
+  h.par=c.par||autoPar(h.len);
+  return h;
+}
+function newHoleTemplate(){
+  return{id:uid(),name:'New hole',par:null,fw:[[0,40],[0,300]],hw:14,green:{x:0,y:330,rx:13,ry:10},water:[],bunkers:[{x:17,y:326,rx:5,ry:6}],
+    trees:[[-30,90],[-34,160],[-29,230],[31,120],[35,200],[30,270]].map(([x,y])=>({x,y,r:4.5})),slope:{dir:180,k:.4}};
+}
+function fromBuiltIn(i){
+  const h=HOLES[i],m=Math.hypot(h.sl.x,h.sl.y);
+  return{id:uid(),name:`${h.name} (copy)`,par:h.par,fw:h.fw.map(p=>[...p]),hw:h.hw,green:{...h.green},water:h.water.map(e=>({...e})),bunkers:h.bunkers.map(e=>({...e})),
+    trees:h.treesList.map(t=>({x:r1(t.x),y:r1(t.y),r:r1(t.r)})),slope:{dir:Math.round(Math.atan2(h.sl.x,h.sl.y)/RAD+360)%360,k:Math.min(1,r1(m/.7))}};
+}
+
+// ---- Editor state
+let editMode=false;
+const ED={hole:null,sel:null,tool:'select',drag:null,saved:true};
+const EL={bunker:{rx:7,ry:5,min:2,max:30},water:{rx:14,ry:10,min:4,max:80},green:{min:6,max:30}};
+function openEditor(c){
+  ED.hole=JSON.parse(JSON.stringify(c));ED.sel=null;ED.tool='select';ED.drag=null;
+  ED.saved=CUST.holes.some(h=>h.id===c.id&&JSON.stringify(h)===JSON.stringify(c));
+  editMode=true;state='edit';endFly();
+  $('#menu').hidden=true;$('#end').hidden=true;$('#toast').hidden=true;$('#world').hidden=true;worldOn=false;
+  document.querySelector('.app').classList.add('editing');
+  $('#edHead').hidden=false;$('#edPanel').hidden=false;$('#edZoom').hidden=false;
+  ball={x:0,y:1};trace=[];frozen=null;players=[{name:'You',col:PCOLS[0],ball:{x:0,y:1},strokes:0,holed:false,scores:[]}];pi=0;
+  edRebuild();edPanel();resize();edFit();
+}
+function exitEditorUI(){
+  editMode=false;document.querySelector('.app').classList.remove('editing');
+  $('#edHead').hidden=true;$('#edPanel').hidden=true;$('#edZoom').hidden=true;
+}
+function edRebuild(){
+  H=toPlayable(ED.hole);PIN={x:H.green.x,y:H.green.y};
+  $('#edName').textContent=ED.hole.name||'New hole';
+  $('#edMeta').textContent=`Par ${H.par}${ED.hole.par?'':' (auto)'} · ${H.len} yds${ED.saved?'':' · not saved'}`;
+}
+function edChanged(){ED.saved=false;edRebuild()}
+function edFit(){const B=H.bounds,bw=B.x1-B.x0,bh=B.y1-B.y0;cam.x=(B.x0+B.x1)/2;cam.y=(B.y0+B.y1)/2;cam.s=Math.min(W/bw,H2/bh)*.96}
+function edZoom(f,cx,cy){const p=cx==null?{x:cam.x,y:cam.y}:{x:cam.x+(cx-W/2)/cam.s,y:cam.y-(cy-H2/2)/cam.s};
+  const ns=Math.max(.4,Math.min(30,cam.s*f));cam.x=p.x-(p.x-cam.x)*cam.s/ns;cam.y=p.y-(p.y-cam.y)*cam.s/ns;cam.s=ns}
+$('#edIn').onclick=()=>edZoom(1.4);$('#edOut').onclick=()=>edZoom(1/1.4);$('#edFitBtn').onclick=()=>edFit();
+cv.addEventListener('wheel',e=>{if(!editMode)return;e.preventDefault();const r=cv.getBoundingClientRect();edZoom(e.deltaY<0?1.15:1/1.15,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+
+// ---- Hit testing (screen-space tolerance, so it's thumb-friendly at any zoom)
+const LISTS={bunker:'bunkers',water:'water',tree:'trees'};
+function edItem(sel){if(!sel)return null;const c=ED.hole;return sel.type==='green'?c.green:sel.type==='fw'?c.fw[sel.i]:c[LISTS[sel.type]][sel.i]}
+function edHandles(sel){
+  const o=edItem(sel);if(!o||sel.type==='fw')return[];
+  if(sel.type==='tree')return[{k:'r',x:o.x+o.r,y:o.y}];
+  return[{k:'rx',x:o.x+o.rx,y:o.y},{k:'ry',x:o.x,y:o.y+o.ry}];
+}
+function edHit(p){
+  const tol=18/cam.s,c=ED.hole;
+  for(const h of edHandles(ED.sel))if(Math.hypot(p.x-h.x,p.y-h.y)<tol)return{handle:h.k,sel:ED.sel};
+  for(let i=c.fw.length-1;i>=0;i--)if(Math.hypot(p.x-c.fw[i][0],p.y-c.fw[i][1])<tol)return{sel:{type:'fw',i}};
+  for(let i=c.trees.length-1;i>=0;i--){const t=c.trees[i];if(Math.hypot(p.x-t.x,p.y-t.y)<Math.max(t.r,tol*.7))return{sel:{type:'tree',i}}}
+  for(let i=c.bunkers.length-1;i>=0;i--)if(inEll(p.x,p.y,c.bunkers[i],1.15))return{sel:{type:'bunker',i}};
+  if(inEll(p.x,p.y,c.green,1.1))return{sel:{type:'green'}};
+  for(let i=c.water.length-1;i>=0;i--)if(inEll(p.x,p.y,c.water[i],1.05))return{sel:{type:'water',i}};
+  return null;
+}
+function edInsertFw(p){
+  // put the new point on the fairway segment it's closest to
+  const pts=[[0,0],...ED.hole.fw,[ED.hole.green.x,ED.hole.green.y]];let bi=pts.length-2,bd=1e9;
+  for(let i=0;i<pts.length-1;i++){const d=segDist(p.x,p.y,pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1]);if(d<bd){bd=d;bi=i}}
+  const idx=Math.min(bi,ED.hole.fw.length);ED.hole.fw.splice(idx,0,[r1(p.x),r1(p.y)]);return idx;
+}
+
+// ---- Pointer handling on the course canvas while editing
+const edPtrs=new Map();
+function edDown(e){
+  cv.setPointerCapture(e.pointerId);
+  edPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(edPtrs.size===2){const [a,b]=[...edPtrs.values()];ED.drag={pinch:true,d:Math.hypot(a.x-b.x,a.y-b.y)};return}
+  const p=toWorld(e),c=ED.hole,t=ED.tool;
+  if(t==='bunker'||t==='water'){const d=EL[t];c[LISTS[t]].push({x:r1(p.x),y:r1(p.y),rx:d.rx,ry:d.ry});ED.sel={type:t,i:c[LISTS[t]].length-1};ED.tool='select';edChanged();edPanel();return}
+  if(t==='tree'){c.trees.push({x:r1(p.x),y:r1(p.y),r:4.5});ED.sel={type:'tree',i:c.trees.length-1};edChanged();edPanel();return}
+  if(t==='fw'){const i=edInsertFw(p);ED.sel={type:'fw',i};ED.tool='select';edChanged();edPanel();return}
+  const hit=edHit(p);
+  if(hit){ED.sel=hit.sel;const o=edItem(hit.sel);
+    ED.drag={handle:hit.handle,start:p,orig:Array.isArray(o)?[...o]:{...o}};edPanel();return}
+  ED.sel=null;edPanel();ED.drag={pan:true,x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y};
+}
+function edMove(e){
+  if(!edPtrs.has(e.pointerId))return;edPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const D=ED.drag;if(!D)return;
+  if(D.pinch){if(edPtrs.size<2)return;const [a,b]=[...edPtrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y);const r=cv.getBoundingClientRect();edZoom(d/D.d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top);D.d=d;return}
+  if(D.pan){cam.x=D.cx-(e.clientX-D.x)/cam.s;cam.y=D.cy+(e.clientY-D.y)/cam.s;return}
+  const p=toWorld(e),o=edItem(ED.sel),dx=p.x-D.start.x,dy=p.y-D.start.y;
+  if(ED.sel.type==='fw'){o[0]=r1(D.orig[0]+dx);o[1]=r1(D.orig[1]+dy)}
+  else if(D.handle==='r'){o.r=r1(Math.max(2,Math.min(9,Math.hypot(p.x-o.x,p.y-o.y))))}
+  else if(D.handle){const lim=EL[ED.sel.type]||EL.water;o[D.handle]=r1(Math.max(lim.min,Math.min(lim.max,Math.abs(D.handle==='rx'?p.x-o.x:p.y-o.y))))}
+  else{o.x=r1(D.orig.x+dx);o.y=r1(D.orig.y+dy)}
+  D.moved=true;edChanged();
+}
+function edUp(e){edPtrs.delete(e.pointerId);if(ED.drag&&!ED.drag.pinch&&ED.drag.moved)edPanel();if(!edPtrs.size)ED.drag=null}
+
+// ---- Tool panel
+const TOOLS=[['select','Select & move'],['fw','Fairway point'],['bunker','Bunker'],['water','Water'],['tree','Trees']];
+const DIRS=[['↑',0],['↗',45],['→',90],['↘',135],['↓',180],['↙',225],['←',270],['↖',315]];
+function edPanel(){
+  const c=ED.hole,sel=ED.sel,T=ED.tool;
+  let ctx2='';
+  if(T==='tree')ctx2=`<div class="ed-hint">Tap the course to plant trees. Tap <b>Select &amp; move</b> when you're done.</div>`;
+  else if(T==='bunker'||T==='water')ctx2=`<div class="ed-hint">Tap the course to place ${T==='water'?'water':'a bunker'}.</div>`;
+  else if(T==='fw')ctx2=`<div class="ed-hint">Tap where the fairway should bend. The new point slots into the nearest section.</div>`;
+  else if(!sel)ctx2=`<div class="ed-hint">Tap anything to select it, drag to move it, or drag the empty course to pan. Pinch or use + and − to zoom.</div>`;
+  else if(sel.type==='fw')ctx2=`<div class="ed-row"><label for="edHw">Fairway width</label><input id="edHw" type="range" min="7" max="22" step="1" value="${c.hw}"><span>${c.hw*2} yds</span></div>
+    <div class="ed-row"><button class="sbtn" data-ed="del" ${c.fw.length<=2?'disabled':''}>Delete point</button><span class="ed-note">Drag the white dots to reshape the fairway.</span></div>`;
+  else if(sel.type==='green'){const sl=c.slope;
+    ctx2=`<div class="ed-row"><span class="ed-lab">Green slope · falls</span><div class="dirs">${DIRS.map(([a,d])=>`<button data-dir="${d}" aria-pressed="${sl.dir===d}" aria-label="Falls ${d} degrees">${a}</button>`).join('')}</div></div>
+    <div class="ed-row"><label for="edK">Steepness</label><input id="edK" type="range" min="0" max="1" step=".05" value="${sl.k}"><span>${sl.k<.3?'Gentle':sl.k<.65?'Medium':'Steep'}</span></div>
+    <div class="ed-row"><button class="sbtn" data-ed="zoomgreen">Zoom to green</button><span class="ed-note">↑ falls away from the tee, ↓ falls towards it. Drag the square handles to resize.</span></div>`}
+  else ctx2=`<div class="ed-row"><button class="sbtn" data-ed="del">Delete ${sel.type==='tree'?'tree':sel.type}</button><span class="ed-note">${sel.type==='tree'?'Drag the handle to change its size.':'Drag the square handles to change its shape.'}</span></div>`;
+  const parBtns=[[null,`Auto (${autoPar(H.len)})`],[3,'3'],[4,'4'],[5,'5']].map(([v,t])=>`<button data-par="${v}" aria-pressed="${c.par===v}">${t}</button>`).join('');
+  $('#edPanel').innerHTML=`<div class="tools">${TOOLS.map(([k,t])=>`<button data-tool="${k}" aria-pressed="${T===k}">${t}</button>`).join('')}</div>
+    <div class="ed-ctx">${ctx2}</div>
+    <div class="ed-row"><label for="edNm">Name</label><input id="edNm" maxlength="24" value="${esc(c.name||'')}" autocomplete="off"></div>
+    <div class="ed-row"><span class="ed-lab">Par</span><div class="seg small">${parBtns}</div></div>
+    <div class="ed-actions"><button class="sbtn" data-ed="test">Test play</button><button class="sbtn pri" data-ed="save">${ED.saved?'Saved':'Save hole'}</button><button class="sbtn" data-ed="exit">Done</button></div>
+    <div id="edMsg" class="ed-note"></div>`;
+  const hw=$('#edHw');if(hw)hw.oninput=()=>{c.hw=+hw.value;hw.nextElementSibling.textContent=`${c.hw*2} yds`;edChanged()};
+  const k=$('#edK');if(k)k.oninput=()=>{c.slope.k=+k.value;k.nextElementSibling.textContent=c.slope.k<.3?'Gentle':c.slope.k<.65?'Medium':'Steep';edChanged()};
+  $('#edNm').oninput=()=>{c.name=$('#edNm').value;edChanged()};
+}
+let edExitArm=false;
+$('#edPanel').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;const c=ED.hole;
+  if(b.dataset.tool){ED.tool=b.dataset.tool;if(ED.tool!=='select')ED.sel=null;edPanel();return}
+  if(b.dataset.dir){c.slope.dir=+b.dataset.dir;edChanged();edPanel();return}
+  if(b.dataset.par!==undefined){c.par=b.dataset.par==='null'?null:+b.dataset.par;edChanged();edPanel();return}
+  const a=b.dataset.ed;
+  if(a==='del'){const s=ED.sel;if(s.type==='fw'){if(c.fw.length>2)c.fw.splice(s.i,1)}else c[LISTS[s.type]].splice(s.i,1);ED.sel=null;edChanged();edPanel()}
+  else if(a==='zoomgreen'){const G=c.green;cam.x=G.x;cam.y=G.y;cam.s=Math.min(W/(G.rx*3.2),H2/(G.ry*3.4))}
+  else if(a==='save'){edSave();edPanel();$('#edMsg').textContent='Saved to My courses.'}
+  else if(a==='test'){const msg=edCheck();if(msg){$('#edMsg').textContent=msg;return}startGame({mode:'practice',course:[toPlayable(c)],hole:0,test:true})}
+  else if(a==='exit'){if(!ED.saved&&!edExitArm){edExitArm=true;b.textContent='Leave without saving?';setTimeout(()=>{edExitArm=false},2500);return}edExitArm=false;exitEditorUI();state='done';openMenu('courses')}
+});
+function edCheck(){
+  const c=ED.hole;
+  if(inEll(0,0,{x:c.green.x,y:c.green.y,rx:c.green.rx+20,ry:c.green.ry+20}))return'The green is too close to the tee. Move it further away.';
+  if(c.water.some(w=>inEll(0,1,w,1.1)))return'There\'s water on the tee. Move it so you can tee off.';
+  return'';
+}
+function edSave(){
+  const c=ED.hole;c.name=(c.name||'').trim()||'Custom hole';
+  const i=CUST.holes.findIndex(h=>h.id===c.id);if(i>=0)CUST.holes[i]=JSON.parse(JSON.stringify(c));else CUST.holes.push(JSON.parse(JSON.stringify(c)));
+  saveCust();ED.saved=true;edRebuild();
+}
+cv.addEventListener('pointermove',e=>{if(editMode)edMove(e)});
+cv.addEventListener('pointerup',e=>{if(editMode)edUp(e)});
+cv.addEventListener('pointercancel',e=>{if(editMode)edUp(e)});
+
+// ---- Editor overlay: fairway line and points, selection outline and resize handles
+function drawEd(){
+  const d=devicePixelRatio||1,s=cam.s,c=ED.hole;ctx.setTransform(d,0,0,d,0,0);
+  const S=(x,y)=>[(x-cam.x)*s+W/2,H2/2-(y-cam.y)*s];
+  const pts=[[0,0],...c.fw,[c.green.x,c.green.y]].map(p=>S(p[0],p[1]));
+  ctx.setLineDash([6,6]);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke();ctx.setLineDash([]);
+  c.fw.forEach((p,i)=>{const [x,y]=S(p[0],p[1]),on=ED.sel&&ED.sel.type==='fw'&&ED.sel.i===i;ctx.fillStyle=on?'#f2c14e':'#eef3e4';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.arc(x,y,on?9:7,0,7);ctx.fill();ctx.stroke()});
+  const sel=ED.sel,o=edItem(sel);
+  if(o&&sel.type!=='fw'){
+    ctx.strokeStyle='#f2c14e';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();
+    if(sel.type==='tree'){const [x,y]=S(o.x,o.y);ctx.arc(x,y,o.r*s+3,0,7)}else{const [x,y]=S(o.x,o.y);ctx.ellipse(x,y,o.rx*s+3,o.ry*s+3,0,0,7)}
+    ctx.stroke();ctx.setLineDash([]);
+    for(const h of edHandles(sel)){const [x,y]=S(h.x,h.y);ctx.fillStyle='#f2c14e';ctx.strokeStyle='#1d1a0e';ctx.lineWidth=1.5;ctx.fillRect(x-8,y-8,16,16);ctx.strokeRect(x-8,y-8,16,16)}
+  }
+  // tee marker label
+  const [tx,ty]=S(0,0);ctx.font='800 11px "Nunito Sans",system-ui,sans-serif';ctx.fillStyle='rgba(14,29,21,.85)';ctx.beginPath();ctx.roundRect(tx+10,ty-8,30,16,5);ctx.fill();ctx.fillStyle='#eef3e4';ctx.fillText('Tee',tx+15,ty+4);
+}
+
+// ---- Share codes: compact JSON, compressed where the browser supports it, safe to paste on Reddit
+const b64u={enc:u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode(...u8.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
+  dec:str=>{str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';const b=atob(str),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}};
+const packEll=e=>[Math.round(e.x),Math.round(e.y),Math.round(e.rx),Math.round(e.ry)],unell=a=>({x:a[0],y:a[1],rx:a[2],ry:a[3]});
+function packHole(h){return{n:h.name,p:h.par||0,f:h.fw.map(p=>[Math.round(p[0]),Math.round(p[1])]),w:h.hw,g:packEll(h.green),a:h.water.map(packEll),b:h.bunkers.map(packEll),t:h.trees.map(t=>[Math.round(t.x),Math.round(t.y),Math.round(t.r*2)]),s:[h.slope.dir,Math.round(h.slope.k*100)]}}
+function unpackHole(o){
+  const num=v=>typeof v==='number'&&isFinite(v)&&Math.abs(v)<2000,arr=(a,n)=>Array.isArray(a)&&a.length<=n;
+  if(!o||!arr(o.f,40)||o.f.length<2||!arr(o.g,4)||!arr(o.a,40)||!arr(o.b,60)||!arr(o.t,400)||!arr(o.s,2))throw new Error('bad hole');
+  const all=[...o.f.flat(),...o.g,...o.a.flat(),...o.b.flat(),...o.t.flat(),...o.s,o.w];if(!all.every(num))throw new Error('bad numbers');
+  return{id:uid(),name:String(o.n||'Shared hole').slice(0,24),par:[3,4,5].includes(o.p)?o.p:null,fw:o.f.map(p=>[p[0],p[1]]),hw:Math.max(7,Math.min(22,o.w)),green:unell(o.g),
+    water:o.a.map(unell),bunkers:o.b.map(unell),trees:o.t.map(t=>({x:t[0],y:t[1],r:Math.max(2,Math.min(9,t[2]/2))})),slope:{dir:((o.s[0]%360)+360)%360,k:Math.max(0,Math.min(1,o.s[1]/100))}};
+}
+async function makeShareCode(course){
+  const holes=course.holes.map(id=>CUST.holes.find(h=>h.id===id)).filter(Boolean);
+  const json=JSON.stringify({v:1,n:course.name,h:holes.map(packHole)}),bytes=new TextEncoder().encode(json);
+  if(window.CompressionStream){try{const cs=new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));return'FT1:'+b64u.enc(new Uint8Array(await new Response(cs).arrayBuffer()))+':FT'}catch(e){}}
+  return'FT0:'+b64u.enc(bytes)+':FT';
+}
+async function readShareCode(text){
+  // codes end with :FT, so line breaks Reddit or a phone adds inside them don't matter
+  const t=String(text),m=t.replace(/\s+/g,'').match(/FT([01]):([A-Za-z0-9_-]+):FT/)||t.match(/FT([01]):([A-Za-z0-9_-]+)/);if(!m)throw new Error('No course code found. Codes start with FT1: or FT0:.');
+  let bytes=b64u.dec(m[2]);
+  if(m[1]==='1'){if(!window.DecompressionStream)throw new Error('This browser can\'t open compressed codes. Try Chrome, or ask for an FT0 code.');
+    const ds=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));bytes=new Uint8Array(await new Response(ds).arrayBuffer())}
+  const o=JSON.parse(new TextDecoder().decode(bytes));
+  if(!o||!Array.isArray(o.h)||!o.h.length||o.h.length>9)throw new Error('That code doesn\'t contain a course.');
+  return{name:String(o.n||'Shared course').slice(0,30),holes:o.h.map(unpackHole)};
+}
+const courseHoles=co=>co.holes.map(id=>CUST.holes.find(h=>h.id===id)).filter(Boolean);
+function playCourse(co,how){
+  const hs=courseHoles(co);if(!hs.length)return;
+  const course=hs.map(toPlayable);
+  if(how==='pnp'){pnpCourse=co.id;openMenu('pnp');return}
+  startGame({mode:'solo',course,courseName:co.name});
+}
+let pnpCourse='';
 
 /* ---------- Main menu ---------- */
 let pnpCount=2, pnpNames=['Player 1','Player 2','Player 3','Player 4'];
@@ -1925,10 +2207,56 @@ function openMenu(screen){
       <div class="blurb">Names</div>
       ${[0,1,2,3].map(k=>`<div class="prow"${k>=pnpCount?' hidden':''}><span class="dot" style="background:${PCOLS[k]}"></span><input id="pname${k}" maxlength="14" value="${esc(pnpNames[k])}" aria-label="Player ${k+1} name" autocomplete="off"></div>`).join('')}
       <div class="blurb">Everyone plays the Clubhouse set, so it's a fair fight. Tee shots go in order, then whoever's furthest from the hole plays next. Max score on a hole is par + 5. No coins or XP.</div>
-      <button id="mGo" class="mbtn pri"><b>Tee off</b><span>9 holes · par ${COURSE_PAR}</span></button>`;
+      ${CUST.courses.length?`<label class="blurb" for="pCourse">Course</label><select id="pCourse" class="sel"><option value="">Ashby Green · 9 holes · par ${COURSE_PAR}</option>${CUST.courses.map(co=>{const hs=courseHoles(co);return `<option value="${co.id}"${co.id===pnpCourse?' selected':''}>${esc(co.name)} · ${hs.length} hole${hs.length>1?'s':''}</option>`}).join('')}</select>`:''}
+      <button id="mGo" class="mbtn pri"><b>Tee off</b><span>${(()=>{const co=CUST.courses.find(c=>c.id===pnpCourse);if(!co)return `Ashby Green · 9 holes · par ${COURSE_PAR}`;const hs=courseHoles(co).map(toPlayable);return `${esc(co.name)} · ${hs.length} holes · par ${hs.reduce((a,h)=>a+h.par,0)}`})()}</span></button>`;
+    if($('#pCourse'))$('#pCourse').onchange=()=>{pnpCourse=$('#pCourse').value;keepNames();openMenu('pnp')};
     b.querySelectorAll('.seg button').forEach(x=>x.onclick=()=>{pnpCount=+x.dataset.n;keepNames();openMenu('pnp')});
     $('#mBack').onclick=()=>{keepNames();openMenu('home')};
-    $('#mGo').onclick=()=>{keepNames();const names=pnpNames.slice(0,pnpCount).map((n,k)=>n.trim()||`Player ${k+1}`);startGame({mode:'pnp',names})};
+    $('#mGo').onclick=()=>{keepNames();const names=pnpNames.slice(0,pnpCount).map((n,k)=>n.trim()||`Player ${k+1}`);const co=CUST.courses.find(c=>c.id===pnpCourse);startGame(co?{mode:'pnp',names,course:courseHoles(co).map(toPlayable),courseName:co.name}:{mode:'pnp',names})};
+    return;
+  }
+  if(screen==='courses'){
+    let arm='';
+    const holeRow=h=>{const pl=toPlayable(h);return `<div class="cc crow"><div class="cc-top"><div class="cc-name">${esc(h.name)}</div><span class="chip">Par ${pl.par} · ${pl.len} yds</span></div>
+      <div class="acts"><button class="sbtn pri" data-h="edit" data-id="${h.id}">Edit</button><button class="sbtn" data-h="copy" data-id="${h.id}">Copy</button><button class="sbtn" data-h="del" data-id="${h.id}">Delete</button></div></div>`};
+    const courseRow=co=>{const hs=courseHoles(co).map(toPlayable),par=hs.reduce((a,h)=>a+h.par,0);return `<div class="cc crow"><div class="cc-top"><div class="cc-name">${esc(co.name)}</div><span class="chip">${hs.length} hole${hs.length>1?'s':''} · par ${par}</span></div>
+      <div class="blurb">${hs.map(h=>esc(h.name)).join(' · ')||'No holes'}</div>
+      <div class="acts"><button class="sbtn pri" data-c="solo" data-id="${co.id}" ${hs.length?'':'disabled'}>Play</button><button class="sbtn" data-c="pnp" data-id="${co.id}" ${hs.length?'':'disabled'}>Pass &amp; play</button><button class="sbtn" data-c="share" data-id="${co.id}" ${hs.length?'':'disabled'}>Share</button><button class="sbtn" data-c="edit" data-id="${co.id}">Edit</button><button class="sbtn" data-c="del" data-id="${co.id}">Delete</button></div></div>`};
+    const render=()=>{b.innerHTML=`<div class="screen-h"><div class="sheet-title">Course creator</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="blurb">Build holes, string them into courses, and share them with a code. Custom courses don't count towards your handicap or rewards.</div>
+      <div class="group-h">Your courses</div>
+      ${CUST.courses.map(courseRow).join('')||'<div class="blurb">No courses yet. Make a hole or two, then put them together here.</div>'}
+      <div class="acts"><button id="cNew" class="sbtn pri" ${CUST.holes.length?'':'disabled'}>New course</button><button id="cImport" class="sbtn">Import a code</button></div>
+      <div class="group-h">Your holes</div>
+      ${CUST.holes.map(holeRow).join('')||'<div class="blurb">No holes yet.</div>'}
+      <div class="acts"><button id="hNew" class="sbtn pri">New hole</button></div>
+      <div class="blurb">Or start from one of Ashby Green's holes:</div>
+      <div class="acts">${HOLES.map((h,i)=>`<button class="sbtn" data-b="${i}">${i+1} · ${esc(h.name)}</button>`).join('')}</div>`;
+      $('#mBack').onclick=()=>openMenu('home');
+      $('#hNew').onclick=()=>openEditor(newHoleTemplate());
+      $('#cNew').onclick=()=>openCourseEditor({id:uid(),name:'My course',holes:[]});
+      $('#cImport').onclick=()=>openMenu('import');
+      b.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>openEditor(fromBuiltIn(+x.dataset.b)));
+      b.querySelectorAll('[data-h]').forEach(x=>x.onclick=()=>{const id=x.dataset.id,h=CUST.holes.find(q=>q.id===id);
+        if(x.dataset.h==='edit')openEditor(h);
+        else if(x.dataset.h==='copy'){const c=JSON.parse(JSON.stringify(h));c.id=uid();c.name=(h.name+' copy').slice(0,24);CUST.holes.push(c);saveCust();render()}
+        else if(x.dataset.h==='del'){if(arm!==id){arm=id;x.textContent='Tap again';return}CUST.holes=CUST.holes.filter(q=>q.id!==id);CUST.courses.forEach(co=>co.holes=co.holes.filter(q=>q!==id));saveCust();render()}});
+      b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{const id=x.dataset.id,co=CUST.courses.find(q=>q.id===id),a=x.dataset.c;
+        if(a==='solo'||a==='pnp')playCourse(co,a);
+        else if(a==='share')openShare(co);
+        else if(a==='edit')openCourseEditor(JSON.parse(JSON.stringify(co)));
+        else if(a==='del'){if(arm!==id){arm=id;x.textContent='Tap again';return}CUST.courses=CUST.courses.filter(q=>q.id!==id);saveCust();render()}});
+    };
+    render();return;
+  }
+  if(screen==='import'){
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Import a course</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="blurb">Paste a course code, or a whole Reddit post with a code in it. Codes start with FT1: and end with :FT.</div>
+      <textarea id="imIn" class="bk" placeholder="Paste here" aria-label="Course code"></textarea>
+      <div class="acts"><button id="imGo" class="sbtn pri">Import</button></div><div id="imMsg" class="blurb"></div>`;
+    $('#mBack').onclick=()=>openMenu('courses');
+    $('#imGo').onclick=async()=>{try{const r=await readShareCode($('#imIn').value);r.holes.forEach(h=>CUST.holes.push(h));CUST.courses.push({id:uid(),name:r.name,holes:r.holes.map(h=>h.id)});saveCust();
+        $('#imMsg').textContent=`Imported "${r.name}" with ${r.holes.length} hole${r.holes.length>1?'s':''}.`;setTimeout(()=>openMenu('courses'),900)}catch(e){$('#imMsg').textContent=e.message.startsWith('No course')||e.message.startsWith('This browser')||e.message.startsWith('That code')?e.message:'That code didn\'t work. Make sure you copied all of it.'}};
     return;
   }
   if(screen==='settings'){
@@ -2019,7 +2347,7 @@ function openMenu(screen){
       let data;try{data=JSON.parse(decodeURIComponent(escape(atob(code))));if(!data||!data.save||!data.save.owned)throw 0}catch(e){$('#bkMsg').textContent='That code doesn\'t look right. Copy the whole code and try again.';return}
       if(!armed){armed=true;$('#bkGo').textContent='Tap again to replace this save';$('#bkMsg').textContent='This replaces the progress on this device.';return}
       try{for(const [k,v] of Object.entries(data.ls||{}))localStorage.setItem(k,v)}catch(e){}
-      save=data.save;ensureSave();persist();best=data.best||null;try{if(best)localStorage.setItem('fsl-best-round',best)}catch(e){}
+      save=data.save;ensureSave();persist();try{CUST=JSON.parse(localStorage.getItem('fsl-custom'))||CUST}catch(e){}best=data.best||null;try{if(best)localStorage.setItem('fsl-best-round',best)}catch(e){}
       me.x=save.story?save.story.x:320;me.y=save.story?save.story.y:840;
       $('#bkGo').textContent='Restore';armed=false;$('#bkMsg').textContent=`Restored: ${save.coins} coins, ${DEFS.filter(d=>save.owned[d.id]).length} clubs.`;
     };
@@ -2034,13 +2362,14 @@ function openMenu(screen){
     return;
   }
   const resume=gameOn&&state!=='done';
-  const where=mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
+  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
   b.innerHTML=`<div class="menu-hero"><div class="k">A golf RPG</div><div class="menu-title">Fairway<br><span>Tales</span></div><div class="blurb">Handicap ${hcpLabel()}${best?` · Best round ${best}`:''}</div></div>
     ${resume?`<button id="mResume" class="mbtn pri"><b>Resume</b><span>${esc(where)}</span></button>`:''}
     <button id="mStory" class="mbtn"><b>Story · Chapter 1</b><span>${SF().champion?'Ashby Green Club Champion. Chapter 2 coming soon.':SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
     <button id="mSolo" class="mbtn"><b>Solo round</b><span>9 holes with your own bag. Earn coins and club XP.</span></button>
     <button id="mPnp" class="mbtn"><b>Pass &amp; play</b><span>2 to 4 players on one phone. Everyone on the Clubhouse set.</span></button>
     <button id="mPractice" class="mbtn"><b>Practice</b><span>Pick any hole. Unlimited undo, no rewards.</span></button>
+    <button id="mCreate" class="mbtn"><b>Course creator</b><span>${CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes'}</span></button>
     <button id="mBag" class="mbtn"><b>Bag &amp; pro shop</b><span>${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs</span></button>
     <div class="mgrid">
       <button id="mHelp" class="mbtn small${seenHelp()?'':' pri'}"><b>How to play</b><span>${seenHelp()?'Controls and tips':'New? Start here'}</span></button>
@@ -2054,6 +2383,7 @@ function openMenu(screen){
   $('#mSolo').onclick=()=>startGame({mode:'solo'});
   $('#mPnp').onclick=()=>openMenu('pnp');
   $('#mPractice').onclick=()=>openMenu('practice');
+  $('#mCreate').onclick=()=>openMenu('courses');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
   $('#mReview').onclick=()=>openMenu('review');
@@ -2062,8 +2392,39 @@ function openMenu(screen){
 }
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};
 function makeBackup(){
-  const ls={};try{for(const k of ['fsl-preview','fsl-names','fsl-pcount','fsl-settings','fsl-seen-help']){const v=localStorage.getItem(k);if(v!=null)ls[k]=v}}catch(e){}
+  const ls={};try{for(const k of ['fsl-preview','fsl-names','fsl-pcount','fsl-settings','fsl-seen-help','fsl-custom']){const v=localStorage.getItem(k);if(v!=null)ls[k]=v}}catch(e){}
   return btoa(unescape(encodeURIComponent(JSON.stringify({v:1,save,best,ls}))));
+}
+function openCourseEditor(co){
+  const b=$('#menuBody');$('#menu').hidden=false;
+  const render=()=>{const hs=courseHoles(co).map(toPlayable),par=hs.reduce((a,h)=>a+h.par,0);
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Course</div><button id="mBack" class="ghost">Back</button></div>
+    <div class="prow"><input id="coName" maxlength="30" value="${esc(co.name)}" aria-label="Course name" autocomplete="off"></div>
+    <div class="group-h">Running order · ${co.holes.length} hole${co.holes.length===1?'':'s'} · par ${par}</div>
+    ${co.holes.map((id,k)=>{const h=CUST.holes.find(q=>q.id===id);return h?`<div class="hrow static"><span class="n">${k+1}</span><span class="t">${esc(h.name)}</span><button class="sbtn" data-up="${k}" ${k?'':'disabled'} aria-label="Move up">↑</button><button class="sbtn" data-rm="${k}" aria-label="Remove">✕</button></div>`:''}).join('')||'<div class="blurb">Tap holes below to add them. Up to 9.</div>'}
+    <div class="group-h">Add a hole</div>
+    <div class="acts">${CUST.holes.map(h=>`<button class="sbtn" data-add="${h.id}" ${co.holes.length>=9?'disabled':''}>+ ${esc(h.name)}</button>`).join('')}</div>
+    <div class="acts"><button id="coSave" class="sbtn pri" ${co.holes.length?'':'disabled'}>Save course</button></div>`;
+    $('#coName').oninput=()=>{co.name=$('#coName').value};
+    $('#mBack').onclick=()=>openMenu('courses');
+    b.querySelectorAll('[data-add]').forEach(x=>x.onclick=()=>{if(co.holes.length<9){co.holes.push(x.dataset.add);render()}});
+    b.querySelectorAll('[data-rm]').forEach(x=>x.onclick=()=>{co.holes.splice(+x.dataset.rm,1);render()});
+    b.querySelectorAll('[data-up]').forEach(x=>x.onclick=()=>{const k=+x.dataset.up;[co.holes[k-1],co.holes[k]]=[co.holes[k],co.holes[k-1]];render()});
+    $('#coSave').onclick=()=>{co.name=(co.name||'').trim()||'My course';const i=CUST.courses.findIndex(q=>q.id===co.id);if(i>=0)CUST.courses[i]=co;else CUST.courses.push(co);saveCust();openMenu('courses')};
+  };render();
+}
+async function openShare(co){
+  const b=$('#menuBody'),hs=courseHoles(co).map(toPlayable),par=hs.reduce((a,h)=>a+h.par,0);
+  b.innerHTML=`<div class="screen-h"><div class="sheet-title">Share course</div><button id="mBack" class="ghost">Back</button></div><div class="blurb">Making the code…</div>`;
+  $('#mBack').onclick=()=>openMenu('courses');
+  const code=await makeShareCode(co);
+  const post=`⛳ Fairway Tales course: ${co.name} (${hs.length} hole${hs.length>1?'s':''}, par ${par})\n\n${code}\n\nPaste the code into Course creator → Import a code.`;
+  b.innerHTML=`<div class="screen-h"><div class="sheet-title">Share course</div><button id="mBack" class="ghost">Back</button></div>
+    <div class="blurb">Copy this and send it to a mate, or post it on Reddit. They paste it into <b>Course creator → Import a code</b>.</div>
+    <textarea id="shOut" class="bk" style="min-height:200px" readonly aria-label="Share text">${esc(post)}</textarea>
+    <div class="acts"><button id="shCopy" class="sbtn pri">Copy</button></div><div id="shMsg" class="blurb">${code.length} characters</div>`;
+  $('#mBack').onclick=()=>openMenu('courses');
+  $('#shCopy').onclick=()=>{const t=$('#shOut');try{navigator.clipboard.writeText(t.value).then(()=>{$('#shMsg').textContent='Copied.'},()=>{t.select();$('#shMsg').textContent='Copy blocked here. The text is selected, so copy it manually.'})}catch(e){t.select()}};
 }
 function keepNames(){for(let k=0;k<4;k++){const el=$('#pname'+k);if(el)pnpNames[k]=el.value}try{localStorage.setItem('fsl-names',JSON.stringify(pnpNames));localStorage.setItem('fsl-pcount',pnpCount)}catch(e){}}
 $('#menuBtn').onclick=()=>openMenu('home');
@@ -2075,7 +2436,7 @@ function frame(now){
   if(state==='flight'){flight.t+=dt/flight.dur;if(flight.t>=1){flight.t=1;land()}else trace.push(flightPos(flight.t))}
   else if(state==='roll'){stepBounce(dt);for(let i=0;i<6&&state==='roll';i++)stepRoll(dt*1.4/6)}
   if(fly){fly.t+=dt;if(fly.t>=fly.dur)endFly()}
-  if(worldOn)worldFrame(dt);else{updateCam(dt);draw()}
+  if(worldOn)worldFrame(dt);else if(editMode){draw();drawEd()}else{updateCam(dt);draw()}
   requestAnimationFrame(frame);
 }
 applySettings();startGame({mode:'solo'});gameOn=false;endFly();resize();updateCam(0,true);openMenu('home');requestAnimationFrame(frame);

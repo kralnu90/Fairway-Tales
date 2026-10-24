@@ -14,6 +14,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Solo round:** 9 holes, par 36. Earn coins and club XP.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice:** any hole, unlimited undo.
+- **Course creator:** build holes, make courses and share them with codes.
 - **Bag & pro shop:** 30 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
@@ -29,6 +30,13 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.6 · 24 October 2026
+- **Course creator:** build your own holes. Draw the fairway, place and resize the green, add bunkers, water and trees, set the green's slope and par, and test-play straight from the editor.
+- **Start from Ashby Green:** copy any of the 9 club holes as a starting point.
+- **Courses:** string up to 9 of your holes into a course and play it solo or in pass and play.
+- **Share codes:** share a course as a short code, ready to paste on Reddit or send to a mate. Import codes from Course creator.
+- Custom courses don't count towards your handicap or rewards.
 
 ### 0.5 · 24 October 2026
 - **Sound effects:** swings, strikes, landings on each surface, splashes, the cup rattle, birdie chimes, rewards and character voices.
