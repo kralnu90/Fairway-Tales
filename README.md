@@ -19,6 +19,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 
 ## How to play
 
+There's a full guide on the main menu too.
+
 - **Swing:** swipe down for your backswing, pause, then swipe up. How straight you swipe shapes the shot.
 - **Aim:** drag anywhere on the course to nudge your aim, or tap to jump it.
 - **Strike ball:** drag the dot for topspin, backspin, draw or fade.
@@ -27,6 +29,14 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.5 · 24 October 2026
+- **Sound effects:** swings, strikes, landings on each surface, splashes, the cup rattle, birdie chimes, rewards and character voices.
+- **Ball bounce:** shots hop on landing before they roll. Higher on firm ground, softer with backspin, none in bunkers.
+- **Hole flyover:** a quick sweep from the green back to the tee before each hole. Tap to skip.
+- **How to play:** a new guide on the main menu.
+- **Settings:** sound on or off, left-handed mode and flyovers on or off.
+- **Left-handed mode:** moves the power meter and strike ball to the left, and names draws and fades the left-handed way.
 
 ### 0.4 · 23 October 2026
 - **Handicap:** worked out from your best 3 of your last 5 solo rounds or Club Championships. Shown on the menu and in the shop.
