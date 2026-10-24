@@ -10,8 +10,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 
 ## What's in it
 
-- **Story · Chapter 1:** walk around Ashby Green, meet the members, beat Toby, Dot and Marcus, then win the Club Championship.
-- **Solo round:** 9 holes, par 36. Earn coins and club XP.
+- **Story:** chapter 1 at Ashby Green, then drive to Gullhaven Links for chapter 2 and the County Qualifier.
+- **Solo round:** 9 holes on Ashby Green or Gullhaven Links. Earn coins, club XP and reward bags.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice:** any hole, unlimited undo.
 - **Course creator:** build holes, make courses and share them with codes.
@@ -30,6 +30,14 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.7 · 24 October 2026
+- **Chapter 2: Gullhaven Links.** Win the Ashby Green Club Championship, then drive to the coast in your own car. A new club to explore with new members, three rivals and the County Qualifier against Gideon Thorne.
+- **Your car and the road map:** travel between areas from the car park, with a short drive between them. Future chapters are on the map already.
+- **New course: Gullhaven Links,** 9 holes, par 36, with gusting wind that changes between shots, firm running ground, pot bunkers, gorse (unplayable, penalty drop) and burns.
+- **New Epics:** Bump & Run, Stinger, Tidewater (two green reads per hole) and Northerly.
+- **Pick your course** in Solo, Practice and Pass & play once the links are unlocked.
+- **Course creator:** build links holes with pot bunkers and gorse.
 
 ### 0.6 · 24 October 2026
 - **Course creator:** build your own holes. Draw the fairway, place and resize the green, add bunkers, water and trees, set the green's slope and par, and test-play straight from the editor.
