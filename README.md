@@ -6,8 +6,6 @@ Open the link on your phone, then tap **Install app** in Chrome (or **Share → 
 
 A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and level up clubs, and take on the members of Ashby Green Golf Club.
 
-(Formerly Stroke of Luck. Old links forward here automatically.)
-
 ☕ Enjoying it? [Support it on Ko-fi](https://ko-fi.com/kralnu90).
 
 ## What's in it
