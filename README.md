@@ -16,6 +16,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
 - **Play a hole:** any hole, unlimited undo.
 - **Course creator:** build holes, make courses and share them with codes.
+- **Swing difficulty** that follows your handicap, with bigger rewards for better players.
 - **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
 - **Bag & pro shop:** 40 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
@@ -32,6 +33,15 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.10 · 26 October 2026
+- **Swing difficulty.** Hitting it straight is now a skill to earn. The swing reads your whole stroke: drifting sideways on the way down gives you *outside-in* (slice) or *inside-out* (hook), and a bendy upswing curves the ball too. Small swipe errors bend the ball more, timing is stricter and there's more random scatter.
+- **Five levels that follow your handicap:** Relaxed (36+, how it used to play), Standard (about 18), Hard (about 5), Very hard (about scratch) and Pro (+5 and better). Your level moves one step at most after each solo round or championship, never mid-round.
+- **Harder levels pay:** +10% XP and coins per level above Standard, and better odds of finding fittings.
+- **Control and Forgiveness matter more.** They cut down the extra scatter, so fittings like Tacky grips and Cavity heads tighten your shots.
+- **Lock your level** in Settings. Pass & play is always Relaxed.
+- Story rivals ease off slightly at the harder levels, so matches stay fair.
+- Your swing level shows on the main menu, in Settings, on the handicap card in the pro shop and at the end of each round. There's a new How to play section too.
 
 ### 0.9 · 26 October 2026
 - **Fittings.** Every club now has a head, shaft and grip slot (putters have a head and a grip). There are 14 kinds of part: Max, Lite, Forged and Cavity heads; Stiff, Soft and Tour shafts; Slim (draw bias), Oversize (fade bias) and Tacky grips; plus Blade and Mallet putter heads and Pistol and Fat putter grips.

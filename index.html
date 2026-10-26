@@ -143,6 +143,10 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .dlt{font-size:10px;font-weight:800;margin-left:2px}.dlt.up{color:var(--good)}.dlt.dn{color:var(--hazard)}
 .st.fx{grid-template-columns:76px 1fr 44px}
 .odds{font-size:13px;font-weight:800;color:var(--chalk)}
+.dscale{display:flex;flex-direction:column;gap:4px}
+.dscale div{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--muted);padding:6px 10px;border-radius:8px;background:var(--panel2)}
+.dscale div.on{background:var(--flag);color:#1d1a0e}
+.whatsnew{border-color:var(--flag)!important}
 .pg .ed-row{display:flex;flex-direction:column;align-items:stretch;gap:6px}
 .pg-seg{display:flex;flex-wrap:wrap;gap:6px}.pg-seg button{flex:1 1 auto}
 .reward{color:var(--flag);font-weight:800}
@@ -649,7 +653,7 @@ function isCapped(o){return CAPS[o.lvl]&&!o.tuned.includes(o.lvl)}
 // Adds XP to the equipped club (solo rounds only); returns a short line for the shot toast
 function gainXp(amt){
   if((mode!=='solo'&&mode!=='rival')||isCustom())return '';
-  return addXp(eqId(),amt);
+  return addXp(eqId(),Math.round(amt*rewardMul()));
 }
 function addXp(id,amt){
   const o=save.owned[id],d=DEF[id];let msg=`+${amt} XP · ${d.n}`;
@@ -669,12 +673,41 @@ function hcp(){const r=save.rounds.slice(-5);if(r.length<3)return null;const b=r
 const hcpVal=()=>hcp()??36;
 const fmtH=v=>v<0?`+${(-v).toFixed(1)}`:v.toFixed(1);
 function hcpLabel(){const h=hcp();return h==null?`36 (provisional · ${3-save.rounds.length} more round${3-save.rounds.length>1?'s':''})`:fmtH(h)}
-function recordRound(overPar,src){const before=hcp();save.rounds.push({d:overPar,src,t:Date.now()});save.rounds=save.rounds.slice(-20);persist();return{before,after:hcp()}}
+function recordRound(overPar,src){const before=hcp();save.rounds.push({d:overPar,src,t:Date.now()});save.rounds=save.rounds.slice(-20);persist();return{before,after:hcp(),lv:stepSwingLv()}}
+function lvChangeHTML(c){
+  if(!c||!c.lv)return '';const {from,to}=c.lv,locked=SET.swingLock!=null&&SET.swingLock!=='';
+  const tail=locked?' (your locked level still applies)':'';
+  return to>from?`<div class="reward">Swing level up: ${DIFF[from].n} → ${DIFF[to].n}. ${to>1?`+${(to-1)*10}% XP and coins, better fitting odds.`:'Shots bend more off a wonky swipe.'}${tail}</div>`
+    :`<div class="blurb">Swing level: ${DIFF[from].n} → ${DIFF[to].n}. A gentler swing while you find your form.${tail}</div>`;
+}
 function hcpChangeHTML(c){
+  const lv=lvChangeHTML(c);
+  if(c.after==null)return `<div class="blurb">Handicap: provisional · ${3-save.rounds.length} more round${3-save.rounds.length>1?'s':''} to go</div>`+lv;
+  if(c.before==null)return `<div class="reward">First handicap: ${fmtH(c.after)}</div>`+lv;
+  return hcpChangeHTMLb(c)+lv;
+}
+function hcpChangeHTMLb(c){
   if(c.after==null)return `<div class="blurb">Handicap: provisional · ${3-save.rounds.length} more round${3-save.rounds.length>1?'s':''} to go</div>`;
   if(c.before==null)return `<div class="reward">First handicap: ${fmtH(c.after)}</div>`;
   const d=c.after-c.before;return `<div class="${d<0?'reward':'blurb'}">Handicap ${fmtH(c.before)} → ${fmtH(c.after)}${d<0?' ▼':d>0?' ▲':''}</div>`;
 }
+/* ---------- Swing difficulty: follows your handicap, changes between rounds, harder levels pay more ---------- */
+// sens: how much an off-line swipe bends the ball · win: how close to dead straight counts as Straight · noise: random scatter
+// drift/wob: how much backswing drift and a wobbly upswing count · rush/hang: timing windows (ms)
+const DIFF=[
+  {n:'Relaxed',sens:1,  win:1.2,noise:1,   drift:0,  wob:0,  rush:70, hang:700,hcp:'36+'},
+  {n:'Standard',sens:2,  win:.6, noise:1.4, drift:.5, wob:.5, rush:110,hang:650,hcp:'about 18'},
+  {n:'Hard',sens:2.4,win:.5, noise:1.75,drift:.7, wob:.7, rush:140,hang:600,hcp:'about 5'},
+  {n:'Very hard',sens:2.8,win:.45,noise:2.1, drift:.85,wob:.85,rush:170,hang:550,hcp:'about scratch'},
+  {n:'Pro',sens:3.2,win:.4, noise:2.5, drift:1,  wob:1,  rush:200,hang:500,hcp:'+5 and better'}];
+const lvlForHcp=h=>h==null?0:h>=27?0:h>=11.5?1:h>=2.5?2:h>=-2.5?3:4;
+const naturalLv=()=>{if(save.swingLv==null)save.swingLv=lvlForHcp(hcp());return save.swingLv};
+const swingLv=()=>mode==='pnp'?0:SET.swingLock!=null&&SET.swingLock!==''?+SET.swingLock:naturalLv();
+const bonusLv=()=>Math.max(0,swingLv()-1);
+const rewardMul=()=>1+.1*bonusLv();
+const swingTag=()=>`Swing: ${DIFF[swingLv()].n}${bonusLv()?` · +${bonusLv()*10}% rewards`:''}`;
+// After a counting round: move one level at most towards where your handicap says you belong
+function stepSwingLv(){const from=naturalLv(),to=lvlForHcp(hcp());if(to===from)return null;save.swingLv=from+(to>from?1:-1);persist();return{from,to:save.swingLv}}
 const TIERS={member:{n:'Member',max:28},low:{n:'Low handicapper',max:20},tour:{n:'Tour line',max:12}};
 const tierOk=d=>!d.tier||hcpVal()<=TIERS[d.tier].max;
 
@@ -706,7 +739,9 @@ function pickWeighted(list){const tot=list.reduce((a,e)=>a+e.w,0);let r=Math.ran
 function rollTable(name){
   let list=LOOT[name];
   if(save.pity>=PITY_AT)list=list.filter(isGood);           // safety net after a run of plain drops
-  const e=pickWeighted(list);
+  // harder swing levels: a little more likely to find a fitting
+  const fe=list.find(x=>x.t==='fit');
+  const e=fe&&Math.random()<.01*bonusLv()?fe:pickWeighted(list);
   save.pity=isGood(e)?0:save.pity+1;
   return e;
 }
@@ -722,7 +757,7 @@ function grant(e){
     out.push({cls:'shard',txt:`${DEF[id].n} shard${n>1?'s':''} ×${n} · ${Math.min(save.shards[id],SHARDS_NEEDED)}/${SHARDS_NEEDED}`});
     if(save.shards[id]>=SHARDS_NEEDED){save.shards[id]-=SHARDS_NEEDED;save.owned[id]=newOwned();out.push({cls:'epic',txt:`Forged ${DEF[id].n}! · Epic ${TYPE_NAME[DEF[id].t].toLowerCase()}`,tag:'FORGED'})}
   };
-  if(e.t==='coins'){save.coins+=e.n;out.push({cls:'coins',txt:`+${e.n} coins`})}
+  if(e.t==='coins'){const n=Math.round(e.n*rewardMul());save.coins+=n;out.push({cls:'coins',txt:`+${n} coins${n>e.n?` (+${n-e.n} swing bonus)`:''}`})}
   else if(e.t==='kit'){save.kits+=e.n;out.push({cls:'kit',txt:`+${e.n} tuning kit${e.n>1?'s':''}`})}
   else if(e.t==='shard')giveShards(e.c,e.n);
   else if(e.t==='shardAny'){const open=SHARD_CLUBS.filter(c=>!save.owned[c]);giveShards(open.length?open[Math.floor(Math.random()*open.length)]:SHARD_CLUBS[Math.floor(Math.random()*SHARD_CLUBS.length)],e.n)}
@@ -1078,17 +1113,22 @@ function strike(r){
   const lie2=lie==='pot'&&perk==='pot'?'sand':lie==='waste'&&perk==='waste'?'fairway':lie==='snow'&&perk==='snow'?'sand':lie, L2=SURF[lie2];
   let pow=lie2==='sand'?(perk==='sand'?1:c.sand?.92:L2.pow):L2.pow;
   pow+=(1-pow)*S.F*.035;                       // forgiveness claws back lie penalties
-  const notes=[], fg=1-S.F*.03;                // forgiveness softens tempo/overswing scatter
+  const notes=[], fg=1-S.F*.03, DP=DIFF[swingLv()];   // forgiveness softens tempo/overswing scatter
   let p=r.p, mult=p<=1?p:1+(p-1)*.4, noise=.8*L2.vari*(1-S.F*.02);
   if(p>1){noise+=(p-1)*25*fg;notes.push('overswing')}
-  if(r.pause<70){noise+=2.5*fg;notes.push('rushed transition')}
-  else if(r.pause>700){mult*=.93;notes.push('hung at the top')}
+  if(r.pause<DP.rush){noise+=2.5*fg*Math.sqrt(DP.noise);notes.push('rushed transition')}
+  else if(r.pause>DP.hang){mult*=.93;notes.push('hung at the top')}
   if(r.follow<.6){mult*=.85;notes.push('short follow-through')}
   if(r.speed<.45){mult*=.9;notes.push('decelerated')}
   noise*=1.25-S.C*.03; const ps=1.15-S.C*.02; // control: tighter scatter, less punished by an off-line swipe
-  const startDeg=r.path*.25*ps+gauss()*noise*.4;
+  // harder levels add scatter, and Control plus Forgiveness claw some of it back
+  noise*=1+(DP.noise-1)*Math.max(.35,1-(S.C+S.F)/60);
+  const dft=(r.drift||0)*DP.drift, wbl=(r.wob||0)*DP.wob;
+  if(Math.abs(dft)>2.5)notes.push(dft>0?'outside-in':'inside-out');
+  if(Math.abs(wbl)>1.5)notes.push('wobbly upswing');
+  const startDeg=r.path*.25*ps*DP.sens+gauss()*noise*.4;
   const FX=fitFx(eqId());
-  const curveDeg=r.path*.2*ps+gauss()*noise*.6+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
+  const curveDeg=r.path*.2*ps*DP.sens+dft*.12*ps+wbl*.35*ps+gauss()*noise*.6+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
   mult*=1-.04*Math.abs(SP.y);
   const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1);
   // XP: a clean, well-tempoed swing earns the most
@@ -1103,7 +1143,7 @@ function strike(r){
   const tot=startDeg+curveDeg;
   // curving right is a fade/slice for right-handers and a draw/hook for left-handers
   const RS=SET.lefty?['Draw','Hook']:['Fade','Slice'],LS=SET.lefty?['Fade','Slice']:['Draw','Hook'];
-  const shape=Math.abs(tot)<1.2?'Straight':tot>0?(tot<4?RS[0]:RS[1]):(tot>-4?LS[0]:LS[1]);
+  const shape=Math.abs(tot)<DP.win?'Straight':tot>0?(tot<4?RS[0]:RS[1]):(tot>-4?LS[0]:LS[1]);
   SFX.swing(p);SFX.strike(p,clean);
   saveUndo();
   shotStart={...ball}; shotClub=c; strokes++;
@@ -1326,8 +1366,9 @@ function endHole(){
   // Rewards: coins per hole; a tuning kit only for finishing the round under par
   let coins=strokes===1?300:diff<=-2?150:diff===-1?60:diff===0?25:diff===1?10:0, kits=0;
   if(last)coins+=100;
+  const cb0=coins;coins=Math.round(coins*rewardMul());
   save.coins+=coins; save.kits+=kits; persist();
-  const rw=`<div class="reward">+${coins} coins${kits?` · +${kits} tuning kit${kits>1?'s':''}`:''}${last?' (includes 100 round bonus)':''}</div>`;
+  const rw=`<div class="reward">+${coins} coins${kits?` · +${kits} tuning kit${kits>1?'s':''}`:''}${last?' (includes 100 round bonus)':''}${coins>cb0?` · +${coins-cb0} swing bonus`:''}</div>`;
   setTimeout(()=>{
     const label=strokes===1?'Hole in one!':(NAMES[diff]||`+${diff}`);
     if(!last){
@@ -1400,7 +1441,7 @@ function makeRival(id){
   const R=RIVALS[id];
   // the rival's score on each hole is rolled before you tee off, and revealed once you hole out
   const C=COURSES[R.course||'ashby'].holes;
-  const scores=[];for(let k=R.s;k<R.s+R.holes;k++){let r=Math.random(),d=0;for(const [v,p] of R.odds){if(r<p){d=v;break}r-=p}scores[k]=C[k].par+d}
+  const scores=[],nud=.04*bonusLv();for(let k=R.s;k<R.s+R.holes;k++){let r=Math.random(),d=0;for(const [v,p] of R.odds){if(r<p){d=v;break}r-=p}if(Math.random()<nud)d++;scores[k]=C[k].par+d}
   return{id,...R,scores};
 }
 function rivalTotals(upTo){let me=0,him=0;for(let k=rival.s;k<=upTo;k++){me+=scores[k]||0;him+=rival.scores[k]}return{me,him}}
@@ -1494,7 +1535,12 @@ function endSwing(e){
   }
   if(s.phase!=='through'||back<maxBack()*.08){$('#padHint').hidden=false;$('#log').textContent='No swing. Swipe down, pause, then swipe up through the pad.';return}
   const up=s.low.y-p.y, dx=p.x-s.low.x;
-  strike({p:Math.min(1.15,back/maxBack()),path:Math.atan2(dx,Math.max(1,up))/RAD,pause:s.pause,speed:up/Math.max(1,p.t-s.tStart),follow:up/back});
+  // the whole swing counts: sideways drift on the way down, and how much the upswing bends away from a straight line
+  const drift=Math.atan2(s.low.x-s.s.x,Math.max(1,back))/RAD;
+  const upPts=s.pts.filter(q=>q.t>=s.low.t),L=Math.hypot(dx,up)||1;let dev=0;
+  for(const q of upPts){const ex=q.x-s.low.x,ey=s.low.y-q.y;dev+=(ex*up-ey*dx)/L}
+  const wob=upPts.length?Math.atan2(2*dev/upPts.length,Math.max(1,up))/RAD:0;
+  strike({p:Math.min(1.15,back/maxBack()),path:Math.atan2(dx,Math.max(1,up))/RAD,pause:s.pause,speed:up/Math.max(1,p.t-s.tStart),follow:up/back,drift,wob});
 }
 pad.addEventListener('pointerup',endSwing);
 pad.addEventListener('pointercancel',()=>{sw=null;pad.classList.remove('cancel');$('#padRead').textContent='';$('#padHint').hidden=false;drawPad()});
@@ -1697,7 +1743,7 @@ function renderSheet(){
   else if(sheetTab==='fit')h=fitTabHTML();
   else if(sheetTab==='shop'){
     h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. They also drop from reward bags and rival rematches.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
-    h=`<div class="cc hcp-card"><div class="cc-top"><div class="cc-name">Your handicap: ${hcpLabel()}</div></div><div class="blurb">Lower your handicap to unlock better stock. It's worked out from your best 3 of your last 5 solo rounds or Club Championships.</div></div>`+h;
+    h=`<div class="cc hcp-card"><div class="cc-top"><div class="cc-name">Your handicap: ${hcpLabel()}</div></div><div class="blurb">Lower your handicap to unlock better stock. It's worked out from your best 3 of your last 5 solo rounds or Club Championships.</div><div class="blurb"><b>${swingTag()}</b></div></div>`+h;
     const forSale=DEFS.filter(d=>inStock(d)&&!save.owned[d.id]),coming=DEFS.filter(d=>d.src==='shop'&&!inStock(d)).length;
     if(!forSale.length)h+=`<div class="blurb">You own everything in stock.</div>`;
     for(const [key,label] of [[null,'Clubhouse · any handicap'],['member',`Member · handicap ${TIERS.member.max} or lower`],['low',`Low handicapper · ${TIERS.low.max} or lower`],['tour',`Tour line · ${TIERS.tour.max} or lower`]]){
@@ -2937,7 +2983,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.9';
+const GAME_VERSION='0.10';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3261,8 +3307,14 @@ function openMenu(screen){
       ${row('sound','Sound effects','Swings, landings, the cup and rewards')}
       ${row('lefty','Left-handed','Moves the power meter and strike ball to the left, and names draws and fades the left-handed way')}
       ${row('flyover','Hole flyovers','A quick look down each hole before you tee off')}
+      <div class="cc"><div class="cc-top"><div class="cc-name">Swing difficulty</div><span class="chip">${DIFF[swingLv()].n}</span></div>
+        <div class="blurb">The better your handicap, the harder it is to hit it straight. Your level moves up or down one step at most after each counting round, and harder levels earn more XP, coins and fittings. Pass &amp; play is always Relaxed.</div>
+        <div class="seg small pg-seg"><button data-lock="" aria-pressed="${SET.swingLock==null||SET.swingLock===''}">Auto</button>${DIFF.map((d,i)=>`<button data-lock="${i}" aria-pressed="${SET.swingLock!=null&&SET.swingLock!==''&&+SET.swingLock===i}">${d.n}</button>`).join('')}</div>
+        <div class="dscale">${DIFF.map((d,i)=>`<div class="${i===swingLv()?'on':''}"><b>${d.n}</b><span>HCP ${d.hcp}${i>1?` · +${(i-1)*10}% rewards`:''}</span></div>`).join('')}</div>
+        <div class="blurb">${SET.swingLock!=null&&SET.swingLock!==''?`Locked to ${DIFF[+SET.swingLock].n}. Your handicap would put you on ${DIFF[naturalLv()].n}.`:`Auto: following your handicap (${hcp()==null?'provisional':fmtH(hcp())}).`}</div></div>
       <div class="acts"><button id="sTest" class="sbtn">Test sound</button></div>`;
     $('#mBack').onclick=()=>openMenu('home');
+    b.querySelectorAll('[data-lock]').forEach(x=>x.onclick=()=>{SET.swingLock=x.dataset.lock===''?null:+x.dataset.lock;saveSettings();openMenu('settings')});
     b.querySelectorAll('.setrow').forEach(x=>x.onclick=()=>{const k=x.dataset.k;SET[k]=!SET[k];x.setAttribute('aria-pressed',SET[k]);saveSettings();if(k==='sound'&&SET.sound)SFX.cup()});
     $('#sTest').onclick=()=>{if(!SET.sound){$('#sTest').textContent='Sound is off';return}SFX.swing(1);SFX.strike(1,true);SFX.land('fairway');setTimeout(()=>{SFX.cup();SFX.chime()},700)};
     return;
@@ -3274,7 +3326,10 @@ function openMenu(screen){
       ${sec('Swing',`<div class="demo" aria-hidden="true"><div class="demo-pad"><i class="demo-dot"></i><i class="demo-line"></i></div></div>
         <p><b>Swipe down</b> on the pad for your backswing. The meter shows power. The gold line is 100%, and past it you'll overswing and spray it.</p>
         <p><b>Pause</b> for a beat at the top, then <b>swipe up</b> smoothly. Rushing, stopping short or slowing down all cost you.</p>
-        <p><b>Swipe straight up</b> to hit it straight. Angle the swipe right or left to curve the ball that way.</p>`)}
+        <p><b>Swipe straight up</b> to hit it straight. Angle the swipe right or left to curve the ball that way. Drifting sideways on the way down, or a bendy upswing, curves it too.</p>`)}
+      ${sec('Swing difficulty',`<p>As your <b>handicap</b> drops, your swing gets harder to hit straight, from <b>Relaxed</b> through Standard, Hard and Very hard to <b>Pro</b>. Small swipe errors bend the ball more, timing is stricter and there's more random scatter. Control and Forgiveness on your clubs, and fittings like Tacky grips and Cavity heads, win some of it back.</p>
+        <p>Your level moves one step at most after each solo round or championship, never mid-round. Harder levels pay <b>+10% XP and coins per level</b> above Standard, plus better odds of finding fittings.</p>
+        <p>You can <b>lock</b> your level in Settings. Pass &amp; play is always Relaxed, so anyone can join in. The shot report tells you what went wrong, for example <i>outside-in</i>, <i>wobbly upswing</i> or <i>rushed transition</i>.</p>`)}
       ${sec('Aim',`<p><b>Drag anywhere on the course</b> to nudge your aim, or <b>tap</b> to jump it to a spot. The dashed line shows the curve, the gold ring is where it should land, and the arrow shows the roll.</p>`)}
       ${sec('Strike ball',`<p>Drag the dot on the ball at the bottom of the course. <b>Top</b> gives topspin: lower flight and lots of roll. <b>Bottom</b> gives backspin: higher flight, and it stops or spins back on greens. <b>Sideways</b> adds a draw or fade. Double-tap to centre it.</p>`)}
       ${sec('Putting',`<p><b>Pull down</b> on the pad and let go. Further means harder. The chevrons on the green flow downhill, and redder and faster means steeper.</p>
@@ -3401,7 +3456,11 @@ function openMenu(screen){
     create:'<path d="M3 21l3.5-1 11-11-2.5-2.5-11 11zM14 6l2.5 2.5M17 3l4 4"/>',bag:'<path d="M7 8h10l-1 13H8zM9 8V5a3 3 0 0 1 6 0v3"/>'};
   const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CH}</button>`;
   b.innerHTML=`<div class="hero-card"><canvas id="heroCv" aria-label="A golfer teeing off" role="img"></canvas><div class="hero-tag">${esc(heroTheme().tag)}</div></div>
-    <div class="hero-row"><div><div class="k">A golf RPG</div><div class="menu-title">Fairway <span>Tales</span></div></div><div class="hero-stats"><span class="chip">HCP ${hcp()==null?'36':fmtH(hcp())}</span>${best?`<span class="chip">Best ${best}</span>`:''}</div></div>
+    <div class="hero-row"><div><div class="k">A golf RPG</div><div class="menu-title">Fairway <span>Tales</span></div></div><div class="hero-stats"><span class="chip">HCP ${hcp()==null?'36':fmtH(hcp())}</span><span class="chip">${DIFF[swingLv()].n} swing</span>${best?`<span class="chip">Best ${best}</span>`:''}</div></div>
+    ${seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: swing difficulty</div></div>
+      <div class="blurb">Swings are now harder to hit straight, and they get tougher as your handicap drops. A wobbly swipe, drifting on the way down or rushing the top will bend the ball. Better players earn more XP, coins and fittings.</div>
+      <div class="blurb">You're on <b>${DIFF[swingLv()].n}</b>. You can lock your level in Settings.</div>
+      <div class="acts"><button id="wnOk" class="sbtn pri">Got it</button><button id="wnSet" class="sbtn">Settings</button></div></div>`}
     ${resume?MB('mResume','resume','Resume',esc(where),' pri'):''}
     <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CH}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
@@ -3429,6 +3488,7 @@ function openMenu(screen){
   $('#mReview').onclick=()=>openMenu('review');
   $('#mHelp').onclick=()=>openMenu('help');
   $('#mSettings').onclick=()=>openMenu('settings');
+  if($('#wnOk')){$('#wnOk').onclick=()=>{markNew();openMenu('home')};$('#wnSet').onclick=()=>{markNew();openMenu('settings')}}
   startHero();
 }
 // ---------- Main menu hero: a golfer teeing off, set wherever you are in the story ----------
@@ -3547,6 +3607,8 @@ function drawHeroGolfer(c,x,y,s,a,cock,turn,th){
   c.fillStyle='#1d1a17';if(look<1){c.fillRect(sh.x-4,sh.y-11,2,2.4);c.fillRect(sh.x+2,sh.y-11,2,2.4)}else c.fillRect(sh.x+look*.5+4,sh.y-11,2,2.4);
   c.restore();
 }
+const seenNew=()=>{try{return localStorage.getItem('fsl-seen-diff')==='1'}catch(e){return true}};
+const markNew=()=>{try{localStorage.setItem('fsl-seen-diff','1')}catch(e){}};
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};
 function makeBackup(){
   const ls={};try{for(const k of ['fsl-preview','fsl-names','fsl-pcount','fsl-settings','fsl-seen-help','fsl-custom']){const v=localStorage.getItem(k);if(v!=null)ls[k]=v}}catch(e){}
