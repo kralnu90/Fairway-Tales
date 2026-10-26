@@ -41,6 +41,7 @@ There's a full guide on the main menu too.
 - **New friends:** Ziggy the lizard and Bjorn the husky. They might have something for you.
 - **Course creator:** new Desert (cacti) and Ice (frozen ponds, snowdrifts) styles, and share codes carry them.
 - Palm trees in the desert, snowy pines in the mountains, and snowfall at Frostpeak.
+- **New main menu:** an animated scene of your golfer teeing off, set wherever you are in the story, plus icons on every button.
 
 ### 0.7 · 24 October 2026
 - **Chapter 2: Gullhaven Links.** Win the Ashby Green Club Championship, then drive to the coast in your own car. A new club to explore with new members, three rivals and the County Qualifier against Gideon Thorne.

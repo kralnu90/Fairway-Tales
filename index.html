@@ -160,6 +160,22 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .menu{z-index:30;overflow-y:auto}
 .menu-body{display:flex;flex-direction:column;gap:10px;padding-bottom:20px}
 .menu-hero{display:flex;flex-direction:column;gap:4px;padding-block:18px 8px}
+.hero-card{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);height:clamp(200px,32vh,260px);flex:none;background:#1c3628;margin-top:4px}
+.hero-card canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-tag{position:absolute;left:12px;top:12px;background:rgba(14,29,21,.72);color:var(--chalk);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:999px;backdrop-filter:blur(4px)}
+.hero-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:6px 2px 2px}
+.hero-row .menu-title{font-size:44px}
+.hero-stats{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding-bottom:4px}
+.hero-stats .chip{white-space:nowrap}
+.mbtn.ico{display:grid;grid-template-columns:44px 1fr 14px;align-items:center;column-gap:12px;row-gap:2px}
+.mbtn.ico>svg.mi{grid-row:1/3;width:44px;height:44px;border-radius:12px;background:var(--panel2);padding:9px;color:var(--flag)}
+.mbtn.ico>b{grid-column:2}.mbtn.ico>span{grid-column:2}
+.mbtn.ico>svg.chev{grid-column:3;grid-row:1/3;width:14px;height:14px;color:var(--muted)}
+.mbtn.pri.ico>svg.mi{background:rgba(29,26,14,.14);color:#1d1a0e}
+.mbtn.pri.ico>svg.chev{color:#4a3f17}
+.mbtn.story{background:linear-gradient(135deg,#1f4a33,#15291f 70%);border-color:#3b6b52}
+.mbtn:active{transform:scale(.985)}
+.mbtn{transition:transform .08s}
 .menu-title{font-family:var(--display);font-size:46px;line-height:.95;color:var(--chalk)}
 .menu-title span{color:var(--flag)}
 .mbtn{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:var(--chalk);font:inherit;cursor:pointer}
@@ -3139,14 +3155,20 @@ function openMenu(screen){
   }
   const resume=gameOn&&state!=='done';
   const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
-  b.innerHTML=`<div class="menu-hero"><div class="k">A golf RPG</div><div class="menu-title">Fairway<br><span>Tales</span></div><div class="blurb">Handicap ${hcpLabel()}${best?` · Best round ${best}`:''}</div></div>
-    ${resume?`<button id="mResume" class="mbtn pri"><b>Resume</b><span>${esc(where)}</span></button>`:''}
-    <button id="mStory" class="mbtn"><b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
-    <button id="mSolo" class="mbtn"><b>Solo round</b><span>9 holes with your own bag. Earn coins and club XP.</span></button>
-    <button id="mPnp" class="mbtn"><b>Pass &amp; play</b><span>2 to 4 players on one phone. Everyone on the Clubhouse set.</span></button>
-    <button id="mPractice" class="mbtn"><b>Practice</b><span>Pick any hole. Unlimited undo, no rewards.</span></button>
-    <button id="mCreate" class="mbtn"><b>Course creator</b><span>${CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes'}</span></button>
-    <button id="mBag" class="mbtn"><b>Bag &amp; pro shop</b><span>${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs</span></button>
+  const IC=(d)=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`,CH='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  const ICONS={resume:'<path d="M8 5l11 7-11 7z" fill="currentColor"/>',story:'<path d="M4 19V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM8 7h6M8 11h6"/>',solo:'<path d="M6 21V3l11 4-11 4"/><circle cx="17" cy="19" r="2"/>',
+    pnp:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+    create:'<path d="M3 21l3.5-1 11-11-2.5-2.5-11 11zM14 6l2.5 2.5M17 3l4 4"/>',bag:'<path d="M7 8h10l-1 13H8zM9 8V5a3 3 0 0 1 6 0v3"/>'};
+  const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CH}</button>`;
+  b.innerHTML=`<div class="hero-card"><canvas id="heroCv" aria-label="A golfer teeing off" role="img"></canvas><div class="hero-tag">${esc(heroTheme().tag)}</div></div>
+    <div class="hero-row"><div><div class="k">A golf RPG</div><div class="menu-title">Fairway <span>Tales</span></div></div><div class="hero-stats"><span class="chip">HCP ${hcp()==null?'36':fmtH(hcp())}</span>${best?`<span class="chip">Best ${best}</span>`:''}</div></div>
+    ${resume?MB('mResume','resume','Resume',esc(where),' pri'):''}
+    <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CH}</button>
+    ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
+    ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
+    ${MB('mPractice','practice','Practice','Pick any hole. Unlimited undo, no rewards.')}
+    ${MB('mCreate','create','Course creator',CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes')}
+    ${MB('mBag','bag','Bag &amp; pro shop',`${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs`)}
     <div class="mgrid">
       <button id="mHelp" class="mbtn small${seenHelp()?'':' pri'}"><b>How to play</b><span>${seenHelp()?'Controls and tips':'New? Start here'}</span></button>
       <button id="mSettings" class="mbtn small"><b>Settings</b><span>Sound, left-handed, flyovers</span></button>
@@ -3165,6 +3187,123 @@ function openMenu(screen){
   $('#mReview').onclick=()=>openMenu('review');
   $('#mHelp').onclick=()=>openMenu('help');
   $('#mSettings').onclick=()=>openMenu('settings');
+  startHero();
+}
+// ---------- Main menu hero: a golfer teeing off, set wherever you are in the story ----------
+function heroTheme(){
+  const a=(save.story&&save.story.area)||'ashby';
+  const T={
+    ashby:{tag:'Ashby Green',sky:['#7cc3e8','#cfe9f2'],sun:'#fff3c4',far:'#6f9c6a',near:'#4f8c46',ground:['#5a9a4c','#4f8c46'],tee:'#74ba60',flag:'#f2c14e',tree:'oak',cloud:'rgba(255,255,255,.85)'},
+    links:{tag:'Gullhaven Links',sky:['#8fb8cf','#dfe9e6'],sun:'#fff6d8',far:'#9aab73',near:'#8fa45c',ground:['#9cbc63','#8fa45c'],tee:'#a8c870',flag:'#c0392b',tree:'dune',sea:'#2f7d9a',cloud:'rgba(255,255,255,.9)'},
+    mesa:{tag:'Sun Mesa',sky:['#f2a65a','#fbe3b0'],sun:'#fff1c2',far:'#b5683f',near:'#d9b47c',ground:['#6fa64a','#64a046'],tee:'#7bb556',flag:'#d9822b',tree:'palm',mesa:true,cloud:'rgba(255,240,220,.6)'},
+    frost:{tag:'Frostpeak',sky:['#9fb7d1','#e4ecf4'],sun:'#ffffff',far:'#6f8296',near:'#e9f0f6',ground:['#86b08f','#7fa889'],tee:'#8ab595',flag:'#2f6db0',tree:'pine',snow:true,cloud:'rgba(255,255,255,.75)'}
+  };
+  return T[a]||T.ashby;
+}
+let heroRaf=0;
+function startHero(){
+  cancelAnimationFrame(heroRaf);
+  const cv=$('#heroCv');if(!cv)return;
+  const T0=performance.now(),th=heroTheme();
+  const fit=()=>{const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d)};fit();
+  const loop=now=>{
+    if(!cv.isConnected||$('#menu').hidden)return;
+    const r=cv.getBoundingClientRect();if(Math.abs(r.width*(devicePixelRatio||1)-cv.width)>2)fit();
+    drawHero(cv,th,RM?3.4:(now-T0)/1000);
+    if(!RM)heroRaf=requestAnimationFrame(loop);
+  };
+  heroRaf=requestAnimationFrame(loop);
+}
+function drawHero(cv,th,t){
+  const d=devicePixelRatio||1,c=cv.getContext('2d'),W=cv.width/d,Hh=cv.height/d;
+  c.setTransform(d,0,0,d,0,0);
+  const hz=Hh*.5; // horizon
+  // sky and sun
+  let g=c.createLinearGradient(0,0,0,hz);g.addColorStop(0,th.sky[0]);g.addColorStop(1,th.sky[1]);c.fillStyle=g;c.fillRect(0,0,W,hz+2);
+  const sx=W*.8,sy=hz*.42;g=c.createRadialGradient(sx,sy,0,sx,sy,70);g.addColorStop(0,th.sun);g.addColorStop(.25,th.sun);g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(sx-70,sy-70,140,140);
+  // drifting clouds
+  c.fillStyle=th.cloud;
+  for(let k=0;k<4;k++){const cx=((k*W*.37+t*(6+k*2))%(W+160))-80,cy=hz*(.18+k*.13),sz=14+k*3;c.beginPath();c.ellipse(cx,cy,sz*2,sz*.6,0,0,7);c.ellipse(cx+sz*.9,cy-sz*.35,sz,sz*.6,0,0,7);c.ellipse(cx-sz*.8,cy-sz*.2,sz*.8,sz*.45,0,0,7);c.fill()}
+  // birds
+  c.strokeStyle='rgba(30,40,40,.55)';c.lineWidth=1.4;
+  for(let k=0;k<3;k++){const bx=((t*18+k*40)%(W+80))-40,by=hz*.3+k*8+Math.sin(t*2+k)*3,f=Math.sin(t*9+k*2)*3;c.beginPath();c.moveTo(bx-6,by+f*.3);c.quadraticCurveTo(bx-3,by-f,bx,by);c.quadraticCurveTo(bx+3,by-f,bx+6,by+f*.3);c.stroke()}
+  // far scenery
+  if(th.mesa){c.fillStyle=th.far;c.beginPath();c.moveTo(W*.05,hz);c.lineTo(W*.1,hz-38);c.lineTo(W*.32,hz-40);c.lineTo(W*.37,hz);c.moveTo(W*.55,hz);c.lineTo(W*.6,hz-26);c.lineTo(W*.74,hz-28);c.lineTo(W*.79,hz);c.fill();c.fillStyle='rgba(255,220,180,.25)';c.fillRect(W*.1,hz-40,W*.22,6)}
+  else if(th.snow){for(const [x0,x1,h] of [[-.1,.35,70],[.2,.62,92],[.5,.95,78],[.8,1.2,60]]){const m=(x0+x1)/2*W;c.fillStyle=th.far;c.beginPath();c.moveTo(x0*W,hz);c.lineTo(m,hz-h);c.lineTo(x1*W,hz);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(m-(x1-x0)*W*.14,hz-h*.66);c.lineTo(m,hz-h);c.lineTo(m+(x1-x0)*W*.14,hz-h*.66);c.lineTo(m+5,hz-h*.58);c.lineTo(m-4,hz-h*.7);c.fill()}}
+  else{c.fillStyle=th.far;c.beginPath();c.moveTo(0,hz);for(let x=0;x<=W;x+=W/12)c.lineTo(x,hz-14-Math.sin(x*.012+1)*10-Math.sin(x*.031)*5);c.lineTo(W,hz);c.fill()}
+  if(th.sea){c.fillStyle=th.sea;c.fillRect(0,hz-6,W,8);c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=1;for(let k=0;k<5;k++){const x=((k*W*.23+t*10)%W);c.beginPath();c.moveTo(x,hz-3);c.lineTo(x+14,hz-3);c.stroke()}}
+  // ground: rough band then a fairway running to the green
+  c.fillStyle=th.near;c.fillRect(0,hz,W,Hh-hz);
+  if(th.snow){c.fillStyle='rgba(170,195,220,.35)';for(let k=0;k<60;k++){c.beginPath();c.ellipse(((k*.618)%1)*W,hz+((k*.7548)%1)*(Hh-hz),2.5,1,0,0,7);c.fill()}}
+  const vx=W*.74; // vanishing point of the fairway
+  c.fillStyle=th.ground[0];c.beginPath();c.moveTo(vx-14,hz+2);c.lineTo(vx+14,hz+2);c.lineTo(W*1.05,Hh);c.lineTo(W*.05,Hh);c.fill();
+  c.save();c.clip();for(let k=0;k<9;k++){const y0=hz+2+(Hh-hz)*Math.pow(k/9,1.7),y1=hz+2+(Hh-hz)*Math.pow((k+.5)/9,1.7);c.fillStyle=th.ground[1];c.fillRect(0,y0,W,y1-y0)}c.restore();
+  // the green and flag
+  const gx=vx,gy=hz+5;c.fillStyle=th.tee;c.beginPath();c.ellipse(gx,gy,22,4.5,0,0,7);c.fill();
+  c.strokeStyle='#f4f4f0';c.lineWidth=1.3;c.beginPath();c.moveTo(gx+3,gy);c.lineTo(gx+3,gy-20);c.stroke();
+  const wv=Math.sin(t*4)*1.5;c.fillStyle=th.flag;c.beginPath();c.moveTo(gx+3,gy-20);c.quadraticCurveTo(gx+9,gy-18+wv,gx+14,gy-17+wv*.5);c.lineTo(gx+3,gy-13);c.fill();
+  // side trees
+  const tree=(x,y,sc)=>{
+    if(th.tree==='palm'){c.strokeStyle='#7a5a30';c.lineWidth=3*sc;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+6*sc,y-20*sc,x+3*sc,y-36*sc);c.stroke();for(let k=0;k<6;k++){const a=-Math.PI/2+(k-2.5)*.55+Math.sin(t+k)*.04;c.strokeStyle=k%2?'#4f8f3a':'#3e7a30';c.lineWidth=3.2*sc;c.beginPath();c.moveTo(x+3*sc,y-36*sc);c.quadraticCurveTo(x+3*sc+Math.cos(a)*12*sc,y-36*sc+Math.sin(a)*12*sc-4*sc,x+3*sc+Math.cos(a)*20*sc,y-36*sc+Math.sin(a)*8*sc+6*sc);c.stroke()}return}
+    if(th.tree==='pine'){c.fillStyle='#5a3f2a';c.fillRect(x-2*sc,y-6*sc,4*sc,6*sc);for(let k=0;k<3;k++){const w=(13-k*3.5)*sc,yy=y-6*sc-k*10*sc;c.fillStyle='#234d3a';c.beginPath();c.moveTo(x-w,yy);c.lineTo(x+w,yy);c.lineTo(x,yy-16*sc);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(x-w*.4,yy-9*sc);c.lineTo(x+w*.25,yy-9*sc);c.lineTo(x,yy-16*sc);c.fill()}return}
+    if(th.tree==='dune'){c.fillStyle='#d8c899';c.beginPath();c.ellipse(x,y,26*sc,9*sc,0,Math.PI,0);c.fill();c.strokeStyle='#8a9a58';c.lineWidth=1.2;for(let k=-3;k<=3;k++){c.beginPath();c.moveTo(x+k*5*sc,y-6*sc);c.lineTo(x+k*5*sc+Math.sin(t*2+k)*2,y-14*sc);c.stroke()}return}
+    c.fillStyle='#5a3f2a';c.fillRect(x-2.5*sc,y-14*sc,5*sc,14*sc);c.fillStyle='#2a5d33';c.beginPath();c.arc(x,y-22*sc,13*sc,0,7);c.fill();c.fillStyle='#377242';c.beginPath();c.arc(x-4*sc,y-26*sc,7*sc,0,7);c.fill()};
+  tree(W*.5,hz+8,.55);tree(W*.92,hz+10,.7);tree(W*.98,hz+30,1.05);tree(W*.42,hz+4,.4);
+  // tee box in the foreground
+  const fy=Hh-18,px=W*.24;
+  c.fillStyle=th.tee;c.beginPath();c.ellipse(px+10,fy+4,W*.2,13,0,0,7);c.fill();
+  c.fillStyle='#f4f4f0';c.beginPath();c.arc(px-48,fy+2,3,0,7);c.arc(px+72,fy+2,3,0,7);c.fill();
+  // the swing: 5 second loop
+  const L=5.2,u=(t%L)/L,ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+  let a=0,cock=0,turn=0;
+  if(u<.18){a=0}
+  else if(u<.48){const k=ease((u-.18)/.3);a=-2.35*k;cock=-1.0*k;turn=-k}
+  else if(u<.54){const k=(u-.48)/.06,kk=k*k;a=-2.35+(2.35+0.25)*kk;cock=-1.0*(1-kk);turn=-1+1.25*kk}
+  else if(u<.66){const k=ease((u-.54)/.12);a=.25+2.35*k;cock=.9*k;turn=.25+.75*k}
+  else{a=2.6;cock=.9;turn=1}
+  const sc=Math.min(1.25,Hh/210),ballX=px+5*sc,ballY=fy;
+  drawHeroGolfer(c,px,fy,sc,a,cock,turn,th);
+  // the ball: on the tee until impact, then away towards the flag
+  const imp=.53;
+  if(u<imp){c.fillStyle='#f4f4f0';c.fillRect(ballX-.8,ballY-5,1.6,5);c.beginPath();c.arc(ballX,ballY-6.5,2.6,0,7);c.fill()}
+  else{
+    const f=Math.min(1,(u-imp)/.4),ex=gx-4,ey=gy-1,x=ballX+(ex-ballX)*f,base=ballY-6+(ey-ballY+6)*f,arc=Math.sin(f*Math.PI)*Hh*.62*(1-f*.35),r=2.6*(1-f*.75);
+    for(let k=1;k<9;k++){const ff=Math.max(0,f-k*.018),xx=ballX+(ex-ballX)*ff,yy=ballY-6+(ey-ballY+6)*ff-Math.sin(ff*Math.PI)*Hh*.62*(1-ff*.35);c.fillStyle=`rgba(255,255,255,${.35-k*.035})`;c.beginPath();c.arc(xx,yy,r*.8,0,7);c.fill()}
+    c.fillStyle='#ffffff';c.beginPath();c.arc(x,base-arc,Math.max(.9,r),0,7);c.fill();
+    c.fillStyle='#f4f4f0';c.fillRect(ballX-.8,ballY-5,1.6,5);
+  }
+  if(th.snow){c.fillStyle='rgba(255,255,255,.85)';for(let k=0;k<50;k++){const x=((k*97.3)%W+Math.sin(t+k)*8+W)%W,y=((k*53.7)%Hh+t*(14+(k%4)*6))%Hh;c.beginPath();c.arc(x,y,1+(k%3)*.4,0,7);c.fill()}}
+  // soft vignette so the card sits in the page
+  g=c.createLinearGradient(0,Hh*.65,0,Hh);g.addColorStop(0,'rgba(14,29,21,0)');g.addColorStop(1,'rgba(14,29,21,.35)');c.fillStyle=g;c.fillRect(0,Hh*.65,W,Hh*.35);
+}
+// face-on golfer: a = arm angle (0 points at the ball, negative goes back), cock = wrist hinge, turn = -1 top of backswing .. 1 finish
+function drawHeroGolfer(c,x,y,s,a,cock,turn,th){
+  const P=PLAYER_LOOK;
+  c.save();c.translate(x,y);c.scale(s,s);
+  c.fillStyle='rgba(0,0,0,.22)';c.beginPath();c.ellipse(4,2,26,5,0,0,7);c.fill();
+  const hip=turn*3;
+  // legs
+  c.strokeStyle=P.legs;c.lineWidth=8;c.lineCap='round';
+  c.beginPath();c.moveTo(-6+hip,-38);c.lineTo(-11,-3);c.moveTo(6+hip,-38);c.lineTo(turn>.7?6:11,-3);c.stroke();
+  c.fillStyle='#f4f4f0';c.beginPath();c.ellipse(-13,-1,6,3,0,0,7);c.ellipse(turn>.7?7:13,-1,6,3,0,0,7);c.fill();
+  // torso leans over the ball, rotates a little with the swing
+  const sh={x:hip*.6+turn*2,y:-64};
+  c.fillStyle=P.top;c.beginPath();c.moveTo(-10+hip,-36);c.lineTo(10+hip,-36);c.lineTo(sh.x+12,sh.y);c.quadraticCurveTo(sh.x,sh.y-6,sh.x-12,sh.y);c.fill();
+  c.fillStyle='rgba(0,0,0,.08)';c.fillRect(-10+hip,-40,20,4);
+  // arms and club
+  const arm=24,hx=sh.x+Math.sin(a)*arm,hy=sh.y+4+Math.cos(a)*arm;
+  const ca=a+cock,club=33,cx=hx+Math.sin(ca)*club,cy=hy+Math.cos(ca)*club;
+  c.strokeStyle='#c9cfc6';c.lineWidth=2;c.beginPath();c.moveTo(hx,hy);c.lineTo(cx,cy);c.stroke();
+  c.fillStyle='#3b3f3a';c.save();c.translate(cx,cy);c.rotate(-ca+Math.PI/2);c.fillRect(-3,-2.5,8,5);c.restore();
+  c.strokeStyle=P.top;c.lineWidth=6;c.beginPath();c.moveTo(sh.x-9,sh.y+3);c.lineTo(hx,hy);c.moveTo(sh.x+9,sh.y+3);c.lineTo(hx,hy);c.stroke();
+  c.fillStyle='#f4f4f0';c.beginPath();c.arc(hx,hy,3.6,0,7);c.fill(); // glove
+  // head: stays still until the finish, then turns to watch the ball
+  const look=turn>.6?(turn-.6)*6:0;
+  c.fillStyle=P.skin;c.beginPath();c.arc(sh.x+look*.5,sh.y-11,9,0,7);c.fill();
+  c.fillStyle=P.hair;c.beginPath();c.arc(sh.x+look*.5,sh.y-13,9.2,Math.PI*1.05,Math.PI*1.95);c.fill();
+  c.fillStyle=P.cap;c.beginPath();c.arc(sh.x+look*.5,sh.y-14,9.4,Math.PI,0);c.fill();c.fillRect(sh.x+look*.5+(look>1?2:-4),sh.y-15,look>1?10:8,3);
+  c.fillStyle='#1d1a17';if(look<1){c.fillRect(sh.x-4,sh.y-11,2,2.4);c.fillRect(sh.x+2,sh.y-11,2,2.4)}else c.fillRect(sh.x+look*.5+4,sh.y-11,2,2.4);
+  c.restore();
 }
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};
 function makeBackup(){
