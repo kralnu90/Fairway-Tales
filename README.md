@@ -10,12 +10,12 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 
 ## What's in it
 
-- **Story:** chapter 1 at Ashby Green, then drive to Gullhaven Links for chapter 2 and the County Qualifier.
-- **Solo round:** 9 holes on Ashby Green or Gullhaven Links. Earn coins, club XP and reward bags.
+- **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
+- **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice:** any hole, unlimited undo.
 - **Course creator:** build holes, make courses and share them with codes.
-- **Bag & pro shop:** 30 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
+- **Bag & pro shop:** 40 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
 ## How to play
@@ -30,6 +30,17 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.8 · 26 October 2026
+- **Chapter 3: Sun Mesa.** Drive to the desert for the County Championship. Meet Dolores Vance, beat Ricky Salazar, Dr Priya Shah and Big Wes Calder, then take the title from Celia Ashcombe.
+- **Chapter 4: Frostpeak.** Head up the mountain for the Winter Open. Beat Nils Bergqvist, Yuki Tanaka and Brock "Avalanche" Harlan, then face tour pro Elena Vasquez for your tour card.
+- **New course: Sun Mesa,** 9 holes, par 36. Thin air (+8% carry), waste areas everywhere off the fairway, cacti that kick your ball off at random, rock-hard greens and calm winds.
+- **New course: Frostpeak,** 9 holes, par 36. Frozen ponds the ball skids across, snowdrifts that plug it, quick greens, thin air (+5%) and gusting wind.
+- **8 new Epics:** Sidewinder, Oasis, Thunderclap, Solstice, Snowplough, Katana, Avalanche and Aurora, with new perks: waste areas play like fairway, half the roll on greens, +6% carry, and snowdrifts play like bunkers.
+- **New shop stock:** Scorpion (wedge) and Whiteout (7 iron).
+- **New friends:** Ziggy the lizard and Bjorn the husky. They might have something for you.
+- **Course creator:** new Desert (cacti) and Ice (frozen ponds, snowdrifts) styles, and share codes carry them.
+- Palm trees in the desert, snowy pines in the mountains, and snowfall at Frostpeak.
 
 ### 0.7 · 24 October 2026
 - **Chapter 2: Gullhaven Links.** Win the Ashby Green Club Championship, then drive to the coast in your own car. A new club to explore with new members, three rivals and the County Qualifier against Gideon Thorne.

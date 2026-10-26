@@ -136,6 +136,8 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
   background:linear-gradient(rgba(14,29,21,.88),rgba(14,29,21,0));pointer-events:none}
 .wtop>*{pointer-events:auto}
 .wloc{flex:1;min-width:0;pointer-events:none}
+.wloc .k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.wtop.snowy{background:linear-gradient(rgba(14,29,21,.92),rgba(14,29,21,.35) 70%,rgba(14,29,21,0))}
 .wname{font-family:var(--display);font-size:20px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .wtop .ghost{background:rgba(14,29,21,.75);color:var(--chalk);height:38px}
 .wgoal{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(64px + env(safe-area-inset-top,0px));max-width:calc(100% - 32px);
@@ -438,7 +440,9 @@ const SFX={
   strike(p,clean){const d=.14;hiss(.05,{filter:'highpass',f:2500,vol:.28,delay:d});tone(clean?1250:700,.09,{type:'triangle',to:clean?900:380,vol:.2,delay:d});if(clean)tone(2500,.12,{vol:.05,delay:d})},
   putt(){hiss(.025,{filter:'highpass',f:3000,vol:.12});tone(1100,.05,{type:'triangle',to:800,vol:.1})},
   land(surf,k=1){
-    if(surf==='sand'){hiss(.22,{filter:'lowpass',f:1400,to:400,vol:.22*k});return}
+    if(surf==='snow'){hiss(.3,{filter:'lowpass',f:700,to:200,vol:.2*k});return}
+    if(surf==='ice'){tone(1700,.05,{type:'triangle',to:1200,vol:.12*k});hiss(.06,{filter:'highpass',f:3000,vol:.1*k});return}
+    if(surf==='sand'||surf==='pot'||surf==='waste'){hiss(.22,{filter:'lowpass',f:1400,to:400,vol:.22*k});return}
     if(surf==='trees'){hiss(.35,{f:2600,q:.6,vol:.14});tone(210,.08,{type:'triangle',vol:.15});return}
     hiss(.09,{filter:'lowpass',f:surf==='green'?500:350,vol:(surf==='rough'?.12:.2)*k});tone(surf==='green'?150:110,.08,{vol:.12*k})},
   splash(){hiss(.6,{filter:'lowpass',f:2600,to:300,vol:.3,att:.01});[0,.08,.17,.3].forEach((d,i)=>tone(500+i*160,.06,{to:900+i*120,vol:.05,delay:d}))},
@@ -473,6 +477,9 @@ const SURF={
   trees:{name:'Under the trees',fric:30,pow:.6,vari:2.2,land:0},
   sand:{name:'Bunker',fric:70,pow:.7,vari:1.7,land:0},
   pot:{name:'Pot bunker',fric:80,pow:.42,vari:2.3,land:0},
+  waste:{name:'Waste area',fric:24,pow:.82,vari:1.6,land:.45},
+  ice:{name:'Ice',fric:1.2,pow:.9,vari:1.5,land:3},
+  snow:{name:'Snowdrift',fric:70,pow:.55,vari:1.8,land:0},
   gorse:{name:'Gorse'},
   water:{name:'Water'}, ob:{name:'Out of bounds'}
 };
@@ -519,6 +526,16 @@ const DEFS=[
   {id:'stinger',t:'iron5',n:'Stinger',r:'epic',st:[9,10,6,8],f:['C','P'],src:'rival',srcText:'Beat Fiona Baird for shards, then collect 5 to forge it',perk:'pot',perkText:'Pot bunkers play like normal bunkers.'},
   {id:'tidewater',t:'putter',n:'Tidewater',r:'epic',st:[0,12,0,11],f:['C'],src:'rival',srcText:'Beat Old Tam for shards, then collect 5 to forge it',perk:'read2',perkText:'Two green reads per hole.'},
   {id:'northerly',t:'wood3',n:'Northerly',r:'epic',st:[12,10,7,8],f:['P','C'],src:'rival',srcText:'Win the County Qualifier in Story mode',perk:'wind',perkText:'Wind moves your shots 30% less.'},
+  {id:'sidewinder',t:'iron7',n:'Sidewinder',r:'epic',st:[8,11,8,9],f:['C','F'],src:'rival',srcText:'Beat Ricky Salazar for shards, then collect 5 to forge it',perk:'waste',perkText:'Waste areas play like the fairway.'},
+  {id:'oasis',t:'iron9',n:'Oasis',r:'epic',st:[7,11,12,7],f:['S','C'],src:'rival',srcText:'Beat Dr Priya Shah for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
+  {id:'thunderclap',t:'driver',n:'Thunderclap',r:'epic',st:[14,7,6,7],f:['P'],src:'rival',srcText:'Beat Big Wes Calder for shards, then collect 5 to forge it',perk:'air',perkText:'+6% carry on every shot.'},
+  {id:'solstice',t:'wood3',n:'Solstice',r:'epic',st:[13,11,7,9],f:['P','C'],src:'rival',srcText:'Win the County Championship in Story mode',perk:'air',perkText:'+6% carry on every shot.'},
+  {id:'snowplough',t:'sw',n:'Snowplough',r:'epic',st:[6,9,12,11],f:['F','S'],src:'rival',srcText:'Beat Nils Bergqvist for shards, then collect 5 to forge it',perk:'snow',perkText:'Snowdrifts play like normal bunkers.'},
+  {id:'katana',t:'iron5',n:'Katana',r:'epic',st:[10,12,8,7],f:['C','S'],src:'rival',srcText:'Beat Yuki Tanaka for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
+  {id:'avalanche',t:'driver',n:'Avalanche',r:'epic',st:[13,9,6,9],f:['P','F'],src:'rival',srcText:'Beat Brock Harlan for shards, then collect 5 to forge it',perk:'roll',perkText:'+25% rollout on every landing.'},
+  {id:'aurora',t:'pw',n:'Aurora',r:'epic',st:[7,12,14,8],f:['S','C'],src:'rival',srcText:'Win the Winter Open in Story mode',perk:'spinback',perkText:'Spin-back is 50% stronger.'},
+  {id:'scorpion',tier:'low',t:'pw',n:'Scorpion',r:'rare',st:[6,9,9,8],f:['F'],src:'shop',price:2000,unlock:'visitedMesa',blurb:'Stings it out of the waste.'},
+  {id:'whiteout',tier:'tour',t:'iron7',n:'Whiteout',r:'epic',st:[8,12,10,9],f:['C','F'],src:'shop',price:4600,unlock:'visitedFrost',blurb:'Steady when the mountain isn\'t.'},
   {id:'feather',tier:'low',t:'putter',n:'Featherweight',r:'rare',st:[0,9,0,10],f:['F'],src:'shop',price:1800,unlock:'beatMarcus',blurb:'Soft face, big sweet spot.'},
   {id:'hawkeye',t:'putter',n:'Hawkeye',r:'epic',st:[0,10,0,10],f:['F'],src:'daily',perk:'capture',perkText:'The cup plays 40% bigger.'},
   {id:'oracle',t:'putter',n:'Oracle',r:'legendary',st:[0,14,0,13],f:['C','F'],src:'hidden',perk:'capture',perkText:'The cup plays 40% bigger.'}
@@ -556,7 +573,7 @@ const eqDef=()=>DEF[eqId()];
 const eqStats=()=>statsOf(eqId());
 const eqPerk=()=>eqDef().perk;
 const spinF=()=>.6+eqStats().S*.04;
-const carryOf=i=>Math.round(CLUBS[i].c*(1+statsOf(bagOf(TYPES[i])).P*.008));
+const carryOf=i=>Math.round(CLUBS[i].c*(1+statsOf(bagOf(TYPES[i])).P*.008)*((typeof H!=='undefined'&&H&&H.air)||1)*(DEF[bagOf(TYPES[i])].perk==='air'?1.06:1));
 function isCapped(o){return CAPS[o.lvl]&&!o.tuned.includes(o.lvl)}
 // Adds XP to the equipped club (solo rounds only); returns a short line for the shot toast
 function gainXp(amt){
@@ -602,9 +619,17 @@ const LOOT={
   fiona:[{w:35,t:'coins',n:80},{w:15,t:'coins',n:160},{w:23,t:'shard',c:'stinger',n:1},{w:10,t:'shard',c:'stinger',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'stinger'}],
   tam:[{w:35,t:'coins',n:90},{w:15,t:'coins',n:180},{w:23,t:'shard',c:'tidewater',n:1},{w:10,t:'shard',c:'tidewater',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'tidewater'}],
   gideon:[{w:30,t:'coins',n:250},{w:15,t:'coins',n:500},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  ricky:[{w:35,t:'coins',n:100},{w:15,t:'coins',n:200},{w:23,t:'shard',c:'sidewinder',n:1},{w:10,t:'shard',c:'sidewinder',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'sidewinder'}],
+  priya:[{w:35,t:'coins',n:110},{w:15,t:'coins',n:220},{w:23,t:'shard',c:'oasis',n:1},{w:10,t:'shard',c:'oasis',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'oasis'}],
+  wes:[{w:35,t:'coins',n:120},{w:15,t:'coins',n:240},{w:23,t:'shard',c:'thunderclap',n:1},{w:10,t:'shard',c:'thunderclap',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'thunderclap'}],
+  celia:[{w:30,t:'coins',n:350},{w:15,t:'coins',n:700},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  nils:[{w:35,t:'coins',n:140},{w:15,t:'coins',n:280},{w:23,t:'shard',c:'snowplough',n:1},{w:10,t:'shard',c:'snowplough',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'snowplough'}],
+  yuki:[{w:35,t:'coins',n:150},{w:15,t:'coins',n:300},{w:23,t:'shard',c:'katana',n:1},{w:10,t:'shard',c:'katana',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'katana'}],
+  brock:[{w:35,t:'coins',n:160},{w:15,t:'coins',n:320},{w:23,t:'shard',c:'avalanche',n:1},{w:10,t:'shard',c:'avalanche',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'avalanche'}],
+  elena:[{w:30,t:'coins',n:450},{w:15,t:'coins',n:900},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
   clubhouse:[{w:40,t:'coins',n:30},{w:25,t:'coins',n:60},{w:10,t:'coins',n:120},{w:15,t:'kit',n:1},{w:7,t:'shardAny',n:1},{w:3,t:'rare'}]
 };
-const SHARD_CLUBS=['gale','backdraft','hollow','bumprun','stinger','tidewater'];
+const SHARD_CLUBS=['gale','backdraft','hollow','bumprun','stinger','tidewater','sidewinder','oasis','thunderclap','snowplough','katana','avalanche'];
 const isGood=e=>e.t==='shard'||e.t==='shardAny'||e.t==='rare'||e.t==='club';
 function pickWeighted(list){const tot=list.reduce((a,e)=>a+e.w,0);let r=Math.random()*tot;for(const e of list){if((r-=e.w)<0)return e}return list[list.length-1]}
 function rollTable(name){
@@ -717,7 +742,52 @@ const LINKS=[
     pots:[{x:-21,y:395,rx:3.5,ry:3.5},{x:21,y:400,rx:3.5,ry:3.5}],gorse:[{x:38,y:180,rx:12,ry:70},{x:-40,y:280,rx:12,ry:50}],
     bounds:{x0:-65,x1:65,y0:-14,y1:428},sl:{x:-.4,y:-.5,a:.35,b:.35}})
 ];
-const COURSES={ashby:{name:'Ashby Green',holes:null,unlock:null,best:'fsl-best-round'},links:{name:'Gullhaven Links',holes:LINKS,unlock:'champion',best:'fsl-best-links'}};
+// Chapter 3: Sun Mesa. Desert target golf: everything off the fairway is waste area, cacti deflect the ball, thin air, rock-hard greens
+const DS=(o)=>({water:[],bunkers:[],trees:[],cactusSpec:[],theme:'desert',air:1.08,hardGreens:true,calm:true,...o});
+const MESA=[
+  DS({name:'Quarry Gate',par:4,fw:[[0,40],[0,330]],hw:15,green:{x:0,y:362,rx:14,ry:11},bunkers:[{x:-17,y:356,rx:5,ry:6},{x:16,y:368,rx:5,ry:5}],
+    cactusSpec:[[10,-55,-19,40,380],[10,19,55,40,380]],trees:[[4,-55,-30,350,385,3,4],[4,30,55,20,60,3,4]],bounds:{x0:-60,x1:60,y0:-14,y1:395},sl:{x:.3,y:-.45,a:.3,b:.3}}),
+  DS({name:'Sidewinder',par:5,fw:[[0,40],[0,180],[30,300],[0,420],[-10,480]],hw:14,green:{x:-12,y:512,rx:14,ry:11},bunkers:[{x:12,y:505,rx:5,ry:6}],water:[{x:-30,y:290,rx:18,ry:22}],
+    cactusSpec:[[16,-65,70,60,500]],trees:[[4,-60,-42,265,320,3,4]],bounds:{x0:-70,x1:75,y0:-14,y1:545},sl:{x:-.4,y:-.3,a:.35,b:.3}}),
+  DS({name:'Mirage',par:3,fw:[[0,20],[0,30]],hw:9,green:{x:3,y:175,rx:15,ry:12},bunkers:[{x:-15,y:187,rx:4,ry:5}],water:[{x:22,y:150,rx:12,ry:9}],
+    cactusSpec:[[9,-45,45,55,145]],bounds:{x0:-55,x1:60,y0:-14,y1:205},sl:{x:-.35,y:.45,a:.3,b:.3}}),
+  DS({name:'Sandstone',par:4,fw:[[0,40],[0,230],[-35,330],[-45,380]],hw:15,green:{x:-47,y:408,rx:14,ry:11},bunkers:[{x:-24,y:252,rx:7,ry:5},{x:-64,y:400,rx:4,ry:6}],
+    cactusSpec:[[13,-85,40,60,420]],trees:[[3,-92,-72,380,425,3,4]],bounds:{x0:-95,x1:45,y0:-14,y1:435},sl:{x:.45,y:-.3,a:.35,b:.35}}),
+  DS({name:'Oasis',par:4,fw:[[0,40],[0,200],[15,320]],hw:15,green:{x:18,y:352,rx:13,ry:11},water:[{x:-10,y:332,rx:15,ry:13}],bunkers:[{x:36,y:350,rx:4,ry:6}],
+    cactusSpec:[[10,-55,60,60,330]],trees:[[5,-38,-18,300,365,3,4.5]],bounds:{x0:-60,x1:70,y0:-14,y1:380},sl:{x:-.3,y:-.5,a:.3,b:.35}}),
+  DS({name:'Canyon',par:3,fw:[[2,160],[5,190]],hw:10,green:{x:6,y:212,rx:15,ry:12},bunkers:[{x:-13,y:208,rx:4,ry:6},{x:25,y:218,rx:4,ry:5}],
+    cactusSpec:[[11,-45,50,35,165]],bounds:{x0:-55,x1:60,y0:-14,y1:240},sl:{x:.4,y:-.35,a:.35,b:.3}}),
+  DS({name:'Long Haul',par:5,fw:[[0,40],[0,250],[-20,400],[-15,500]],hw:15,green:{x:-14,y:530,rx:15,ry:11},water:[{x:14,y:430,rx:13,ry:18}],bunkers:[{x:-33,y:300,rx:6,ry:5},{x:2,y:542,rx:5,ry:4}],
+    cactusSpec:[[16,-70,65,60,520]],trees:[[3,-60,-45,40,80,3,4]],bounds:{x0:-75,x1:70,y0:-14,y1:560},sl:{x:-.35,y:-.4,a:.35,b:.35}}),
+  DS({name:'Rattler',par:4,fw:[[0,40],[8,200],[-6,340]],hw:12,green:{x:-8,y:375,rx:13,ry:10},bunkers:[{x:8,y:371,rx:4,ry:5},{x:-24,y:378,rx:4,ry:5}],
+    cactusSpec:[[18,-48,48,55,360]],bounds:{x0:-55,x1:55,y0:-14,y1:400},sl:{x:.35,y:.4,a:.35,b:.3}}),
+  DS({name:'High Noon',par:4,fw:[[0,40],[0,260],[20,370]],hw:15,green:{x:22,y:408,rx:16,ry:12},water:[{x:-26,y:382,rx:19,ry:14}],bunkers:[{x:41,y:400,rx:4,ry:6},{x:22,y:427,rx:7,ry:3}],
+    cactusSpec:[[12,-58,62,60,390]],trees:[[4,-60,-40,385,425,3,4.5]],bounds:{x0:-65,x1:70,y0:-14,y1:440},sl:{x:-.4,y:-.45,a:.35,b:.35}})
+];
+// Chapter 4: Frostpeak. Frozen ponds the ball skids across, snowdrifts that plug it, slick greens, altitude and snowy pines
+const IC=(o)=>({water:[],bunkers:[],ice:[],snow:[],trees:[],theme:'ice',air:1.05,greenFric:1.6,gusty:true,gustMax:10,...o});
+const FROST=[
+  IC({name:'Lodge Run',par:4,fw:[[0,40],[0,330]],hw:15,green:{x:0,y:362,rx:14,ry:11},ice:[{x:-31,y:200,rx:15,ry:30}],snow:[{x:20,y:240,rx:8,ry:5},{x:-17,y:356,rx:5,ry:6}],
+    trees:[[16,-62,-25,30,385,4,6],[14,25,62,30,385,4,6]],bounds:{x0:-65,x1:65,y0:-14,y1:395},sl:{x:.35,y:-.45,a:.3,b:.3}}),
+  IC({name:'Frozen Mere',par:4,fw:[[0,40],[0,210],[-10,350]],hw:15,green:{x:-12,y:390,rx:14,ry:11},ice:[{x:-5,y:265,rx:45,ry:16}],snow:[{x:-30,y:381,rx:5,ry:6},{x:8,y:402,rx:5,ry:4}],
+    trees:[[14,-72,-30,30,405,4,6],[12,25,62,30,405,4,6]],bounds:{x0:-75,x1:65,y0:-14,y1:420},sl:{x:.45,y:-.35,a:.35,b:.35}}),
+  IC({name:'Icicle',par:3,fw:[[0,20],[0,30]],hw:9,green:{x:2,y:160,rx:14,ry:11},ice:[{x:0,y:100,rx:24,ry:22}],snow:[{x:-17,y:160,rx:4,ry:6},{x:20,y:166,rx:4,ry:5},{x:2,y:177,rx:7,ry:3}],
+    trees:[[10,-58,-30,20,185,4,6],[10,30,58,20,185,4,6]],bounds:{x0:-60,x1:60,y0:-14,y1:190},sl:{x:-.4,y:.3,a:.35,b:.3}}),
+  IC({name:'Avalanche',par:5,fw:[[0,40],[0,220],[30,350],[50,470]],hw:16,green:{x:55,y:505,rx:15,ry:11},ice:[{x:-10,y:340,rx:18,ry:24}],snow:[{x:20,y:252,rx:8,ry:5},{x:73,y:498,rx:4,ry:6},{x:40,y:519,rx:5,ry:4}],
+    trees:[[16,-62,-25,30,510,4,6],[12,55,100,30,330,4,6]],bounds:{x0:-65,x1:105,y0:-14,y1:535},sl:{x:-.4,y:-.4,a:.35,b:.35}}),
+  IC({name:'Snowfield',par:4,fw:[[0,40],[0,300]],hw:14,green:{x:0,y:332,rx:13,ry:10},snow:[{x:-6,y:215,rx:6,ry:4},{x:8,y:245,rx:6,ry:4},{x:-16,y:328,rx:4,ry:5},{x:16,y:336,rx:4,ry:5}],
+    trees:[[14,-58,-22,30,355,4,6],[14,22,58,30,355,4,6]],bounds:{x0:-60,x1:60,y0:-14,y1:360},sl:{x:.3,y:.45,a:.35,b:.3}}),
+  IC({name:'Summit',par:3,fw:[[4,150],[7,180]],hw:10,green:{x:8,y:200,rx:15,ry:12},ice:[{x:0,y:95,rx:28,ry:30}],snow:[{x:-11,y:200,rx:4,ry:6},{x:27,y:205,rx:4,ry:5}],
+    trees:[[8,-58,-32,20,225,4,6],[8,36,62,20,225,4,6]],bounds:{x0:-60,x1:65,y0:-14,y1:230},sl:{x:.4,y:-.4,a:.35,b:.35}}),
+  IC({name:'Pine Alley',par:4,fw:[[0,40],[-6,220],[6,360]],hw:12,green:{x:8,y:398,rx:13,ry:10},ice:[{x:21,y:280,rx:8,ry:12}],snow:[{x:-8,y:393,rx:4,ry:5},{x:24,y:401,rx:4,ry:5}],
+    trees:[[22,-52,-14,30,420,4,6],[22,18,57,30,420,4,6]],bounds:{x0:-55,x1:60,y0:-14,y1:425},sl:{x:-.35,y:.4,a:.35,b:.35}}),
+  IC({name:'Glacier',par:5,fw:[[0,40],[0,200],[-25,330],[-20,440]],hw:16,green:{x:-20,y:478,rx:20,ry:14},ice:[{x:-15,y:395,rx:50,ry:12}],snow:[{x:-43,y:470,rx:5,ry:6},{x:2,y:487,rx:5,ry:4}],
+    trees:[[14,-78,-45,30,500,4,6],[12,30,62,30,500,4,6]],bounds:{x0:-80,x1:65,y0:-14,y1:510},sl:{x:.45,y:.3,a:.45,b:.4}}),
+  IC({name:'Fireside',par:4,fw:[[0,40],[0,260],[-15,370]],hw:15,green:{x:-16,y:408,rx:15,ry:12},water:[{x:16,y:380,rx:13,ry:10}],snow:[{x:-35,y:400,rx:4,ry:6},{x:2,y:421,rx:5,ry:4}],
+    trees:[[14,-67,-28,30,425,4,6],[12,28,62,30,340,4,6]],bounds:{x0:-70,x1:60,y0:-14,y1:440},sl:{x:.35,y:-.45,a:.35,b:.35}})
+];
+const COURSES={ashby:{name:'Ashby Green',holes:null,unlock:null,best:'fsl-best-round'},links:{name:'Gullhaven Links',holes:LINKS,unlock:'champion',best:'fsl-best-links',tag:'Gusting wind, gorse, pot bunkers'},
+  mesa:{name:'Sun Mesa',holes:MESA,unlock:'ch2champ',best:'fsl-best-mesa',tag:'Thin air, waste areas, cacti, hard greens'},frost:{name:'Frostpeak',holes:FROST,unlock:'ch3champ',best:'fsl-best-frost',tag:'Frozen ponds, snowdrifts, quick greens'}};
 const COURSE_PAR=HOLES.reduce((a,h)=>a+h.par,0);
 
 let sd=11; const rnd=()=>{sd=(sd*16807)%2147483647;return (sd-1)/2147483646};
@@ -733,8 +803,12 @@ function prepHole(h,hi){
   for(const [n0,x0,x1,y0,y1,r0,r1] of h.trees){let n=n0,tries=0;while(n>0&&tries++<900){
     const t={x:x0+rnd()*(x1-x0),y:y0+rnd()*(y1-y0),r:r0+rnd()*(r1-r0)};
     if(polyDist(t.x,t.y,h.fw)<h.hw+t.r+3||inEll(t.x,t.y,h.green,1.7)||(t.y<16&&Math.abs(t.x)<22))continue;
-    if(h.water.some(w=>inEll(t.x,t.y,w,1.25))||h.bunkers.some(b=>inEll(t.x,t.y,b,1.5)))continue;
+    if(h.water.some(w=>inEll(t.x,t.y,w,1.25))||h.bunkers.some(b=>inEll(t.x,t.y,b,1.5))||(h.ice||[]).some(w=>inEll(t.x,t.y,w,1.2))||(h.snow||[]).some(w=>inEll(t.x,t.y,w,1.3)))continue;
     if(h.treesList.some(o=>Math.hypot(o.x-t.x,o.y-t.y)<(o.r+t.r)*.7))continue;h.treesList.push(t);n--;}}}
+  if(!h.cactiList){h.cactiList=[];sd=31+hi*53;
+    for(const [n0,x0,x1,y0,y1] of (h.cactusSpec||[])){let n=n0,tries=0;while(n>0&&tries++<900){const t={x:x0+rnd()*(x1-x0),y:y0+rnd()*(y1-y0),r:1.4+rnd()*1.1};
+      if(polyDist(t.x,t.y,h.fw)<h.hw+4||inEll(t.x,t.y,h.green,1.6)||(t.y<20&&Math.abs(t.x)<20)||h.water.some(w=>inEll(t.x,t.y,w,1.3))||h.bunkers.some(b=>inEll(t.x,t.y,b,1.5)))continue;
+      if(h.cactiList.some(o=>Math.hypot(o.x-t.x,o.y-t.y)<8))continue;h.cactiList.push(t);n--}}}
   const P=[[0,0],...h.fw,[h.green.x,h.green.y]];h.cl=[];
   for(let i=0;i<P.length-1;i++){const[a,b]=[P[i],P[i+1]];const L=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let s=0;s<L;s+=1)h.cl.push({x:a[0]+(b[0]-a[0])*s/L,y:a[1]+(b[1]-a[1])*s/L})}
   h.cl.push({x:h.green.x,y:h.green.y}); h.len=h.cl.length-1;
@@ -748,16 +822,19 @@ function autoBounds(h){
   h.fw.forEach(p=>add(p[0],p[1]));
   for(const e of [h.green,...h.water,...h.bunkers])add(e.x-e.rx*1.3,e.y+e.ry*1.3),add(e.x+e.rx*1.3,e.y-e.ry);
   h.treesList.forEach(t=>add(t.x,t.y));
+  (h.cactiList||[]).forEach(t=>add(t.x,t.y));for(const e of [...(h.ice||[]),...(h.snow||[])])add(e.x-e.rx,e.y+e.ry),add(e.x+e.rx,e.y-e.ry);
   return{x0:Math.floor(x0-30),x1:Math.ceil(x1+30),y0:-14,y1:Math.ceil(y1+25)};
 }
 HOLES.forEach((h,hi)=>prepHole(h,hi));
 LINKS.forEach((h,hi)=>prepHole(h,hi+50));
+MESA.forEach((h,hi)=>prepHole(h,hi+70));
+FROST.forEach((h,hi)=>prepHole(h,hi+90));
 COURSES.ashby.holes=HOLES;
 const courseOpen=k=>!COURSES[k].unlock||!!((save.story||{}).flags||{})[COURSES[k].unlock];
-const courseKey=()=>COURSE===LINKS?'links':'ashby';
+const courseKey=()=>Object.keys(COURSES).find(k=>COURSES[k].holes===COURSE)||'ashby';
 // The course being played: the built-in 9 holes, or a custom course from the creator
 let COURSE=HOLES;
-const isCustom=()=>COURSE!==HOLES&&COURSE!==LINKS;
+const isCustom=()=>!Object.values(COURSES).some(C=>C.holes===COURSE);
 const coursePar=()=>COURSE.reduce((a,h)=>a+h.par,0);
 
 let H=HOLES[0];
@@ -765,7 +842,9 @@ function surfaceAt(x,y){
   const B=H.bounds;
   if(x<B.x0||x>B.x1||y<B.y0||y>B.y1)return 'ob';
   for(const w of H.water)if(inEll(x,y,w))return 'water';
+  if(H.ice)for(const b of H.ice)if(inEll(x,y,b))return 'ice';
   if(H.pots)for(const b of H.pots)if(inEll(x,y,b))return 'pot';
+  if(H.snow)for(const b of H.snow)if(inEll(x,y,b))return 'snow';
   for(const b of H.bunkers)if(inEll(x,y,b))return 'sand';
   if(inEll(x,y,H.green))return 'green';
   if(inEll(x,y,H.green,1.28))return 'fringe';
@@ -773,7 +852,7 @@ function surfaceAt(x,y){
   if(H.gorse)for(const g of H.gorse)if(inEll(x,y,g))return 'gorse';
   if(polyDist(x,y,H.fw)<=H.hw)return 'fairway';
   for(const t of H.treesList)if(Math.hypot(x-t.x,y-t.y)<t.r*.85)return 'trees';
-  return 'rough';
+  return H.theme==='desert'?'waste':'rough';
 }
 // Green slope as acceleration (yd/s²), pointing downhill
 function slope(x,y){const G=H.green,u=(x-G.x)/G.rx,v=(y-G.y)/G.ry;return{x:H.sl.x+H.sl.a*Math.sin(v*2.2),y:H.sl.y+H.sl.b*u}}
@@ -801,7 +880,8 @@ function loadHole(i){
   PIN={x:H.green.x+Math.cos(a)*r*H.green.rx,y:H.green.y+Math.sin(a)*r*H.green.ry};
   const wa=Math.random()*Math.PI*2, ws=Math.round(Math.random()*14);
   wind={x:Math.sin(wa)*ws,y:Math.cos(wa)*ws,mph:ws};
-  if(H.gusty){const base=6+Math.round(Math.random()*12);windBase={a:wa,m:base};setWind(wa,base)}
+  if(H.calm){const m=Math.round(Math.random()*6);setWind(wa,m)}
+  if(H.gusty){const base=4+Math.round(Math.random()*((H.gustMax||14)-2));windBase={a:wa,m:base};setWind(wa,base)}
   // Honours: on later holes the best score on the previous hole tees off first
   order=players.map((_,k)=>k);
   if(i>0&&mode==='pnp')order.sort((a,b)=>(players[a].scores[i-1]||99)-(players[b].scores[i-1]||99)||a-b);
@@ -811,7 +891,7 @@ function loadHole(i){
   useTurn(order[0]);
   $('#hname').textContent=`Hole ${i+1} · ${H.name}`;
   $('#par').textContent=H.par; $('#len').textContent=H.len;
-  if(!H.gusty){$('#windMph').textContent=ws;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
+  if(!H.gusty&&!H.calm){$('#windMph').textContent=ws;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
   $('#log').textContent=i===0?'Drag anywhere on the course to nudge your aim, or tap to jump it.':`Hole ${i+1}, par ${H.par}.`;
   endFly();
   if(players.length>1){flyPending=true;showPass(true)}else startFly();
@@ -898,7 +978,8 @@ function hud(){
   $('#spin').hidden=c.putter; $('.stage').classList.toggle('has-spin',!c.putter);
   $('#padHint').textContent=c.putter?'Pull down and let go':'Swipe down · pause · swipe up';
 }
-const surfName=s=>H.theme==='links'&&s==='rough'?'Fescue':SURF[s].name;
+const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':'Rough'):SURF[s].name;
+const fricOf=s=>s==='green'&&H.greenFric?H.greenFric:SURF[s].fric;
 function toast(html){const t=$('#toast');t.innerHTML=html;t.hidden=false}
 
 /* ---------- Shots ---------- */
@@ -907,7 +988,7 @@ const angTo=(a,b)=>Math.atan2(b.x-a.x,b.y-a.y);
 
 function strike(r){
   const c=club(), lie=surfaceAt(ball.x,ball.y), L=SURF[lie], S=eqStats(), perk=eqPerk(), sf=spinF();
-  const lie2=lie==='pot'&&perk==='pot'?'sand':lie, L2=SURF[lie2];
+  const lie2=lie==='pot'&&perk==='pot'?'sand':lie==='waste'&&perk==='waste'?'fairway':lie==='snow'&&perk==='snow'?'sand':lie, L2=SURF[lie2];
   let pow=lie2==='sand'?(perk==='sand'?1:c.sand?.92:L2.pow):L2.pow;
   pow+=(1-pow)*S.F*.035;                       // forgiveness claws back lie penalties
   const notes=[], fg=1-S.F*.03;                // forgiveness softens tempo/overswing scatter
@@ -921,7 +1002,7 @@ function strike(r){
   const startDeg=r.path*.25*ps+gauss()*noise*.4;
   const curveDeg=r.path*.2*ps+gauss()*noise*.6+SP.x*5*sf;
   mult*=1-.04*Math.abs(SP.y);
-  const carry=c.c*(1+S.P*.008)*mult*pow, wm=(1-.35*SP.y)*(perk==='wind'?.7:1);
+  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1);
   // XP: a clean, well-tempoed swing earns the most
   const clean=p<=1.02&&r.pause>=70&&r.pause<=700&&Math.abs(r.path)<4&&r.follow>=.6&&r.speed>=.45;
   const okay=p<=1.06&&r.pause>=50&&Math.abs(r.path)<8;
@@ -957,12 +1038,17 @@ function land(){
   SFX.land(s);
   if(s==='trees'){flight.head=head;stopBall(head+'<br>Clipped the trees and dropped.');return}
   const prev=flightPos(.92), dx=L.x-prev.x, dy=L.y-prev.y, m=Math.hypot(dx,dy)||1;
-  let d=f.carry*shotClub.roll*SURF[s].land*Math.max(0,f.rm)*(f.perk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1), sgn=1, hd=head;
+  // cactus: the ball kicks off at a random angle
+  const cac=(H.cactiList||[]).find(t=>Math.hypot(L.x-t.x,L.y-t.y)<t.r+1.6);
+  if(cac){const a=Math.random()*Math.PI*2,k=6+Math.random()*8;ball={x:cac.x+Math.sin(a)*(cac.r+1),y:cac.y+Math.cos(a)*(cac.r+1)};SFX.land('trees');
+    const s2=surfaceAt(ball.x,ball.y);if(s2==='water'||s2==='ob'||s2==='gorse'){ball={...L}}
+    else{vel={x:Math.sin(a)*Math.sqrt(2*fricOf(s2)*k),y:Math.cos(a)*Math.sqrt(2*fricOf(s2)*k)};flight.head=head+' · <b>off a cactus!</b>';state='roll';flight.bounce=null;return}}
+  let d=f.carry*shotClub.roll*SURF[s].land*Math.max(0,f.rm)*(f.perk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1)*(s==='green'&&H.hardGreens?2:1)*(s==='green'&&f.perk==='hold'?.5:1), sgn=1, hd=head;
   if(f.rm<0&&(s==='green'||s==='fringe')){d=f.carry*.06*-f.rm*f.bs*(f.perk==='spinback'?1.5:1);sgn=-1;hd+=' · <b>spun back</b>'}
-  const v=Math.sqrt(2*SURF[s].fric*d)*sgn;
+  const v=Math.sqrt(2*fricOf(s)*d)*sgn;
   vel={x:dx/m*v,y:dy/m*v}; flight.head=hd; state='roll';
   // a couple of hops before it settles into a roll: higher on firm ground, none in sand, softer with backspin
-  const firm=({tee:1,fairway:1,fringe:.8,green:.65,rough:.35,sand:0,pot:0}[s]??.5)*(H.firm?1.3:1);
+  const firm=({tee:1,fairway:1,fringe:.8,green:H.hardGreens?.95:.65,rough:.35,sand:0,pot:0,snow:0,waste:.6,ice:1.1}[s]??.5)*(H.firm?1.3:1);
   const bh=Math.min(5,f.apex*.12)*firm*(f.rm<0?.55:1);
   flight.bounce=bh>.3?{t:0,h:bh,d1:.32,d2:.2,hit:0}:null;
 }
@@ -977,7 +1063,7 @@ function stepBounce(dt){const b=flight&&flight.bounce;if(!b)return;b.t+=dt;
 function startPutt(r){
   const lie=surfaceAt(ball.x,ball.y);
   const a=angTo(ball,aim)+r.tilt*tiltK()*RAD;
-  const v=Math.sqrt(2*SURF.green.fric*r.yd);
+  const v=Math.sqrt(2*fricOf('green')*r.yd);
   saveUndo();
   if(previewAvail()&&mode!=='practice')players[pi].pvUsed=(players[pi].pvUsed||0)+1;
   shotStart={...ball}; shotClub=club(); strokes++; lastDry={...ball};
@@ -993,10 +1079,11 @@ function stepRoll(dt){
   if(s==='ob'){penalty(flight.head);return}
   lastDry={...ball};
   if(s==='green'||s==='fringe'){const sl=slope(ball.x,ball.y);vel.x+=sl.x*dt;vel.y+=sl.y*dt}
-  const sp=Math.hypot(vel.x,vel.y), ns=sp-SURF[s].fric*dt;
+  const sp=Math.hypot(vel.x,vel.y), ns=sp-fricOf(s)*dt;
   if(ns<=.03){vel={x:0,y:0};stopBall(flight.head);return}
   vel.x*=ns/sp; vel.y*=ns/sp;
   ball.x+=vel.x*dt; ball.y+=vel.y*dt;
+  if(H.cactiList)for(const t of H.cactiList){const dx=ball.x-t.x,dy=ball.y-t.y,dd=Math.hypot(dx,dy);if(dd<t.r+.4){const nx=dx/dd,ny=dy/dd,dot=vel.x*nx+vel.y*ny;if(dot<0){vel.x=(vel.x-2*dot*nx)*.5;vel.y=(vel.y-2*dot*ny)*.5;SFX.land('trees',.5)}ball.x=t.x+nx*(t.r+.45);ball.y=t.y+ny*(t.r+.45)}}
   const dp=dist(ball,PIN), cap=flight.cap||.09;
   if((dp<cap&&ns<2)||(dp<cap*.5&&ns<3.2)){holeOut();return}
   if(dp<cap&&!lipped){lipped=true;SFX.lip();const a=(Math.random()-.5)*50*RAD,c=Math.cos(a),sn=Math.sin(a);vel={x:(vel.x*c-vel.y*sn)*.7,y:(vel.x*sn+vel.y*c)*.7}}
@@ -1129,6 +1216,22 @@ const RIVALS={
     quips:{won:['Forty years, son.','Read it like a book.'],half:['Aye.'],lost:['Well putted.','The greens are fast the day.']}},
   gideon:{name:'Gideon Thorne',col:'#1b1b1b',course:'links',s:0,holes:9,title:'County Qualifier',odds:[[-1,.28],[0,.52],[1,.17],[2,.03]],
     quips:{won:['As expected.','That\'s a champion\'s hole.'],half:['Hm.'],lost:['Well played.','Don\'t get comfortable.']}},
+  ricky:{name:'Ricky Salazar',col:'#d9822b',course:'mesa',s:0,holes:3,odds:[[-1,.2],[0,.52],[1,.24],[2,.04]],
+    quips:{won:['Bienvenido to the desert.','Home course, amigo.'],half:['Not bad, gringo.'],lost:['That cactus moved.','Okay okay, nice one.']}},
+  priya:{name:'Dr Priya Shah',col:'#6a4fb0',course:'mesa',s:3,holes:3,odds:[[-2,.06],[-1,.26],[0,.42],[1,.22],[2,.04]],
+    quips:{won:['Statistically inevitable.','The numbers don\'t lie.'],half:['Within the margin of error.'],lost:['An outlier.','Noted. Recalculating.']}},
+  wes:{name:'Big Wes Calder',col:'#a83232',course:'mesa',s:6,holes:3,odds:[[-2,.1],[-1,.26],[0,.22],[1,.26],[2,.16]],
+    quips:{won:['Grip it and rip it!','Did that one land yet?'],half:['Shoulda hit driver.'],lost:['Thin air my foot.','Next tee I\'m letting it fly.']}},
+  celia:{name:'Celia Ashcombe',col:'#c9a227',course:'mesa',s:0,holes:9,title:'County Championship',odds:[[-1,.3],[0,.52],[1,.16],[2,.02]],
+    quips:{won:['That\'s how champions do it.','Mm.'],half:['Fine.'],lost:['Well struck.','The heat gets to everyone.']}},
+  nils:{name:'Nils Bergqvist',col:'#2f6db0',course:'frost',s:0,holes:3,odds:[[-1,.24],[0,.52],[1,.2],[2,.04]],
+    quips:{won:['Like skating on a pond, ja?','Cold hands, warm putter.'],half:['Okay. Even.'],lost:['The ice is not my friend today.','Skål. Good hole.']}},
+  yuki:{name:'Yuki Tanaka',col:'#c23b5a',course:'frost',s:3,holes:3,odds:[[-2,.08],[-1,.3],[0,.44],[1,.16],[2,.02]],
+    quips:{won:['Precision.','One cut. Clean.'],half:['Balanced.'],lost:['Hm. Again.','Well done.']}},
+  brock:{name:'Brock Harlan',col:'#5a4632',course:'frost',s:6,holes:3,odds:[[-2,.12],[-1,.28],[0,.2],[1,.24],[2,.16]],
+    quips:{won:['AVALANCHE!','Bury it, baby.'],half:['Snowed in. Draw.'],lost:['Plugged in a drift. Again.','Rematch. Now.']}},
+  elena:{name:'Elena Vasquez',col:'#1e8a8a',course:'frost',s:0,holes:9,title:'Winter Open',odds:[[-2,.06],[-1,.32],[0,.48],[1,.13],[2,.01]],
+    quips:{won:['Welcome to the tour.','That one counts.'],half:['Good.'],lost:['Impressive.','You belong out here.']}},
   duncan:{name:'Duncan Moray',col:'#7a2430',s:0,holes:9,title:'Club Championship',odds:[[-1,.22],[0,.56],[1,.19],[2,.03]],
     quips:{won:['Aye.','That\'s how it\'s done.'],half:['Hm.'],lost:['Good shot.','You\'ve been practising.']}}
 };
@@ -1296,12 +1399,12 @@ $('#preview').setAttribute('aria-pressed',previewOn);
 $('#preview').onclick=()=>{previewOn=!previewOn;$('#preview').setAttribute('aria-pressed',previewOn);try{localStorage.setItem('fsl-preview',previewOn?'1':'0')}catch(e){}};
 // Runs the same roll physics as a real putt, without moving the ball
 function simPutt(yd,tilt){
-  const a=angTo(ball,aim)+tilt*tiltK()*RAD, v=Math.sqrt(2*SURF.green.fric*yd), cap=capR();
+  const a=angTo(ball,aim)+tilt*tiltK()*RAD, v=Math.sqrt(2*fricOf('green')*yd), cap=capR();
   let p={...ball},vx=Math.sin(a)*v,vy=Math.cos(a)*v; const pts=[{...p}], dt=1/120;
   for(let i=0;i<3000;i++){
     const s=surfaceAt(p.x,p.y); if(s==='water'||s==='ob')break;
     if(s==='green'||s==='fringe'){const sl=slope(p.x,p.y);vx+=sl.x*dt;vy+=sl.y*dt}
-    const sp=Math.hypot(vx,vy),ns=sp-SURF[s].fric*dt; if(ns<=.03)break;
+    const sp=Math.hypot(vx,vy),ns=sp-fricOf(s)*dt; if(ns<=.03)break;
     vx*=ns/sp;vy*=ns/sp;p.x+=vx*dt;p.y+=vy*dt; if(i%5===0)pts.push({...p});
     const dp=dist(p,PIN); if((dp<cap&&ns<2)||(dp<cap*.5&&ns<3.2)){pts.push({...PIN});return{pts,holed:true,end:{...PIN}}}
   }
@@ -1502,10 +1605,20 @@ function slopeCol(k,a){
 function slopeWord(x,y){const sl=slope(x,y),k=Math.min(1,Math.hypot(sl.x,sl.y));return k<.4?'Gentle':k<.7?'Medium':'Steep'}
 function ell(e,k=1){ctx.beginPath();ctx.ellipse(e.x,e.y,e.rx*k,e.ry*k,0,0,Math.PI*2)}
 let previewEnd=null;
+// Tree styles: oaks on parkland, palms in the desert, snowy pines at Frostpeak
+function drawTree(t,th){
+  if(th==='desert'){ctx.fillStyle='#6b4a2a';ctx.beginPath();ctx.arc(t.x,t.y,t.r*.22,0,7);ctx.fill();
+    for(let k=0;k<7;k++){const a=k*.9+t.x;ctx.fillStyle=k%2?'#4f8f3a':'#3e7a30';ctx.beginPath();ctx.ellipse(t.x+Math.cos(a)*t.r*.55,t.y+Math.sin(a)*t.r*.55,t.r*.55,t.r*.2,a,0,7);ctx.fill()}
+    ctx.fillStyle='#7a5a30';ctx.beginPath();ctx.arc(t.x,t.y,t.r*.16,0,7);ctx.fill();return}
+  if(th==='ice'){for(let k=0;k<3;k++){const r=t.r*(1.05-k*.3);ctx.fillStyle=k%2?'#2f6049':'#21493a';ctx.beginPath();for(let j=0;j<12;j++){const a=j*Math.PI/6+k*.26,rr=j%2?r*.8:r;ctx.lineTo(t.x+Math.cos(a)*rr,t.y+Math.sin(a)*rr)}ctx.fill()}
+    ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.arc(t.x-t.r*.25,t.y+t.r*.3,t.r*.32,0,7);ctx.arc(t.x+t.r*.35,t.y-t.r*.1,t.r*.2,0,7);ctx.fill();return}
+  ctx.fillStyle='#2a5d33';ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,7);ctx.fill();ctx.fillStyle='#377242';ctx.beginPath();ctx.arc(t.x-t.r*.3,t.y+t.r*.3,t.r*.5,0,7);ctx.fill()}
 // Colours per course theme
 const PAL={
   parkland:{bg:'#1d3b26',s1:'#447f3c',s2:'#4a8641',fwE:'#56933f',fw:'#69a957',tee:'#74ba60',fr:'#5fae4f',gr:'#7ccb66',grS:'#86d36f',sandE:'#4f8a3f',sand:'#ead9a8',sandL:'#c9b07a',waterE:'#3a6e44'},
-  links:{bg:'#2a4a52',s1:'#8a9a58',s2:'#93a35f',fwE:'#7f9a4e',fw:'#9cbc63',tee:'#a8c870',fr:'#8fb85c',gr:'#a9d27a',grS:'#b3da84',sandE:'#6f8446',sand:'#efe0b4',sandL:'#cdb987',waterE:'#6f8446'}
+  links:{bg:'#2a4a52',s1:'#8a9a58',s2:'#93a35f',fwE:'#7f9a4e',fw:'#9cbc63',tee:'#a8c870',fr:'#8fb85c',gr:'#a9d27a',grS:'#b3da84',sandE:'#6f8446',sand:'#efe0b4',sandL:'#cdb987',waterE:'#6f8446'},
+  desert:{bg:'#7a4a2c',s1:'#d8b07a',s2:'#dcb680',fwE:'#5c8a3c',fw:'#6fa64a',tee:'#7bb556',fr:'#64a046',gr:'#80c562',grS:'#8bcd6c',sandE:'#b8905c',sand:'#f2e2b8',sandL:'#d2b884',waterE:'#4f8a3f'},
+  ice:{bg:'#2c3e52',s1:'#e6eef5',s2:'#edf3f8',fwE:'#9db8a8',fw:'#7fa889',tee:'#8ab595',fr:'#76a283',gr:'#86ba8f',grS:'#91c39a',sandE:'#c8d6e2',sand:'#e8e4d6',sandL:'#c9c2a8',waterE:'#bccbd8'}
 };
 function draw(){
   const d=devicePixelRatio||1,s=cam.s,px=1/s,G=H.green,P=PAL[H.theme]||PAL.parkland;
@@ -1515,6 +1628,10 @@ function draw(){
   for(let y=B.y0,i=0;y<B.y1;y+=10,i++){ctx.fillStyle=i%2?P.s1:P.s2;ctx.fillRect(B.x0,y,B.x1-B.x0,Math.min(10,B.y1-y))}
   if(H.theme==='links'){ // fescue tufts
     ctx.fillStyle='rgba(120,110,60,.35)';const bw=B.x1-B.x0,bh=B.y1-B.y0,n=Math.round(bw*bh/120);for(let k=0;k<n;k++){ctx.beginPath();ctx.ellipse(B.x0+((k*.618034)%1)*bw,B.y0+((k*.7548777)%1)*bh,1.6,1,0,0,7);ctx.fill()}}
+  else if(H.theme==='desert'){ // pebbles and ripples in the waste ground
+    const bw=B.x1-B.x0,bh=B.y1-B.y0,n=Math.round(bw*bh/90);for(let k=0;k<n;k++){ctx.fillStyle=k%3?'rgba(150,100,60,.32)':'rgba(255,240,210,.35)';ctx.beginPath();ctx.ellipse(B.x0+((k*.618034)%1)*bw,B.y0+((k*.7548777)%1)*bh,k%3?.9:1.3,.7,0,0,7);ctx.fill()}}
+  else if(H.theme==='ice'){ // snow sparkle
+    const bw=B.x1-B.x0,bh=B.y1-B.y0,n=Math.round(bw*bh/110);for(let k=0;k<n;k++){ctx.fillStyle=k%2?'rgba(170,195,220,.45)':'rgba(255,255,255,.9)';ctx.beginPath();ctx.ellipse(B.x0+((k*.618034)%1)*bw,B.y0+((k*.7548777)%1)*bh,1.4,.8,0,0,7);ctx.fill()}}
   // OB stakes
   ctx.fillStyle='#f4f4f0';
   for(let y=B.y0;y<=B.y1;y+=20){ctx.beginPath();ctx.arc(B.x0,y,2.2*px,0,7);ctx.arc(B.x1,y,2.2*px,0,7);ctx.fill()}
@@ -1531,7 +1648,12 @@ function draw(){
   for(const k of H.stakes){ctx.fillStyle=k.col;ctx.beginPath();ctx.arc(k.x,k.y,Math.max(1,3*px),0,7);ctx.fill()}
   // water
   for(const w of H.water){ell(w,1.06);ctx.fillStyle=P.waterE;ctx.fill()}
-  for(const w of H.water){ell(w);ctx.fillStyle='#2b77a3';ctx.fill();ell({x:w.x-w.rx*.2,y:w.y+w.ry*.15,rx:w.rx*.55,ry:w.ry*.6});ctx.fillStyle='#3b8ebd';ctx.fill()}
+  for(const w of H.water){ell(w);ctx.fillStyle=H.theme==='ice'?'#3f9fb0':'#2b77a3';ctx.fill();ell({x:w.x-w.rx*.2,y:w.y+w.ry*.15,rx:w.rx*.55,ry:w.ry*.6});ctx.fillStyle=H.theme==='ice'?'#5bbac6':'#3b8ebd';ctx.fill()}
+  // frozen ponds: pale ice with a sheen and a few cracks
+  if(H.ice)for(const w of H.ice){ell(w,1.05);ctx.fillStyle='#a9c4d8';ctx.fill();ell(w);ctx.fillStyle='#cfe4f2';ctx.fill();
+    ell({x:w.x-w.rx*.25,y:w.y+w.ry*.25,rx:w.rx*.5,ry:w.ry*.35});ctx.fillStyle='rgba(255,255,255,.55)';ctx.fill();
+    ctx.strokeStyle='rgba(120,150,180,.7)';ctx.lineWidth=1.2*px;ctx.beginPath();
+    for(let k=0;k<4;k++){const a=k*1.7+.4;ctx.moveTo(w.x+Math.cos(a)*w.rx*.15,w.y+Math.sin(a)*w.ry*.15);ctx.lineTo(w.x+Math.cos(a+.3)*w.rx*.5,w.y+Math.sin(a+.3)*w.ry*.5);ctx.lineTo(w.x+Math.cos(a)*w.rx*.8,w.y+Math.sin(a)*w.ry*.8)}ctx.stroke()}
   // green
   ell(G,1.28);ctx.fillStyle=P.fr;ctx.fill();
   ctx.save();ell(G);ctx.fillStyle=P.gr;ctx.fill();ctx.clip();
@@ -1539,6 +1661,8 @@ function draw(){
   ctx.restore();
   // bunkers
   for(const b of H.bunkers){ell(b,1.12);ctx.fillStyle=P.sandE;ctx.fill();ell(b);ctx.fillStyle=P.sand;ctx.fill();ctx.lineWidth=1.5*px;ctx.strokeStyle=P.sandL;ctx.stroke()}
+  // snowdrifts: soft white mounds with a blue shadow
+  if(H.snow)for(const b of H.snow){ell({x:b.x+.6,y:b.y-.7,rx:b.rx*1.12,ry:b.ry*1.15});ctx.fillStyle='rgba(70,100,140,.45)';ctx.fill();ell(b);ctx.fillStyle='#dfe9f4';ctx.fill();ell({x:b.x-b.rx*.15,y:b.y+b.ry*.2,rx:b.rx*.75,ry:b.ry*.65});ctx.fillStyle='#ffffff';ctx.fill();ctx.lineWidth=1.6*px;ctx.strokeStyle='#8fa8c2';ell(b);ctx.stroke()}
   // pot bunkers: small, deep, with a revetted turf wall
   if(H.pots)for(const b of H.pots){ell(b,1.35);ctx.fillStyle='#5d6e3a';ctx.fill();ell(b);ctx.fillStyle='#d9c48f';ctx.fill();ell({x:b.x,y:b.y+b.ry*.35,rx:b.rx*.9,ry:b.ry*.55});ctx.fillStyle='#bfa96f';ctx.fill()}
   // gorse: dark spiky shrubs with yellow flowers
@@ -1563,8 +1687,12 @@ function draw(){
     }
   }
   // trees
-  for(const t of H.treesList){ctx.fillStyle='rgba(10,30,15,.35)';ctx.beginPath();ctx.arc(t.x+1.2,t.y-1.5,t.r,0,7);ctx.fill()}
-  for(const t of H.treesList){ctx.fillStyle='#2a5d33';ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,7);ctx.fill();ctx.fillStyle='#377242';ctx.beginPath();ctx.arc(t.x-t.r*.3,t.y+t.r*.3,t.r*.5,0,7);ctx.fill()}
+  // cacti: saguaros seen from above, a ridged disc with arms
+  if(H.cactiList)for(const t of H.cactiList){ctx.fillStyle='rgba(90,50,20,.3)';ctx.beginPath();ctx.arc(t.x+.9,t.y-1.1,t.r,0,7);ctx.fill();
+    ctx.fillStyle='#3f7a3a';ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,7);ctx.fill();ctx.beginPath();ctx.arc(t.x-t.r*1.3,t.y+t.r*.3,t.r*.5,0,7);ctx.arc(t.x+t.r*1.25,t.y-t.r*.2,t.r*.45,0,7);ctx.fill();
+    ctx.strokeStyle='#5d9a52';ctx.lineWidth=.35;ctx.beginPath();ctx.arc(t.x,t.y,t.r*.55,0,7);ctx.stroke();ctx.fillStyle='#f6d2e0';ctx.beginPath();ctx.arc(t.x+t.r*.2,t.y+t.r*.25,.35,0,7);ctx.fill()}
+  for(const t of H.treesList){ctx.fillStyle=H.theme==='ice'?'rgba(40,60,90,.3)':'rgba(10,30,15,.35)';ctx.beginPath();ctx.arc(t.x+1.2,t.y-1.5,t.r,0,7);ctx.fill()}
+  for(const t of H.treesList)drawTree(t,H.theme);
   // cup
   ctx.fillStyle='#10150f';ctx.beginPath();ctx.arc(PIN.x,PIN.y,Math.max(.065,3.5*px),0,7);ctx.fill();
   // aim
@@ -1663,7 +1791,31 @@ const AREAS={
     benches:[{x:460,y:330,w:40,h:12},{x:250,y:350,w:40,h:12}],beds:[],
     paths:[[[300,900],[300,700],[300,300]],[[300,470],[450,470]],[[300,560],[110,560],[110,512]],[[300,330],[120,330],[100,140]]],
     trees:[],blobs:[{x:470,y:240,rx:32,ry:18},{x:60,y:650,rx:42,ry:22},{x:470,y:640,rx:28,ry:16},{x:190,y:640,rx:30,ry:15},{x:500,y:60,rx:28,ry:16}],
-    sea:540,carpark:{x:150,y:776,w:340,h:124}}
+    sea:540,carpark:{x:150,y:776,w:340,h:124}},
+  mesa:{name:'Sun Mesa',chapter:3,label:'Chapter 3 · The Desert',map:{w:640,h:900},start:{x:330,y:760},arrive:{x:330,y:760},treeStyle:'palm',bg:'#a8603a',
+    buildings:[
+      {id:'club',x:190,y:140,w:260,h:150,roof:'#c4643a',ridge:'#a14e2c',wall:'#f0d9b5',sign:'SUN MESA',door:320,adobe:true},
+      {id:'shop',x:470,y:420,w:120,h:92,roof:'#c97a4a',ridge:'#a8603a',wall:'#f3dfbf',sign:'PRO SHOP',door:530,adobe:true},
+      {id:'hut',x:40,y:236,w:74,h:54,roof:'#b5734a',ridge:'#94593a',wall:'#efd8b4',sign:'STARTER',door:77,adobe:true}],
+    cars:[{x:282,y:796,c:'#e3e3dc'},{x:332,y:796,c:'#c9a227'},{x:432,y:796,c:'#7a2430'}],
+    pond:{x:150,y:640,rx:62,ry:36},pgreen:{x:330,y:490,rx:86,ry:48},teebox:{x:30,y:80,w:140,h:70},
+    benches:[{x:240,y:700,w:40,h:12},{x:400,y:330,w:40,h:12}],beds:[],
+    paths:[[[320,900],[320,700],[320,300]],[[320,560],[530,560],[530,512]],[[320,330],[90,330],[77,290]],[[90,330],[96,160]]],
+    trees:[[8,0,640,0,60,13,17],[6,0,40,80,760,12,16],[6,600,640,80,760,12,16],[5,60,250,580,710,12,15],[3,540,630,560,720,12,15]],
+    blobs:[{x:560,y:250,rx:48,ry:30,k:'rock'},{x:60,y:470,rx:30,ry:20,k:'rock'},{x:470,y:640,rx:10,ry:10,k:'cactus'},{x:560,y:620,rx:9,ry:9,k:'cactus'},{x:200,y:430,rx:9,ry:9,k:'cactus'},{x:470,y:260,rx:9,ry:9,k:'cactus'},{x:60,y:560,rx:9,ry:9,k:'cactus'},{x:150,y:390,rx:8,ry:8,k:'cactus'}],
+    carpark:{x:180,y:776,w:300,h:124}},
+  frost:{name:'Frostpeak',chapter:4,label:'Chapter 4 · The Peaks',map:{w:640,h:900},start:{x:330,y:760},arrive:{x:330,y:760},treeStyle:'pine',snowfall:true,bg:'#2c3e52',
+    buildings:[
+      {id:'club',x:180,y:130,w:280,h:160,roof:'#5a3a2a',ridge:'#45291c',wall:'#a8743f',sign:'FROSTPEAK LODGE',door:320,snow:true},
+      {id:'shop',x:470,y:410,w:124,h:94,roof:'#4f3424',ridge:'#3d281b',wall:'#b07d48',sign:'PRO SHOP',door:532,snow:true},
+      {id:'hut',x:40,y:236,w:74,h:54,roof:'#4f3424',ridge:'#3d281b',wall:'#a8743f',sign:'STARTER',door:77,snow:true}],
+    cars:[{x:282,y:796,c:'#2c2f33'},{x:332,y:796,c:'#c0392b'},{x:432,y:796,c:'#e3e3dc'}],
+    pond:{x:500,y:660,rx:76,ry:46,ice:true},pgreen:{x:170,y:500,rx:90,ry:50},teebox:{x:30,y:80,w:140,h:70},
+    benches:[{x:380,y:600,w:40,h:12},{x:400,y:330,w:40,h:12}],beds:[],
+    paths:[[[320,900],[320,700],[320,300]],[[320,560],[532,560],[532,504]],[[320,330],[90,330],[77,290]],[[90,330],[96,160]]],
+    trees:[[16,0,640,0,70,13,19],[9,0,40,80,760,12,17],[9,600,640,80,760,12,17],[5,200,300,600,720,12,16],[4,40,140,600,740,12,16]],
+    blobs:[{x:560,y:250,rx:40,ry:26,k:'snowrock'},{x:60,y:470,rx:28,ry:18,k:'snowrock'}],
+    carpark:{x:180,y:776,w:300,h:124}}
 };
 function setArea(id){
   const A=AREAS[id]||AREAS.ashby;AREA=A;save.story.area=AREAS[id]?id:'ashby';
@@ -1674,7 +1826,7 @@ function setArea(id){
       if(blockedAt(t.x,t.y,t.r+6,true)||WTREES.some(o=>Math.hypot(o.x-t.x,o.y-t.y)<o.r+t.r-4))continue;WTREES.push(t);n--}};
     A.trees.forEach(t=>add(...t));A.treesList=WTREES}
   WTREES=A.treesList;
-  $('#wChap').textContent=A.label;$('#wArea').textContent=A.name;
+  $('#wChap').textContent=A.label;$('#wArea').textContent=A.name;document.querySelector('.wtop').classList.toggle('snowy',!!A.snowfall);
 }
 function inRect(x,y,r,pad=0){return x>r.x-pad&&x<r.x+r.w+pad&&y>r.y-pad&&y<r.y+r.h+pad}
 function blockedAt(x,y,rad=7,forTrees=false){
@@ -1718,9 +1870,29 @@ AREAS.links.npcs=[
   {id:'gull',name:'Gulliver',x:430,y:640,face:1,bird:true,home:{x0:380,x1:520,y0:560,y1:760}},
   {id:'car',name:'Your car',x:218,y:827,car:true,face:0}
 ];
+AREAS.mesa.npcs=[
+  {id:'dolores',name:'Dolores Vance',x:370,y:330,face:0,look:{skin:'#c98a64',hair:'#2a1d15',top:'#d9822b',legs:'#f2ead6',bun:true,shades:true}},
+  {id:'ricky',name:'Ricky Salazar',x:110,y:108,face:0,look:{skin:'#b8794f',hair:'#141414',top:'#f2ead6',legs:'#6b4a2a',cap:'#d9822b',extra:'club',swing:true}},
+  {id:'priya',name:'Dr Priya Shah',x:460,y:470,face:1,look:{skin:'#a86b45',hair:'#141414',top:'#6a4fb0',legs:'#2f3640',bun:true,extra:'club'}},
+  {id:'wes',name:'Big Wes Calder',x:540,y:745,face:1,look:{skin:'#f0c8a8',hair:'#c9a227',top:'#a83232',legs:'#2b2f38',cap:'#1b1b1b',shades:true,beard:true,extra:'club'}},
+  {id:'celia',name:'Celia Ashcombe',x:255,y:330,face:0,look:{skin:'#f3d3b8',hair:'#d9c27a',top:'#f4f4f0',legs:'#c9a227',cap:'#c9a227'}},
+  {id:'marco',name:'Marco',x:530,y:540,face:0,look:{skin:'#b8794f',hair:'#1f1a17',top:'#f3dfbf',legs:'#2f3640',extra:'apron',beard:true}},
+  {id:'ziggy',name:'Ziggy',x:440,y:690,face:1,lizard:true,home:{x0:380,x1:600,y0:600,y1:740}},
+  {id:'car',name:'Your car',x:240,y:827,car:true,face:0}
+];
+AREAS.frost.npcs=[
+  {id:'ingrid',name:'Ingrid',x:370,y:330,face:0,look:{skin:'#f4d2b5',hair:'#efe3b0',top:'#2f6db0',legs:'#2b2f38',bun:true,cap:'#c0392b',flat:true}},
+  {id:'nils',name:'Nils Bergqvist',x:110,y:108,face:0,look:{skin:'#f4d2b5',hair:'#e8d9a6',top:'#2f6db0',legs:'#e8e3d8',cap:'#f2c14e',beard:true,extra:'club',swing:true}},
+  {id:'yuki',name:'Yuki Tanaka',x:290,y:520,face:1,look:{skin:'#efc9a4',hair:'#141414',top:'#c23b5a',legs:'#1b1b1b',extra:'club'}},
+  {id:'brock',name:'Brock Harlan',x:540,y:745,face:1,look:{skin:'#e8b892',hair:'#5a3a22',top:'#5a4632',legs:'#2b2f38',cap:'#2c5a33',beard:true,extra:'club'}},
+  {id:'elena',name:'Elena Vasquez',x:255,y:330,face:0,look:{skin:'#c98a64',hair:'#1f1a17',top:'#1e8a8a',legs:'#f4f4f0',cap:'#f4f4f0',shades:true}},
+  {id:'pavel',name:'Pavel',x:532,y:530,face:0,look:{skin:'#efc19d',hair:'#7a5530',top:'#b07d48',legs:'#2f3640',extra:'apron',beard:true}},
+  {id:'bjorn',name:'Bjorn',x:360,y:680,face:1,dog:true,husky:true,home:{x0:340,x1:420,y0:580,y1:760}},
+  {id:'car',name:'Your car',x:240,y:827,car:true,face:0}
+];
 let NPCS=[],NPC={};
-const NPC_HCP={toby:4,dot:8,marcus:6,duncan:-1,callum:3,fiona:5,tam:7,gideon:-2};
-const FACE_COL={morag:'#2f4f7a',callum:'#3e8f6b',fiona:'#b0305a',tam:'#6b5a3a',gideon:'#1b1b1b',ailsa:'#c98a64',gull:'#d9dde0',car:'#3f7fbf',dot:'#2a7f8f',marcus:'#ff6a1a',duncan:'#7a2430',hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
+const NPC_HCP={toby:4,dot:8,marcus:6,duncan:-1,callum:3,fiona:5,tam:7,gideon:-2,ricky:2,priya:3,wes:4,celia:-1,nils:1,yuki:0,brock:2,elena:-4};
+const FACE_COL={dolores:'#d9822b',ricky:'#d9822b',priya:'#6a4fb0',wes:'#a83232',celia:'#c9a227',marco:'#b8794f',ziggy:'#7fa84a',ingrid:'#2f6db0',nils:'#2f6db0',yuki:'#c23b5a',brock:'#5a4632',elena:'#1e8a8a',pavel:'#b07d48',bjorn:'#8a9aa8',morag:'#2f4f7a',callum:'#3e8f6b',fiona:'#b0305a',tam:'#6b5a3a',gideon:'#1b1b1b',ailsa:'#c98a64',gull:'#d9dde0',car:'#3f7fbf',dot:'#2a7f8f',marcus:'#ff6a1a',duncan:'#7a2430',hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
 const PLAYER_LOOK={skin:'#f0c4a0',hair:'#5a3a22',top:'#f4f1e6',legs:'#3c4a5e',cap:'#1c3628'};
 let me={x:320,y:840,face:0,walk:0,moving:false};
 const storePos=()=>{save.story.pos[save.story.area]={x:me.x,y:me.y}};
@@ -1789,7 +1961,9 @@ function talk(id){
     if(!f.beatMarcus)return say([N('hartley','Dot too! The bar\'s talking about nothing else.'),N('hartley','Marcus Vane wants a game. Hits it a mile, talks about it for two. You\'ll find him in the car park, admiring his car.')]);
     if(!f.champion)return say([N('hartley','That leaves one. Duncan Moray, club champion twelve years running.'),N('hartley','The Club Championship is all nine holes. He\'s by the clubhouse door, if you\'re ready.')]);
     if(!f.ch2champ)return say([N('hartley','Our Club Champion! I knew it the day you walked in.'),N('hartley','The county qualifier is at Gullhaven Links, down on the coast. Ashby Green has never sent anyone. Until now.'),N('hartley','Your car\'s in the car park. Off you go, champion.')]);
-    return say([N('hartley','Through to the County Championship! From Ashby Green! I\'ve told everyone. Twice.')]);
+    if(!f.ch3champ)return say([N('hartley','Through to the County Championship! From Ashby Green! I\'ve told everyone. Twice.')]);
+    if(!f.ch4champ)return say([N('hartley','County Champion! I\'ve had the board in the bar repainted.'),N('hartley','The Winter Open at Frostpeak, though... that\'s proper tour golf. Wrap up warm.')]);
+    return say([N('hartley','Winter Open champion. A tour card. From our little club.'),N('hartley','I may need a sit down.')]);
   }
   if(id==='toby'){
     if(!f.metCaptain)return say([N('toby','Do you mind? I\'m working on my takeaway.'),N('toby','Members on the 1st only. Go and say hello to the captain first, new kid.')]);
@@ -1841,7 +2015,7 @@ function talk(id){
     if(!f.beatFiona)return say([N('morag','Fiona next. She hits it a mile, but the pot bunkers on Saltgrass have eaten bigger hitters than her.')]);
     if(!f.beatTam)return say([N('morag','Old Tam\'s on the putting green. He\'s been here longer than the clubhouse. Read the greens carefully.')]);
     if(!f.ch2champ)return say([N('morag','That\'s all three. Gideon Thorne is waiting by the clubhouse. Nine holes, one place.')]);
-    return say([N('morag','You\'re through to the County Championship. Gullhaven won\'t forget you in a hurry.'),NARR('Chapter 3 is on its way.')]);
+    return say([N('morag','You\'re through to the County Championship. Gullhaven won\'t forget you in a hurry.'),N('morag','It\'s being played at Sun Mesa this year, out in the desert. Your car will get you there.')]);
   }
   if(id==='callum'){
     if(!f.metMorag)return say([N('callum','Have you signed in with Morag? She\'ll have my head if I play a visitor without her say-so.')]);
@@ -1897,6 +2071,114 @@ function talk(id){
     const tip=MAGS_TIPS[(f.magsTip=(f.magsTip||0)+1)%MAGS_TIPS.length];
     return say(first?[N('mags','Mind the green, it\'s just been cut! I\'m Mags, I look after the course.'),N('mags',tip)]:[N('mags',tip)]);
   }
+  // ---------- Chapter 3: Sun Mesa ----------
+  if(id==='dolores'){
+    if(!f.metDolores)return say([
+      N('dolores','Welcome to Sun Mesa! Dolores Vance, resort manager. You must be the qualifier from the coast.'),
+      N('dolores','The County Championship is played here this year. Before you get anywhere near it, three of our locals want a look at you.'),
+      N('dolores','Ricky\'s on the 1st tee, Dr Shah is by the practice green, and Big Wes is out by the car park, hitting balls at the horizon.'),
+      N('dolores','A word about the course: if it isn\'t fairway, it\'s waste ground. The air is thin, so the ball goes further, and the greens are baked hard. Land it short and let it run on.')],()=>{f.metDolores=true;persist();updateGoal()});
+    if(!f.beatRicky)return say([N('dolores','Ricky\'s on the 1st tee. Grew up caddying here. He knows every cactus by name.')]);
+    if(!f.beatPriya)return say([N('dolores','Dr Shah next. She\'s worked out the odds on every shot on the course. Don\'t let her get in your head.')]);
+    if(!f.beatWes)return say([N('dolores','Big Wes is in the car park. National long-drive champion. Hits it out of sight, sometimes in the right direction.')]);
+    if(!f.ch3champ)return say([N('dolores','That\'s our locals done. Celia Ashcombe, the reigning county champion, is waiting by the clubhouse. All nine holes.')]);
+    return say([N('dolores','County Champion! We\'ll put your name up in the clubhouse.'),N('dolores','There\'s a letter for you, too. The Winter Open at Frostpeak wants you. Up in the mountains. Bring a jumper.')]);
+  }
+  if(id==='ricky'){
+    if(!f.metDolores)return say([N('ricky','Hola! Check in with Dolores first, amigo, or she\'ll have me raking bunkers all week.')]);
+    const go=[{t:'You\'re on',fn:()=>startRivalMatch('ricky')},{t:'Not yet',fn:()=>say([N('ricky','No problem. The sun\'s not going anywhere.')])}];
+    if(f.beatRicky)return say([N('ricky','Rematch? Holes 1 to 3 again, amigo.',go)]);
+    if(f.rickyPlayed)return say([N('ricky','Back for more sun? Same three holes.',go)]);
+    return say([N('ricky','Ricky Salazar, resort pro. I\'ve been playing this place since I could hold a club.'),N('ricky','Holes 1 to 3: Quarry Gate, Sidewinder and Mirage. Watch the cacti. Hit one and your ball goes anywhere.'),
+      N('ricky','Beat me and you get pieces of my Sidewinder. It hits off the waste like it\'s a fairway. Deal?',go)]);
+  }
+  if(id==='priya'){
+    if(!f.beatRicky)return say([N('priya','Your chances against me are low at the moment. Beat Ricky first and we\'ll see if they improve.')]);
+    const go=[{t:'Let\'s play',fn:()=>startRivalMatch('priya')},{t:'Not just now',fn:()=>say([N('priya','Sensible. Come back when you\'ve done the maths.')])}];
+    if(f.beatPriya)return say([N('priya','I\'ve updated my model since last time. Shall we test it?',go)]);
+    if(f.priyaPlayed)return say([N('priya','Another sample? Holes 4 to 6.',go)]);
+    return say([N('priya','Dr Priya Shah. Statistician by day, scratch golfer by weekend.'),N('priya','Holes 4 to 6: Sandstone, Oasis and Canyon. These greens are hard. If you fly it all the way to the flag, it won\'t stop there.'),
+      N('priya','Win and you get shards of my Oasis. That 9 iron stops dead on any green.',go)]);
+  }
+  if(id==='wes'){
+    if(!f.beatPriya)return say([N('wes','WHOOO! Did you see that one? Neither did I.'),N('wes','Busy, pal. Beat the doc first, then we\'ll talk.')]);
+    const go=[{t:'Let\'s go',fn:()=>startRivalMatch('wes')},{t:'Maybe later',fn:()=>say([N('wes','Go loosen up. You look tight.')])}];
+    if(f.beatWes)return say([N('wes','Rematch! I\'ve got a new shaft in this thing. Holes 7 to 9.',go)]);
+    if(f.wesPlayed)return say([N('wes','Round two? I\'ll hit it further this time.',go)]);
+    return say([N('wes','Big Wes Calder! National long-drive champ, three years running!'),N('wes','Holes 7 to 9: Long Haul, Rattler and High Noon. Rattler is tight, so maybe leave the driver in the bag. I won\'t.'),
+      N('wes','Beat me and I\'ll give you a bit of my Thunderclap. It loves thin air. You in?',go)]);
+  }
+  if(id==='celia'){
+    if(!f.beatWes)return say([N('celia','I don\'t play qualifiers. Beat the locals first.')]);
+    const go=[{t:'I\'m ready',fn:()=>startRivalMatch('celia')},{t:'Not yet',fn:()=>say([N('celia','Take your time. The title isn\'t going anywhere.')])}];
+    if(f.ch3champ)return say([N('celia','I want my title back. All nine?',go)]);
+    if(f.celiaPlayed)return say([N('celia','Again? Good. The full nine.',go)]);
+    return say([N('celia','Celia Ashcombe. County Champion, two years running.'),N('celia','The Championship is all nine holes at Sun Mesa. Win and the title is yours, along with the Solstice.'),
+      N('celia','That 3 wood was made for this thin air. Shall we?',go)]);
+  }
+  if(id==='marco')return say([N('marco','Welcome to the shop, my friend! Water, sunscreen, golf clubs. In that order.',[
+    {t:'Browse the pro shop',fn:()=>openSheet('shop')},{t:'Check my bag',fn:()=>openSheet('bag')},
+    {t:'Any tips?',fn:()=>say([N('marco',['The ball flies further out here. Take one club less than usual.','Waste areas aren\'t bunkers. You lose a bit of distance, not the lot.','Cactus? Pray. Your ball could end up anywhere.','The greens are like concrete. Backspin, or land it short of the pin.','Not much wind in the desert. Use the calm to attack.'][Math.floor(Math.random()*5)])])},
+    {t:'Bye',fn:null}])]);
+  if(id==='ziggy'){
+    if(!f.ziggyCoin){f.ziggyCoin=true;save.coins+=60;persist();updateCoins();return say([NARR('Ziggy the lizard is sunning himself on a warm rock. Underneath him, something glints.'),NARR('You nudge him aside. +60 coins.')])}
+    const lines=['Ziggy does a few push-ups at you.','Ziggy blinks slowly.','Ziggy scuttles in a circle and settles back down.','Ziggy flicks his tongue at your shoe.'];
+    return say([NARR(lines[Math.floor(Math.random()*lines.length)])]);
+  }
+  // ---------- Chapter 4: Frostpeak ----------
+  if(id==='ingrid'){
+    if(!f.metIngrid)return say([
+      N('ingrid','Welcome to Frostpeak! I\'m Ingrid, I run the lodge. Come in from the cold for a minute.'),
+      N('ingrid','The Winter Open is the first proper tour event of your career. Before that, three of our regulars want to play you.'),
+      N('ingrid','Nils is on the 1st tee, Yuki is by the practice green, and Brock is in the car park. You\'ll hear Brock before you see him.'),
+      N('ingrid','About the course: frozen ponds don\'t take a penalty, but the ball skids for miles on them. Snowdrifts swallow the ball, the greens are quick, and the mountain air gives you a few extra yards.')],()=>{f.metIngrid=true;persist();updateGoal()});
+    if(!f.beatNils)return say([N('ingrid','Nils is on the 1st tee. He used to be a ski instructor. He\'s very relaxed. Very.')]);
+    if(!f.beatYuki)return say([N('ingrid','Yuki next, by the practice green. She hardly ever misses.')]);
+    if(!f.beatBrock)return say([N('ingrid','Brock\'s in the car park. They call him Avalanche, and it\'s not because he\'s gentle.')]);
+    if(!f.ch4champ)return say([N('ingrid','Elena Vasquez is waiting by the lodge. A real tour pro. The Winter Open is all nine holes.')]);
+    return say([N('ingrid','Winter Open champion! The whole lodge was watching from the window.'),NARR('Chapter 5, Skyreach, is on its way.')]);
+  }
+  if(id==='nils'){
+    if(!f.metIngrid)return say([N('nils','Hej! Go and warm up with Ingrid first, ja? Then we play.')]);
+    const go=[{t:'You\'re on',fn:()=>startRivalMatch('nils')},{t:'Not yet',fn:()=>say([N('nils','Ja, no rush. The snow is patient.')])}];
+    if(f.beatNils)return say([N('nils','Again? Holes 1 to 3. I have been practising my skids.',go)]);
+    if(f.nilsPlayed)return say([N('nils','Back for more? Same three holes.',go)]);
+    return say([N('nils','Nils Bergqvist. I teach skiing in the winter and play golf in the... also winter.'),N('nils','Holes 1 to 3: Lodge Run, Frozen Mere and Icicle. On Frozen Mere the ice goes right across the fairway. It\'s like bowling.'),
+      N('nils','Beat me and I give you bits of my Snowplough. It splashes out of drifts like they\'re nothing.',go)]);
+  }
+  if(id==='yuki'){
+    if(!f.beatNils)return say([N('yuki','...'),N('yuki','Beat Nils first.')]);
+    const go=[{t:'Let\'s play',fn:()=>startRivalMatch('yuki')},{t:'Not just now',fn:()=>say([N('yuki','Hm.')])}];
+    if(f.beatYuki)return say([N('yuki','Again. Holes 4 to 6.',go)]);
+    if(f.yukiPlayed)return say([N('yuki','Ready to try again?',go)]);
+    return say([N('yuki','Yuki Tanaka. I don\'t talk much on the course.'),N('yuki','Holes 4 to 6: Avalanche, Snowfield and Summit. On Snowfield the drifts are right in the fairway. Pick your line.'),
+      N('yuki','Win and you get shards of my Katana. It cuts through the cold.',go)]);
+  }
+  if(id==='brock'){
+    if(!f.beatYuki)return say([N('brock','RAAAH! Oh, hey. Warming up.'),N('brock','Beat Yuki and I\'ll give you a game. Nobody beats Yuki.')]);
+    const go=[{t:'Let\'s go',fn:()=>startRivalMatch('brock')},{t:'Maybe later',fn:()=>say([N('brock','Scared? Smart.')])}];
+    if(f.beatBrock)return say([N('brock','REMATCH! Holes 7 to 9!',go)]);
+    if(f.brockPlayed)return say([N('brock','Round two! I\'m gonna hit it so far.',go)]);
+    return say([N('brock','Brock Harlan. They call me Avalanche. Know why?'),N('brock','Neither do I, but I like it. Holes 7 to 9: Pine Alley, Glacier and Fireside.'),
+      N('brock','Beat me and you get a chunk of my Avalanche driver. That thing runs and runs.',go)]);
+  }
+  if(id==='elena'){
+    if(!f.beatBrock)return say([N('elena','I\'m here for the Open. Play the locals first, then come and find me.')]);
+    const go=[{t:'I\'m ready',fn:()=>startRivalMatch('elena')},{t:'Not yet',fn:()=>say([N('elena','Take your time. Get warm.')])}];
+    if(f.ch4champ)return say([N('elena','Revenge round? All nine.',go)]);
+    if(f.elenaPlayed)return say([N('elena','Back again. Good. That\'s what pros do.',go)]);
+    return say([N('elena','Elena Vasquez. Seven years on tour. I\'ve heard about you.'),N('elena','The Winter Open is all nine holes at Frostpeak. Win it and you\'re a tour player. And the Aurora is yours.'),
+      N('elena','A wedge that spins it back like nothing else. Ready?',go)]);
+  }
+  if(id==='pavel')return say([N('pavel','Come in, come in! Hot chocolate is free. Clubs are not.',[
+    {t:'Browse the pro shop',fn:()=>openSheet('shop')},{t:'Check my bag',fn:()=>openSheet('bag')},
+    {t:'Any tips?',fn:()=>say([N('pavel',['On ice the ball skids forever. Land it short of the pond, or go right over it.','Snowdrifts are worse than bunkers. You\'ll get less than half your distance out.','These greens are quick. Putt softer than you think.','The air up here is thin, so you get a few extra yards.','The wind gusts between shots. Check it every time.'][Math.floor(Math.random()*5)])])},
+    {t:'Bye',fn:null}])]);
+  if(id==='bjorn'){
+    if(!f.bjornCoin){f.bjornCoin=true;save.coins+=80;persist();updateCoins();return say([NARR('Bjorn the husky bounds over and drops a soggy glove at your feet.'),NARR('There are 80 coins tucked inside it. Bjorn looks very proud of himself.')])}
+    const lines=['Bjorn howls at the mountains.','Bjorn rolls in the snow.','Bjorn tries to eat a snowflake.','Bjorn leans his whole weight against your legs.'];
+    return say([NARR(lines[Math.floor(Math.random()*lines.length)])]);
+  }
   if(id==='pip'){
     if(!f.pipTee){f.pipTee=true;save.coins+=25;persist();updateCoins();return say([NARR('Pip drops a slobbery tee at your feet and wags hopefully.'),NARR('Tucked in the grass next to it you find 25 coins.')])}
     const lines=['Woof!','Pip rolls over for a belly rub.','Pip is very interested in your shoelaces.','Pip sneezes, then looks offended about it.'];
@@ -1907,8 +2189,8 @@ function talk(id){
 const TRIPS=[
   {id:'ashby',name:'Ashby Green',ch:'Chapter 1 · Home club',open:()=>true},
   {id:'links',name:'Gullhaven Links',ch:'Chapter 2 · The Coast',open:()=>!!SF().champion,lock:'Win the Ashby Green Club Championship'},
-  {id:'mesa',name:'Sun Mesa',ch:'Chapter 3 · The Desert',open:()=>false,lock:'Coming soon'},
-  {id:'frost',name:'Frostpeak',ch:'Chapter 4 · The Ice',open:()=>false,lock:'Coming soon'},
+  {id:'mesa',name:'Sun Mesa',ch:'Chapter 3 · The Desert',open:()=>!!SF().ch2champ,lock:'Win the County Qualifier at Gullhaven'},
+  {id:'frost',name:'Frostpeak',ch:'Chapter 4 · The Peaks',open:()=>!!SF().ch3champ,lock:'Win the County Championship at Sun Mesa'},
   {id:'sky',name:'Skyreach',ch:'Chapter 5 · The Sky',open:()=>false,lock:'Coming soon'}
 ];
 function openTravel(){
@@ -1933,7 +2215,7 @@ function driveStep(dt){
   const D=driving;if(!D)return;D.t+=dt;
   const c=$('#drive').getContext('2d'),d=devicePixelRatio||1,W2=D.w,H3=D.h,u=Math.min(1,D.t/D.dur);
   c.setTransform(d,0,0,d,0,0);
-  const sides={ashby:['#4a8641','#4f8c46'],links:['#8fa45c','#97ab63']};
+  const sides={ashby:['#4a8641'],links:['#8fa45c'],mesa:['#d9b47c'],frost:['#e9f0f6']};
   const [a1]=sides[D.from]||sides.ashby,[b1]=sides[D.dest]||sides.links;
   const mix=(p,q,k)=>{const P=parseInt(p.slice(1),16),Q=parseInt(q.slice(1),16);const ch=s=>Math.round(((P>>s)&255)*(1-k)+((Q>>s)&255)*k);return `rgb(${ch(16)},${ch(8)},${ch(0)})`};
   c.fillStyle=mix(a1,b1,u);c.fillRect(0,0,W2,H3);
@@ -1942,7 +2224,12 @@ function driveStep(dt){
   for(let y=-60+off;y<H3;y+=60)c.fillRect(W2/2-2,y,4,30);
   // passing scenery: trees, then dunes and the sea as you reach the coast
   for(let k=0;k<14;k++){const y=((k*97+D.t*420)%(H3+80))-40,side=k%2?rx-30-(k*13%40):rx+roadW+30+(k*17%40);
-    if(u<.6){c.fillStyle='#2a5d33';c.beginPath();c.arc(side,y,14+(k%3)*3,0,7);c.fill()}else{c.fillStyle='#d8c899';c.beginPath();c.ellipse(side,y,18,10,0,0,7);c.fill()}}
+    const zone=u<.5?D.from:D.dest,r=14+(k%3)*3;
+    if(zone==='links'){c.fillStyle='#d8c899';c.beginPath();c.ellipse(side,y,18,10,0,0,7);c.fill()}
+    else if(zone==='mesa'){if(k%3){c.fillStyle='#3f7a3a';c.beginPath();c.roundRect(side-4,y-14,8,26,4);c.fill();c.fillRect(side-11,y-4,8,4);c.fillRect(side-11,y-10,4,8);c.fillRect(side+3,y-7,8,4);c.fillRect(side+7,y-13,4,8)}else{c.fillStyle='#b5683f';c.beginPath();c.ellipse(side,y,22,13,0,0,7);c.fill()}}
+    else if(zone==='frost'){c.fillStyle='#234d3a';c.beginPath();c.moveTo(side-r,y+r*.6);c.lineTo(side+r,y+r*.6);c.lineTo(side,y-r*1.2);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(side-r*.4,y-r*.2);c.lineTo(side+r*.4,y-r*.2);c.lineTo(side,y-r*1.2);c.fill()}
+    else{c.fillStyle='#2a5d33';c.beginPath();c.arc(side,y,r,0,7);c.fill()}}
+  if(D.dest==='frost'&&!RM){c.fillStyle='rgba(255,255,255,.8)';for(let k=0;k<50*u;k++){c.beginPath();c.arc((k*97)%W2,(k*53+D.t*120)%H3,1.5,0,7);c.fill()}}
   if(u>.7&&D.dest==='links'){c.fillStyle=`rgba(47,125,154,${(u-.7)/.3})`;c.fillRect(W2*.86,0,W2*.14,H3)}
   // your car
   drawCar(c,{x:W2/2+roadW*.18-18,y:H3*.62,c:'#3f7fbf'});
@@ -1981,6 +2268,38 @@ const MATCH={
     win:[N('gideon','...'),N('gideon','You earned that. Every shot.'),N('gideon','The Northerly. Take it to the County Championship. And don\'t embarrass the coast.')],
     next:'Chapter 2 complete. You\'re through to the County Championship.',rematch:'Good game. You\'ve still got it.',
     draw:'Level after nine. Neither of us will forget that.',lose:['Not today.','The place is still mine. Come back when you\'re ready.']},
+  ricky:{flag:'beatRicky',played:'rickyPlayed',shard:'sidewinder',
+    win:[N('ricky','Ay, que bueno! You play the desert like a local.'),N('ricky','Here, take this, and two shards of my Sidewinder.')],
+    next:'Collect 5 Sidewinder shards to forge it. Dr Priya Shah is next, by the practice green.',rematch:'Again! Okay okay, take it.',
+    draw:'All square. The desert is fair to everyone.',lose:['The cactus always wins, amigo.','Come back when you\'ve had some water.']},
+  priya:{flag:'beatPriya',played:'priyaPlayed',shard:'oasis',
+    win:[N('priya','Fascinating. You were well outside my confidence interval.'),N('priya','Something for your bag, and two shards of my Oasis.')],
+    next:'Collect 5 Oasis shards to forge it. Big Wes Calder is next, out by the car park.',rematch:'Another data point in your favour. Here.',
+    draw:'A tie. Statistically, that was the likeliest result.',lose:['As predicted.','Your expected score needs work. Come back.']},
+  wes:{flag:'beatWes',played:'wesPlayed',shard:'thunderclap',
+    win:[N('wes','You beat the long-drive champ! Respect.'),N('wes','Take this, and two shards of my Thunderclap. Swing hard, pal.')],
+    next:'Collect 5 Thunderclap shards to forge it. Celia Ashcombe is waiting by the clubhouse for the County Championship.',rematch:'AGAIN?! Okay, take it.',
+    draw:'A tie! Let\'s settle it with a long-drive contest. Kidding. Mostly.',lose:['Distance, baby!','Go hit the gym and come back.']},
+  celia:{flag:'ch3champ',played:'celiaPlayed',prize:{club:'solstice',coins:1000,kits:2},
+    win:[N('celia','...'),N('celia','Well played. You\'re the County Champion now.'),N('celia','The Solstice. It loves the thin air. Look after it.')],
+    next:'Chapter 3 complete. You\'re the County Champion. Your car can take you to Frostpeak for the Winter Open.',rematch:'Good round. I\'ll get you next time.',
+    draw:'Level after nine. Neither of us blinked.',lose:['The title stays with me.','Come back when you\'re ready.']},
+  nils:{flag:'beatNils',played:'nilsPlayed',shard:'snowplough',
+    win:[N('nils','Ha! Very good, very good. You skate well.'),N('nils','Take this, and two bits of my Snowplough.')],
+    next:'Collect 5 Snowplough shards to forge it. Yuki Tanaka is next, by the practice green.',rematch:'Again you win! Skål. Here.',
+    draw:'Even! We celebrate with hot chocolate.',lose:['The ice was kind to me today.','Come back, we play again.']},
+  yuki:{flag:'beatYuki',played:'yukiPlayed',shard:'katana',
+    win:[N('yuki','...'),N('yuki','Good. Take these. Two shards of my Katana.')],
+    next:'Collect 5 Katana shards to forge it. Brock Harlan is next, in the car park.',rematch:'Well played. Here.',
+    draw:'Even.',lose:['Precision wins.','Practise. Then return.']},
+  brock:{flag:'beatBrock',played:'brockPlayed',shard:'avalanche',
+    win:[N('brock','NOOO! Okay. Okay. That was awesome.'),N('brock','Here, take this. And two chunks of my Avalanche. Make it rumble.')],
+    next:'Collect 5 Avalanche shards to forge it. Elena Vasquez is waiting by the lodge for the Winter Open.',rematch:'You did it AGAIN?! Take it, take it.',
+    draw:'A DRAW! That\'s... fine. I guess.',lose:['AVALANCHE!','You got buried. Come back.']},
+  elena:{flag:'ch4champ',played:'elenaPlayed',prize:{club:'aurora',coins:1500,kits:3},
+    win:[N('elena','...'),N('elena','You\'re the real thing. Winter Open champion.'),N('elena','The Aurora is yours. See you on tour.')],
+    next:'Chapter 4 complete. You\'ve won the Winter Open and earned your tour card. Chapter 5, Skyreach, is on its way.',rematch:'Still sharp. Good.',
+    draw:'Level after nine. A play-off another day.',lose:['That\'s tour golf.','Come back stronger.']},
   duncan:{flag:'champion',played:'duncanPlayed',prize:{club:'kestrel',coins:500,kits:1},
     win:[N('duncan','Twelve years.'),N('duncan','...Well. The club\'s in good hands.'),N('duncan','The Kestrel. It drops out of the sky and stops. Look after it, champion.')],
     next:'Chapter 1 complete. You\'re the Ashby Green Club Champion. Your car is waiting in the car park: Gullhaven Links is now open.',rematch:'Still got it, champion.',
@@ -1995,7 +2314,7 @@ function afterMatch(id,res){
     if(M.prize){lines=[...grant({t:'club',c:M.prize.club}),...grant({t:'coins',n:M.prize.coins}),...grant({t:'kit',n:M.prize.kits})]}
     else lines=[...grant({t:'rare'}),...grant({t:'shard',c:M.shard,n:2})];
     persist();updateGoal();updateCoins();
-    return say(M.win,()=>showLoot(M.prize?(id==='gideon'?'County Qualifier won':'Champion\'s prize'):`Beat ${name} · first win`,lines,()=>say([NARR(M.next)])));
+    return say(M.win,()=>showLoot(M.prize?(id==='duncan'?'Champion\'s prize':`${RIVALS[id].title} won`):`Beat ${name} · first win`,lines,()=>say([NARR(M.next)])));
   }
   if(res==='win'){const lines=openBag(id,1);updateCoins();return say([N(id,M.rematch)],()=>showLoot(`Beat ${name} · rematch`,lines))}
   persist();
@@ -2011,13 +2330,28 @@ function updateGoal(){
     :!f.beatMarcus?'<b>Goal</b> · Beat Marcus Vane in the car park'
     :!f.champion?'<b>Goal</b> · Win the Club Championship against Duncan Moray'
     :save.story.area==='ashby'&&!f.visitedLinks?'<b>Goal</b> · Drive to Gullhaven Links. Your car is in the car park'
-    :save.story.area==='ashby'?'<b>Champion</b> · Your car is in the car park'
+    :save.story.area==='ashby'&&!f.ch2champ?'<b>Champion</b> · Your car is in the car park'
     :!f.metMorag?'<b>Goal</b> · Find Morag outside the clubhouse'
     :!f.beatCallum?'<b>Goal</b> · Beat Callum Reid on the 1st tee'
     :!f.beatFiona?'<b>Goal</b> · Beat Fiona Baird by the practice green'
     :!f.beatTam?'<b>Goal</b> · Beat Old Tam on the putting green'
     :!f.ch2champ?'<b>Goal</b> · Win the County Qualifier against Gideon Thorne'
-    :'<b>Qualified</b> · Chapter 2 complete. Chapter 3 coming soon';
+    :save.story.area!=='mesa'&&save.story.area!=='frost'&&!f.visitedMesa?'<b>Goal</b> · Drive to Sun Mesa for the County Championship'
+    :save.story.area==='links'||save.story.area==='ashby'?(f.ch3champ&&!f.visitedFrost?'<b>Goal</b> · Drive to Frostpeak for the Winter Open':'<b>On the road</b> · Your car is in the car park')
+    :save.story.area==='mesa'?(
+      !f.metDolores?'<b>Goal</b> · Find Dolores Vance outside the clubhouse'
+      :!f.beatRicky?'<b>Goal</b> · Beat Ricky Salazar on the 1st tee'
+      :!f.beatPriya?'<b>Goal</b> · Beat Dr Priya Shah by the practice green'
+      :!f.beatWes?'<b>Goal</b> · Beat Big Wes Calder by the car park'
+      :!f.ch3champ?'<b>Goal</b> · Win the County Championship against Celia Ashcombe'
+      :!f.visitedFrost?'<b>Goal</b> · Drive to Frostpeak for the Winter Open'
+      :'<b>County Champion</b> · Your car is in the car park')
+    :!f.metIngrid?'<b>Goal</b> · Find Ingrid outside the lodge'
+    :!f.beatNils?'<b>Goal</b> · Beat Nils Bergqvist on the 1st tee'
+    :!f.beatYuki?'<b>Goal</b> · Beat Yuki Tanaka by the practice green'
+    :!f.beatBrock?'<b>Goal</b> · Beat Brock Harlan in the car park'
+    :!f.ch4champ?'<b>Goal</b> · Win the Winter Open against Elena Vasquez'
+    :'<b>Tour card!</b> · Chapter 4 complete. Chapter 5 coming soon';
 }
 const updateCoins=()=>{$('#wcoins').textContent=`${save.coins} coins`};
 
@@ -2034,6 +2368,14 @@ function openWorld(opts={}){
     NARR('Gullhaven Links. Salt in the air, and a wind off the sea that never quite stops.'),
     NARR('No trees here. Gorse, pot bunkers and fast, firm ground instead. Keep the ball low and let it run.'),
     NARR('Morag, the club secretary, is waiting outside the clubhouse.')])}
+  if(save.story.area==='mesa'&&!SF().visitedMesa){SF().visitedMesa=true;persist();updateGoal();return say([
+    NARR('Sun Mesa. An old sandstone quarry turned desert resort, baking under a white-hot sky.'),
+    NARR('Green fairways, and nothing but sand, rock and cactus either side. The air is thin and the ball flies.'),
+    NARR('Dolores Vance, the resort manager, is waiting outside the clubhouse.')])}
+  if(save.story.area==='frost'&&!SF().visitedFrost){SF().visitedFrost=true;persist();updateGoal();return say([
+    NARR('Frostpeak. A mountain lodge, pine trees heavy with snow, and a course carved out of the winter.'),
+    NARR('Frozen ponds, deep snowdrifts and slick greens. The ball skids, plugs and races. The wind comes in gusts off the peaks.'),
+    NARR('Ingrid is waiting outside the lodge.')])}
   if(!SF().intro){SF().intro=true;persist();say([
     NARR('Ashby Green Golf Club. Your first day as a full member.'),
     NARR('Tap anywhere to walk, or hold your thumb down to steer. Walk up to people and tap Talk.'),
@@ -2084,9 +2426,9 @@ function worldStep(dt){
   else if(!(dlg&&dlg.lines.some(l=>!l.who))){const dx=pip.goal.x-pip.x,dy=pip.goal.y-pip.y,d=Math.hypot(dx,dy),nx=pip.x+dx/d*60*dt,ny=pip.y+dy/d*60*dt;
     if(!blockedAt(nx,ny,5)){pip.x=nx;pip.y=ny;pip.walk=(pip.walk||0)+dt*12;pip.moving=true;pip.face=faceTowards({x:0,y:0},{x:dx,y:dy})}else pip.goal=null}
   }
-  for(const n of NPCS)if(!n.dog&&!n.bird&&!n.car&&Math.hypot(n.x-me.x,n.y-me.y)<70)n.face=faceTowards(n,me);
+  for(const n of NPCS)if(!n.dog&&!n.bird&&!n.lizard&&!n.car&&Math.hypot(n.x-me.x,n.y-me.y)<70)n.face=faceTowards(n,me);
   const nn=!dlg&&nearNpc();
-  $('#wTalk').hidden=!nn;if(nn)$('#wTalk').textContent=nn.dog?'Pat Pip':nn.bird?'Say hello to Gulliver':nn.car?'Get in your car':`Talk to ${nn.name}`;
+  $('#wTalk').hidden=!nn;if(nn)$('#wTalk').textContent=nn.dog?`Pat ${nn.name}`:nn.bird||nn.lizard?`Say hello to ${nn.name}`:nn.car?'Get in your car':`Talk to ${nn.name}`;
   // camera follows smoothly
   const k=1-Math.exp(-dt*6);wcam.x+=(me.x-wcam.x)*k;wcam.y+=(me.y-wcam.y)*k;clampCam();
   if((save.story._t=(save.story._t||0)+dt)>2){save.story._t=0;storePos();persist()}
@@ -2143,12 +2485,26 @@ function drawDog(c,p){
   const {x,y}=p,ph=Math.sin(p.walk||0),left=p.face===1,t=performance.now()/1000;
   c.save();c.translate(x,y);if(left)c.scale(-1,1);
   c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(0,0,10,3,0,0,7);c.fill();
-  c.fillStyle='#7a5530';c.fillRect(-7+ph,-6,2.5,6);c.fillRect(4-ph,-6,2.5,6);
-  c.fillStyle='#c99a5b';c.beginPath();c.ellipse(0,-9,9,5.5,0,0,7);c.fill();
-  c.strokeStyle='#c99a5b';c.lineWidth=2.5;c.lineCap='round';c.beginPath();c.moveTo(-8,-11);c.lineTo(-12,-15+Math.sin(t*14)*2);c.stroke();
+  const A=p.husky?'#5d6873':'#7a5530',B=p.husky?'#8a9aa8':'#c99a5b';
+  c.fillStyle=A;c.fillRect(-7+ph,-6,2.5,6);c.fillRect(4-ph,-6,2.5,6);
+  c.fillStyle=B;c.beginPath();c.ellipse(0,-9,9,5.5,0,0,7);c.fill();
+  if(p.husky){c.fillStyle='#f4f6f6';c.beginPath();c.ellipse(1,-7.5,7,3,0,0,7);c.fill();c.fillStyle=B}
+  c.strokeStyle=B;c.lineWidth=2.5;c.lineCap='round';c.beginPath();c.moveTo(-8,-11);c.lineTo(-12,-15+Math.sin(t*14)*2);c.stroke();
   c.beginPath();c.arc(9,-14,5.5,0,7);c.fill();
-  c.fillStyle='#7a5530';c.beginPath();c.ellipse(7,-18,2.5,4,-.4,0,7);c.fill();
+  if(p.husky){c.fillStyle='#f4f6f6';c.beginPath();c.arc(11,-12.5,3.4,0,7);c.fill();c.fillStyle=A;c.beginPath();c.moveTo(5,-17);c.lineTo(7,-23);c.lineTo(9.5,-18);c.fill()}
+  else{c.fillStyle=A;c.beginPath();c.ellipse(7,-18,2.5,4,-.4,0,7);c.fill()}
   c.fillStyle='#1d1a17';c.fillRect(10,-15.5,1.8,1.8);c.beginPath();c.arc(14.5,-13,1.5,0,7);c.fill();
+  c.restore();
+}
+function drawLizard(c,p){
+  const {x,y}=p,ph=Math.sin((p.walk||0)*1.5),left=p.face===1;
+  c.save();c.translate(x,y);if(left)c.scale(-1,1);
+  c.fillStyle='rgba(0,0,0,.2)';c.beginPath();c.ellipse(0,0,11,2.5,0,0,7);c.fill();
+  c.strokeStyle='#5f8a3a';c.lineWidth=2.2;c.lineCap='round';c.beginPath();c.moveTo(-5,-3);c.quadraticCurveTo(-12,-2+ph*2,-16,-5);c.stroke();
+  c.fillStyle='#5f8a3a';c.fillRect(-4+ph,-3,2,3);c.fillRect(3-ph,-3,2,3);
+  c.fillStyle='#7fa84a';c.beginPath();c.ellipse(0,-4,7,3.2,0,0,7);c.fill();c.beginPath();c.ellipse(8,-5,3.4,2.4,0,0,7);c.fill();
+  c.fillStyle='#e0a526';for(let k=-4;k<=4;k+=3){c.beginPath();c.arc(k,-5,.9,0,7);c.fill()}
+  c.fillStyle='#1d1a17';c.fillRect(8.5,-6.5,1.3,1.3);
   c.restore();
 }
 function drawBuilding(c,b){
@@ -2157,7 +2513,10 @@ function drawBuilding(c,b){
   c.fillStyle=b.roof;c.fillRect(b.x,b.y,b.w,roofH);
   c.fillStyle=b.ridge;c.fillRect(b.x,b.y+roofH/2-2,b.w,4);
   c.strokeStyle='rgba(0,0,0,.12)';c.lineWidth=1;for(let yy=b.y+8;yy<b.y+roofH;yy+=8){c.beginPath();c.moveTo(b.x,yy);c.lineTo(b.x+b.w,yy);c.stroke()}
+  if(b.adobe){c.fillStyle='rgba(255,240,210,.25)';c.fillRect(b.x+4,b.y+4,b.w-8,roofH-8);c.fillStyle='#7a4a2a';for(let vx=b.x+12;vx<b.x+b.w-8;vx+=22)c.fillRect(vx,b.y+roofH-3,5,5)}
+  if(b.snow){c.fillStyle='#f6f9fc';c.fillRect(b.x-2,b.y-2,b.w+4,roofH*.42);c.fillRect(b.x-2,b.y+roofH*.58,b.w+4,roofH*.42-2);c.fillStyle='#dde7f0';for(let ix=b.x+6;ix<b.x+b.w-4;ix+=14){c.beginPath();c.moveTo(ix,b.y+roofH-2);c.lineTo(ix+4,b.y+roofH-2);c.lineTo(ix+2,b.y+roofH+5);c.fill()}}
   c.fillStyle=b.wall;c.fillRect(b.x,b.y+roofH,b.w,wallH);
+  if(b.snow){c.strokeStyle='rgba(60,35,20,.35)';c.lineWidth=1;for(let yy=b.y+roofH+7;yy<b.y+roofH+wallH;yy+=7){c.beginPath();c.moveTo(b.x,yy);c.lineTo(b.x+b.w,yy);c.stroke()}}
   c.fillStyle='rgba(0,0,0,.12)';c.fillRect(b.x,b.y+roofH,b.w,4);
   // windows and door
   c.fillStyle='#7fb2c9';for(let wx=b.x+14;wx<b.x+b.w-22;wx+=34){if(Math.abs(wx+9-b.door)<22)continue;c.fillRect(wx,b.y+roofH+10,18,14);c.fillStyle='#ffffff55';c.fillRect(wx,b.y+roofH+10,18,3);c.fillStyle='#7fb2c9'}
@@ -2169,7 +2528,10 @@ function drawBuilding(c,b){
 function questFor(id,f){
   return (id==='hartley'&&!f.metCaptain)||(id==='toby'&&f.metCaptain&&!f.beatToby)||(id==='dot'&&f.beatToby&&!f.beatDot)||(id==='marcus'&&f.beatDot&&!f.beatMarcus)||(id==='duncan'&&f.beatMarcus&&!f.champion)
     ||(id==='car'&&save.story.area==='ashby'&&f.champion&&!f.visitedLinks)
-    ||(id==='morag'&&!f.metMorag)||(id==='callum'&&f.metMorag&&!f.beatCallum)||(id==='fiona'&&f.beatCallum&&!f.beatFiona)||(id==='tam'&&f.beatFiona&&!f.beatTam)||(id==='gideon'&&f.beatTam&&!f.ch2champ);
+    ||(id==='morag'&&!f.metMorag)||(id==='callum'&&f.metMorag&&!f.beatCallum)||(id==='fiona'&&f.beatCallum&&!f.beatFiona)||(id==='tam'&&f.beatFiona&&!f.beatTam)||(id==='gideon'&&f.beatTam&&!f.ch2champ)
+    ||(id==='car'&&f.ch2champ&&!f.visitedMesa&&save.story.area!=='mesa')||(id==='car'&&f.ch3champ&&!f.visitedFrost&&save.story.area!=='frost')
+    ||(id==='dolores'&&!f.metDolores)||(id==='ricky'&&f.metDolores&&!f.beatRicky)||(id==='priya'&&f.beatRicky&&!f.beatPriya)||(id==='wes'&&f.beatPriya&&!f.beatWes)||(id==='celia'&&f.beatWes&&!f.ch3champ)
+    ||(id==='ingrid'&&!f.metIngrid)||(id==='nils'&&f.metIngrid&&!f.beatNils)||(id==='yuki'&&f.beatNils&&!f.beatYuki)||(id==='brock'&&f.beatYuki&&!f.beatBrock)||(id==='elena'&&f.beatBrock&&!f.ch4champ);
 }
 function drawGull(c,p,T){
   const {x,y}=p,flap=p.moving?Math.sin((p.walk||0)*1.4):0,left=p.face===1;
@@ -2258,22 +2620,77 @@ function groundLinks(c,T){
   for(const b of BENCHES){c.fillStyle='#8a6a43';c.fillRect(b.x,b.y,b.w,b.h);c.fillStyle='#6b5233';c.fillRect(b.x,b.y,b.w,3)}
   c.fillStyle='#7a6a52';for(let y=30;y<MAP.h-140;y+=40)c.fillRect(SEA-36,y,4,10);
 }
-AREAS.ashby.ground=null;AREAS.links.ground=(c,T)=>groundLinks(c,T);
+function drawPaths(c,a,b){c.lineCap='round';c.lineJoin='round';
+  for(const Q of PATHS){c.beginPath();Q.forEach((q,k)=>k?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.strokeStyle=a;c.lineWidth=38;c.stroke()}
+  for(const Q of PATHS){c.beginPath();Q.forEach((q,k)=>k?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.strokeStyle=b;c.lineWidth=32;c.stroke()}}
+function drawCarpark(c,col){const P=AREA.carpark;c.fillStyle=col;c.fillRect(P.x,P.y,P.w,P.h);c.strokeStyle='#e9e6dc';c.lineWidth=2;
+  for(let x=P.x+12;x<=P.x+P.w-30;x+=50){c.beginPath();c.moveTo(x,P.y+12);c.lineTo(x,P.y+94);c.stroke()}}
+function drawFirstTee(c,col,flag,hole){c.fillStyle=col;c.fillRect(TEEBOX.x,TEEBOX.y,TEEBOX.w,TEEBOX.h);c.fillStyle='#f4f4f0';c.beginPath();c.arc(70,110,3,0,7);c.arc(140,110,3,0,7);c.fill();
+  c.fillStyle='#1c3628';c.fillRect(176,54,62,30);c.fillStyle='#f2c14e';c.font='800 9px "Nunito Sans",system-ui,sans-serif';c.fillText('1st',182,66);c.fillStyle='#eef3e4';c.fillText(`${hole.len} · P${hole.par}`,182,78)}
+function drawPGreen(c,fr,gr,flag){c.fillStyle=fr;c.beginPath();c.ellipse(PGREEN.x,PGREEN.y,PGREEN.rx*1.12,PGREEN.ry*1.15,0,0,7);c.fill();
+  c.fillStyle=gr;c.beginPath();c.ellipse(PGREEN.x,PGREEN.y,PGREEN.rx,PGREEN.ry,0,0,7);c.fill();
+  for(const [dx,dy] of [[-40,-10],[30,25],[45,-20]]){const fx=PGREEN.x+dx,fy=PGREEN.y+dy;c.fillStyle='#10150f';c.beginPath();c.arc(fx,fy,2.5,0,7);c.fill();c.strokeStyle='#eef3e4';c.lineWidth=1.2;c.beginPath();c.moveTo(fx,fy);c.lineTo(fx,fy-18);c.stroke();c.fillStyle=flag;c.beginPath();c.moveTo(fx,fy-18);c.lineTo(fx+9,fy-15);c.lineTo(fx,fy-12);c.fill()}}
+function groundMesa(c,T){
+  for(let y=0,i=0;y<MAP.h;y+=36,i++){c.fillStyle=i%2?'#d9b47c':'#ddb983';c.fillRect(0,y,MAP.w,36)}
+  for(let k=0;k<380;k++){c.fillStyle=k%3?'rgba(150,100,60,.3)':'rgba(255,240,210,.4)';c.beginPath();c.ellipse(((k*.618034)%1)*MAP.w,((k*.7548777)%1)*MAP.h,2.4,1.4,0,0,7);c.fill()}
+  // red mesas on the horizon
+  c.fillStyle='#b5683f';c.beginPath();c.moveTo(0,70);c.lineTo(30,22);c.lineTo(170,18);c.lineTo(200,70);c.moveTo(360,70);c.lineTo(390,30);c.lineTo(520,26);c.lineTo(560,70);c.fill();
+  c.fillStyle='#c97a4a';c.fillRect(34,22,132,8);c.fillRect(392,30,124,8);
+  drawCarpark(c,'#8a7a66');drawPaths(c,'#b5835a','#c99a6c');
+  // green grass near the clubhouse, kept alive with sprinklers
+  c.fillStyle='#6fa64a';c.beginPath();c.ellipse(320,330,170,26,0,0,7);c.fill();
+  drawFirstTee(c,'#7bb556','#d9822b',MESA[0]);drawPGreen(c,'#64a046','#80c562','#d9822b');
+  // oasis pool
+  c.fillStyle='#e8d0a0';c.beginPath();c.ellipse(POND.x,POND.y,POND.rx+10,POND.ry+9,0,0,7);c.fill();
+  c.fillStyle='#2f9fb5';c.beginPath();c.ellipse(POND.x,POND.y,POND.rx,POND.ry,0,0,7);c.fill();
+  c.fillStyle='#55c0d0';c.beginPath();c.ellipse(POND.x-12,POND.y-8,POND.rx*.55,POND.ry*.5,0,0,7);c.fill();
+  c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=1.2;for(let k=0;k<3;k++){const r=((T*.4+k/3)%1);c.globalAlpha=1-r;c.beginPath();c.ellipse(POND.x+18,POND.y+8,6+r*16,3+r*7,0,0,7);c.stroke()}c.globalAlpha=1;
+  // rocks and cacti
+  for(const g of BLOBS){if(g.k==='rock'){c.fillStyle='rgba(90,50,20,.3)';c.beginPath();c.ellipse(g.x+6,g.y+6,g.rx,g.ry,0,0,7);c.fill();c.fillStyle='#a85d38';c.beginPath();c.ellipse(g.x,g.y,g.rx,g.ry,0,0,7);c.fill();c.fillStyle='#c4774a';c.beginPath();c.ellipse(g.x-g.rx*.2,g.y-g.ry*.25,g.rx*.65,g.ry*.55,0,0,7);c.fill();c.strokeStyle='rgba(90,40,20,.35)';c.lineWidth=2;c.beginPath();c.moveTo(g.x-g.rx*.6,g.y);c.lineTo(g.x+g.rx*.5,g.y+g.ry*.1);c.stroke()}
+    else{c.fillStyle='rgba(90,50,20,.25)';c.beginPath();c.ellipse(g.x+3,g.y+4,8,3,0,0,7);c.fill();c.fillStyle='#3f7a3a';c.beginPath();c.roundRect(g.x-4,g.y-26,8,28,4);c.fill();c.beginPath();c.roundRect(g.x-11,g.y-18,5,12,2.5);c.roundRect(g.x+6,g.y-22,5,12,2.5);c.fill();c.fillRect(g.x-11,g.y-9,8,4);c.fillRect(g.x+3,g.y-13,8,4);c.fillStyle='#f6a3c0';c.beginPath();c.arc(g.x,g.y-26,2,0,7);c.fill()}}
+  for(const b of BENCHES){c.fillStyle='#8a6a43';c.fillRect(b.x,b.y,b.w,b.h);c.fillStyle='#6b5233';c.fillRect(b.x,b.y,b.w,3)}
+}
+function groundFrost(c,T){
+  for(let y=0,i=0;y<MAP.h;y+=36,i++){c.fillStyle=i%2?'#e9f0f6':'#eef4f9';c.fillRect(0,y,MAP.w,36)}
+  for(let k=0;k<360;k++){c.fillStyle=k%2?'rgba(170,195,220,.45)':'rgba(255,255,255,.9)';c.beginPath();c.ellipse(((k*.618034)%1)*MAP.w,((k*.7548777)%1)*MAP.h,3,1.6,0,0,7);c.fill()}
+  // mountains on the skyline
+  for(const [x0,x1,h] of [[-20,180,70],[120,330,90],[300,480,75],[430,660,95]]){const m=(x0+x1)/2;c.fillStyle='#6f8296';c.beginPath();c.moveTo(x0,80);c.lineTo(m,80-h);c.lineTo(x1,80);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(m-(x1-x0)*.16,80-h*.68);c.lineTo(m,80-h);c.lineTo(m+(x1-x0)*.16,80-h*.68);c.lineTo(m+6,80-h*.6);c.lineTo(m-4,80-h*.7);c.fill()}
+  drawCarpark(c,'#7b8288');drawPaths(c,'#9aa3a8','#b9c0c5');
+  drawFirstTee(c,'#8ab595','#2f6db0',FROST[0]);drawPGreen(c,'#76a283','#86ba8f','#2f6db0');
+  // frozen pond with a couple of skaters' trails
+  c.fillStyle='#a9c4d8';c.beginPath();c.ellipse(POND.x,POND.y,POND.rx+5,POND.ry+5,0,0,7);c.fill();
+  c.fillStyle='#cfe4f2';c.beginPath();c.ellipse(POND.x,POND.y,POND.rx,POND.ry,0,0,7);c.fill();
+  c.fillStyle='rgba(255,255,255,.5)';c.beginPath();c.ellipse(POND.x-16,POND.y-10,POND.rx*.5,POND.ry*.35,0,0,7);c.fill();
+  c.strokeStyle='rgba(120,150,180,.55)';c.lineWidth=1.2;c.beginPath();c.ellipse(POND.x+8,POND.y+4,POND.rx*.55,POND.ry*.4,.2,0,5);c.stroke();c.beginPath();c.moveTo(POND.x-40,POND.y+20);c.lineTo(POND.x-10,POND.y+5);c.lineTo(POND.x+5,POND.y+18);c.stroke();
+  for(const g of BLOBS){c.fillStyle='rgba(60,80,110,.3)';c.beginPath();c.ellipse(g.x+6,g.y+6,g.rx,g.ry,0,0,7);c.fill();c.fillStyle='#7d8a96';c.beginPath();c.ellipse(g.x,g.y,g.rx,g.ry,0,0,7);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.ellipse(g.x-g.rx*.15,g.y-g.ry*.3,g.rx*.75,g.ry*.5,0,0,7);c.fill()}
+  for(const b of BENCHES){c.fillStyle='#8a6a43';c.fillRect(b.x,b.y,b.w,b.h);c.fillStyle='#f6f9fc';c.fillRect(b.x,b.y,b.w,4)}
+  // a fire pit outside the lodge
+  c.fillStyle='#6b6f6a';c.beginPath();c.arc(470,340,11,0,7);c.fill();c.fillStyle=`rgba(255,${150+Math.round(60*Math.sin(T*9))},60,.95)`;c.beginPath();c.arc(470,338,6+Math.sin(T*7),0,7);c.fill();
+}
+AREAS.ashby.ground=null;AREAS.links.ground=(c,T)=>groundLinks(c,T);AREAS.mesa.ground=(c,T)=>groundMesa(c,T);AREAS.frost.ground=(c,T)=>groundFrost(c,T);
 function drawWorld(){
   const d=devicePixelRatio||1,c=wctx,z=wzoom,T=performance.now()/1000;
-  c.setTransform(d,0,0,d,0,0);c.fillStyle='#24502c';c.fillRect(0,0,WW,WH);
+  c.setTransform(d,0,0,d,0,0);c.fillStyle=AREA.bg||'#24502c';c.fillRect(0,0,WW,WH);
   c.setTransform(d*z,0,0,d*z,d*(WW/2-wcam.x*z),d*(WH/2-wcam.y*z));
   (AREA.ground||groundAshby)(c,T);
   // depth-sorted things: buildings, trees, cars, people
   const items=[];
   for(const b of BUILDINGS)items.push({y:b.y+b.h,f:()=>drawBuilding(c,b)});
   for(const k of CARS)items.push({y:k.y+62,f:()=>drawCar(c,k)});
-  for(const t of WTREES)items.push({y:t.y+t.r*.3,f:()=>{c.fillStyle='rgba(10,30,15,.3)';c.beginPath();c.arc(t.x+4,t.y+6,t.r,0,7);c.fill();
+  const TS=AREA.treeStyle;
+  for(const t of WTREES)items.push({y:t.y+t.r*.3,f:()=>{c.fillStyle=TS==='pine'?'rgba(60,80,110,.22)':'rgba(10,30,15,.3)';c.beginPath();if(TS)c.ellipse(t.x+t.r*.5,t.y+4,t.r*.95,t.r*.35,0,0,7);else c.arc(t.x+4,t.y+6,t.r,0,7);c.fill();
+    if(TS==='palm'){c.strokeStyle='#8a6a43';c.lineWidth=5;c.lineCap='round';c.beginPath();c.moveTo(t.x,t.y+4);c.quadraticCurveTo(t.x+6,t.y-t.r,t.x+3,t.y-t.r*1.8);c.stroke();
+      const hx=t.x+3,hy=t.y-t.r*1.8;for(let k=0;k<7;k++){const a=k*.9+Math.sin(T+t.x)*.05;c.fillStyle=k%2?'#4f8f3a':'#3e7a30';c.beginPath();c.ellipse(hx+Math.cos(a)*t.r*.6,hy+Math.sin(a)*t.r*.35,t.r*.7,t.r*.2,a,0,7);c.fill()}
+      c.fillStyle='#6b4a2a';c.beginPath();c.arc(hx,hy,3,0,7);c.fill();return}
+    if(TS==='pine'){c.fillStyle='#5a3f2a';c.fillRect(t.x-2.5,t.y-2,5,8);
+      for(let k=0;k<3;k++){const w=t.r*(1.1-k*.3),yy=t.y-k*t.r*.55;c.fillStyle=k%2?'#2c5a44':'#234d3a';c.beginPath();c.moveTo(t.x-w,yy);c.lineTo(t.x+w,yy);c.lineTo(t.x,yy-t.r*1.1);c.fill();
+        c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(t.x-w*.45,yy-t.r*.55);c.lineTo(t.x+w*.2,yy-t.r*.5);c.lineTo(t.x,yy-t.r*1.1);c.fill()}return}
     c.fillStyle='#5a3f2a';c.fillRect(t.x-3,t.y,6,t.r*.5);c.fillStyle='#2a5d33';c.beginPath();c.arc(t.x,t.y-t.r*.3,t.r,0,7);c.fill();c.fillStyle='#377242';c.beginPath();c.arc(t.x-t.r*.3,t.y-t.r*.55,t.r*.5,0,7);c.fill()}});
   for(const n of NPCS)if(n.look&&n.look.swing)n.swingA=Math.max(0,Math.sin(T*1.6+n.x))*2.2-.3;
-  for(const n of NPCS)items.push({y:n.car?n.y+31:n.y,f:()=>n.dog?drawDog(c,n):n.bird?drawGull(c,n,T):n.car?drawCar(c,{x:n.x-18,y:n.y-31,c:'#3f7fbf',mine:true}):drawPerson(c,n,n.look)});
+  for(const n of NPCS)items.push({y:n.car?n.y+31:n.y,f:()=>n.dog?drawDog(c,n):n.bird?drawGull(c,n,T):n.lizard?drawLizard(c,n):n.car?drawCar(c,{x:n.x-18,y:n.y-31,c:'#3f7fbf',mine:true}):drawPerson(c,n,n.look)});
   items.push({y:me.y,f:()=>drawPerson(c,me,PLAYER_LOOK)});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.f());
+  if(AREA.snowfall&&!RM){c.fillStyle='rgba(255,255,255,.85)';for(let k=0;k<140;k++){const sp=14+(k%5)*6,x=((k*137.5)%MAP.w+Math.sin(T*.8+k)*10+MAP.w)%MAP.w,y=((k*61.3)%MAP.h+T*sp)%MAP.h;c.beginPath();c.arc(x,y,1+(k%3)*.5,0,7);c.fill()}}
   // name tags and quest markers
   const f=SF(),near=nearNpc();
   c.font='800 9px "Nunito Sans",system-ui,sans-serif';c.textAlign='center';
@@ -2291,7 +2708,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.7';
+const GAME_VERSION='0.8';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -2311,11 +2728,13 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const autoPar=len=>len<=230?3:len<=460?4:5;
 const r1=v=>Math.round(v*10)/10;
 function slopeFrom(sl){const k=Math.max(0,Math.min(1,sl.k)),a=sl.dir*RAD;return{x:Math.sin(a)*k*.7,y:Math.cos(a)*k*.7,a:.05+.25*k,b:.05+.22*k}}
-function normHole(c){c.theme=c.theme||'parkland';c.pots=c.pots||[];c.gorse=c.gorse||[];return c}
+function normHole(c){c.theme=c.theme||'parkland';c.pots=c.pots||[];c.gorse=c.gorse||[];c.cacti=c.cacti||[];c.ice=c.ice||[];c.snow=c.snow||[];return c}
+const THEME_PROPS={parkland:{},links:{gusty:true,firm:1.3},desert:{air:1.08,hardGreens:true,calm:true},ice:{air:1.05,greenFric:1.6,gusty:true,gustMax:10}};
 function toPlayable(c){
   normHole(c);
   const h={name:c.name||'Custom hole',par:4,fw:c.fw.map(p=>[p[0],p[1]]),hw:c.hw,green:{...c.green},water:c.water.map(e=>({...e})),bunkers:c.bunkers.map(e=>({...e})),
-    pots:c.pots.map(e=>({...e})),gorse:c.gorse.map(e=>({...e})),theme:c.theme,gusty:c.theme==='links',firm:c.theme==='links'?1.3:0,
+    pots:c.theme==='links'?c.pots.map(e=>({...e})):[],gorse:c.theme==='links'?c.gorse.map(e=>({...e})):[],theme:c.theme,firm:0,...(THEME_PROPS[c.theme]||{}),
+    cactiList:c.theme==='desert'?c.cacti.map(t=>({...t})):[],ice:c.theme==='ice'?c.ice.map(e=>({...e})):[],snow:c.theme==='ice'?c.snow.map(e=>({...e})):[],
     trees:[],treesList:c.trees.map(t=>({...t})),sl:slopeFrom(c.slope)};
   prepHole(h,0);
   h.par=c.par||autoPar(h.len);
@@ -2323,19 +2742,19 @@ function toPlayable(c){
 }
 function newHoleTemplate(){
   return{id:uid(),name:'New hole',par:null,fw:[[0,40],[0,300]],hw:14,green:{x:0,y:330,rx:13,ry:10},water:[],bunkers:[{x:17,y:326,rx:5,ry:6}],
-    trees:[[-30,90],[-34,160],[-29,230],[31,120],[35,200],[30,270]].map(([x,y])=>({x,y,r:4.5})),slope:{dir:180,k:.4},theme:'parkland',pots:[],gorse:[]};
+    trees:[[-30,90],[-34,160],[-29,230],[31,120],[35,200],[30,270]].map(([x,y])=>({x,y,r:4.5})),slope:{dir:180,k:.4},theme:'parkland',pots:[],gorse:[],cacti:[],ice:[],snow:[]};
 }
 function fromBuiltIn(i,key='ashby'){
   const h=COURSES[key].holes[i],m=Math.hypot(h.sl.x,h.sl.y);
   return{id:uid(),name:`${h.name} (copy)`,par:h.par,fw:h.fw.map(p=>[...p]),hw:h.hw,green:{...h.green},water:h.water.map(e=>({...e})),bunkers:h.bunkers.map(e=>({...e})),
     trees:h.treesList.map(t=>({x:r1(t.x),y:r1(t.y),r:r1(t.r)})),slope:{dir:Math.round(Math.atan2(h.sl.x,h.sl.y)/RAD+360)%360,k:Math.min(1,r1(m/.7))},
-    theme:h.theme||'parkland',pots:(h.pots||[]).map(e=>({...e})),gorse:(h.gorse||[]).map(e=>({...e}))};
+    theme:h.theme||'parkland',pots:(h.pots||[]).map(e=>({...e})),gorse:(h.gorse||[]).map(e=>({...e})),cacti:(h.cactiList||[]).map(t=>({x:r1(t.x),y:r1(t.y),r:r1(t.r)})),ice:(h.ice||[]).map(e=>({...e})),snow:(h.snow||[]).map(e=>({...e}))};
 }
 
 // ---- Editor state
 let editMode=false;
 const ED={hole:null,sel:null,tool:'select',drag:null,saved:true};
-const EL={bunker:{rx:7,ry:5,min:2,max:30},water:{rx:14,ry:10,min:4,max:80},pot:{rx:3.5,ry:3.5,min:2,max:6},gorse:{rx:14,ry:10,min:4,max:80},green:{min:6,max:30}};
+const EL={bunker:{rx:7,ry:5,min:2,max:30},water:{rx:14,ry:10,min:4,max:80},pot:{rx:3.5,ry:3.5,min:2,max:6},gorse:{rx:14,ry:10,min:4,max:80},ice:{rx:16,ry:12,min:4,max:60},snow:{rx:6,ry:4,min:2,max:16},green:{min:6,max:30}};
 function openEditor(c){
   ED.hole=normHole(JSON.parse(JSON.stringify(c)));ED.sel=null;ED.tool='select';ED.drag=null;
   ED.saved=CUST.holes.some(h=>h.id===c.id&&JSON.stringify(h)===JSON.stringify(c));
@@ -2363,11 +2782,12 @@ $('#edIn').onclick=()=>edZoom(1.4);$('#edOut').onclick=()=>edZoom(1/1.4);$('#edF
 cv.addEventListener('wheel',e=>{if(!editMode)return;e.preventDefault();const r=cv.getBoundingClientRect();edZoom(e.deltaY<0?1.15:1/1.15,e.clientX-r.left,e.clientY-r.top)},{passive:false});
 
 // ---- Hit testing (screen-space tolerance, so it's thumb-friendly at any zoom)
-const LISTS={bunker:'bunkers',water:'water',tree:'trees',pot:'pots',gorse:'gorse'};
+const LISTS={bunker:'bunkers',water:'water',tree:'trees',pot:'pots',gorse:'gorse',cactus:'cacti',ice:'ice',snow:'snow'};
+const ED_NAME={tree:'tree',pot:'pot bunker',gorse:'gorse',bunker:'bunker',water:'water',cactus:'cactus',ice:'frozen pond',snow:'snowdrift'};
 function edItem(sel){if(!sel)return null;const c=ED.hole;return sel.type==='green'?c.green:sel.type==='fw'?c.fw[sel.i]:c[LISTS[sel.type]][sel.i]}
 function edHandles(sel){
   const o=edItem(sel);if(!o||sel.type==='fw')return[];
-  if(sel.type==='tree')return[{k:'r',x:o.x+o.r,y:o.y}];
+  if(sel.type==='tree'||sel.type==='cactus')return[{k:'r',x:o.x+o.r,y:o.y}];
   return[{k:'rx',x:o.x+o.rx,y:o.y},{k:'ry',x:o.x,y:o.y+o.ry}];
 }
 function edHit(p){
@@ -2375,10 +2795,13 @@ function edHit(p){
   for(const h of edHandles(ED.sel))if(Math.hypot(p.x-h.x,p.y-h.y)<tol)return{handle:h.k,sel:ED.sel};
   for(let i=c.fw.length-1;i>=0;i--)if(Math.hypot(p.x-c.fw[i][0],p.y-c.fw[i][1])<tol)return{sel:{type:'fw',i}};
   for(let i=c.trees.length-1;i>=0;i--){const t=c.trees[i];if(Math.hypot(p.x-t.x,p.y-t.y)<Math.max(t.r,tol*.7))return{sel:{type:'tree',i}}}
+  for(let i=c.cacti.length-1;i>=0;i--){const t=c.cacti[i];if(Math.hypot(p.x-t.x,p.y-t.y)<Math.max(t.r,tol*.7))return{sel:{type:'cactus',i}}}
+  for(let i=c.snow.length-1;i>=0;i--)if(inEll(p.x,p.y,{...c.snow[i],rx:Math.max(c.snow[i].rx,tol*.6),ry:Math.max(c.snow[i].ry,tol*.6)}))return{sel:{type:'snow',i}};
   for(let i=c.pots.length-1;i>=0;i--)if(inEll(p.x,p.y,{...c.pots[i],rx:Math.max(c.pots[i].rx,tol*.6),ry:Math.max(c.pots[i].ry,tol*.6)}))return{sel:{type:'pot',i}};
   for(let i=c.bunkers.length-1;i>=0;i--)if(inEll(p.x,p.y,c.bunkers[i],1.15))return{sel:{type:'bunker',i}};
   if(inEll(p.x,p.y,c.green,1.1))return{sel:{type:'green'}};
   for(let i=c.gorse.length-1;i>=0;i--)if(inEll(p.x,p.y,c.gorse[i],1.05))return{sel:{type:'gorse',i}};
+  for(let i=c.ice.length-1;i>=0;i--)if(inEll(p.x,p.y,c.ice[i],1.05))return{sel:{type:'ice',i}};
   for(let i=c.water.length-1;i>=0;i--)if(inEll(p.x,p.y,c.water[i],1.05))return{sel:{type:'water',i}};
   return null;
 }
@@ -2396,7 +2819,8 @@ function edDown(e){
   edPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(edPtrs.size===2){const [a,b]=[...edPtrs.values()];ED.drag={pinch:true,d:Math.hypot(a.x-b.x,a.y-b.y)};return}
   const p=toWorld(e),c=ED.hole,t=ED.tool;
-  if(t==='bunker'||t==='water'||t==='pot'||t==='gorse'){const d=EL[t];c[LISTS[t]].push({x:r1(p.x),y:r1(p.y),rx:d.rx,ry:d.ry});ED.sel={type:t,i:c[LISTS[t]].length-1};ED.tool='select';edChanged();edPanel();return}
+  if(t==='cactus'){c.cacti.push({x:r1(p.x),y:r1(p.y),r:1.8});ED.sel={type:'cactus',i:c.cacti.length-1};edChanged();edPanel();return}
+  if(['bunker','water','pot','gorse','ice','snow'].includes(t)){const d=EL[t];c[LISTS[t]].push({x:r1(p.x),y:r1(p.y),rx:d.rx,ry:d.ry});ED.sel={type:t,i:c[LISTS[t]].length-1};ED.tool='select';edChanged();edPanel();return}
   if(t==='tree'){c.trees.push({x:r1(p.x),y:r1(p.y),r:4.5});ED.sel={type:'tree',i:c.trees.length-1};edChanged();edPanel();return}
   if(t==='fw'){const i=edInsertFw(p);ED.sel={type:'fw',i};ED.tool='select';edChanged();edPanel();return}
   const hit=edHit(p);
@@ -2411,7 +2835,7 @@ function edMove(e){
   if(D.pan){cam.x=D.cx-(e.clientX-D.x)/cam.s;cam.y=D.cy+(e.clientY-D.y)/cam.s;return}
   const p=toWorld(e),o=edItem(ED.sel),dx=p.x-D.start.x,dy=p.y-D.start.y;
   if(ED.sel.type==='fw'){o[0]=r1(D.orig[0]+dx);o[1]=r1(D.orig[1]+dy)}
-  else if(D.handle==='r'){o.r=r1(Math.max(2,Math.min(9,Math.hypot(p.x-o.x,p.y-o.y))))}
+  else if(D.handle==='r'){const cc=ED.sel.type==='cactus';o.r=r1(Math.max(cc?1.2:2,Math.min(cc?3:9,Math.hypot(p.x-o.x,p.y-o.y))))}
   else if(D.handle){const lim=EL[ED.sel.type]||EL.water;o[D.handle]=r1(Math.max(lim.min,Math.min(lim.max,Math.abs(D.handle==='rx'?p.x-o.x:p.y-o.y))))}
   else{o.x=r1(D.orig.x+dx);o.y=r1(D.orig.y+dy)}
   D.moved=true;edChanged();
@@ -2420,13 +2844,14 @@ function edUp(e){edPtrs.delete(e.pointerId);if(ED.drag&&!ED.drag.pinch&&ED.drag.
 
 // ---- Tool panel
 const TOOLS=[['select','Select & move'],['fw','Fairway point'],['bunker','Bunker'],['water','Water'],['tree','Trees']];
-const LINKS_TOOLS=[['pot','Pot bunker'],['gorse','Gorse']];
+const THEME_TOOLS={links:[['pot','Pot bunker'],['gorse','Gorse']],desert:[['cactus','Cacti']],ice:[['ice','Frozen pond'],['snow','Snowdrift']]};
+const THEME_TOOL_KEYS=['pot','gorse','cactus','ice','snow'];
 const DIRS=[['↑',0],['↗',45],['→',90],['↘',135],['↓',180],['↙',225],['←',270],['↖',315]];
 function edPanel(){
   const c=ED.hole,sel=ED.sel,T=ED.tool;
   let ctx2='';
-  if(T==='tree')ctx2=`<div class="ed-hint">Tap the course to plant trees. Tap <b>Select &amp; move</b> when you're done.</div>`;
-  else if(['bunker','water','pot','gorse'].includes(T))ctx2=`<div class="ed-hint">Tap the course to place ${({water:'water',bunker:'a bunker',pot:'a pot bunker',gorse:'gorse'})[T]}.</div>`;
+  if(T==='tree'||T==='cactus')ctx2=`<div class="ed-hint">Tap the course to plant ${T==='tree'?'trees':'cacti'}. Tap <b>Select &amp; move</b> when you're done.</div>`;
+  else if(['bunker','water','pot','gorse','ice','snow'].includes(T))ctx2=`<div class="ed-hint">Tap the course to place ${({water:'water',bunker:'a bunker',pot:'a pot bunker',gorse:'gorse',ice:'a frozen pond',snow:'a snowdrift'})[T]}.</div>`;
   else if(T==='fw')ctx2=`<div class="ed-hint">Tap where the fairway should bend. The new point slots into the nearest section.</div>`;
   else if(!sel)ctx2=`<div class="ed-hint">Tap anything to select it, drag to move it, or drag the empty course to pan. Pinch or use + and − to zoom.</div>`;
   else if(sel.type==='fw')ctx2=`<div class="ed-row"><label for="edHw">Fairway width</label><input id="edHw" type="range" min="7" max="22" step="1" value="${c.hw}"><span>${c.hw*2} yds</span></div>
@@ -2435,13 +2860,13 @@ function edPanel(){
     ctx2=`<div class="ed-row"><span class="ed-lab">Green slope · falls</span><div class="dirs">${DIRS.map(([a,d])=>`<button data-dir="${d}" aria-pressed="${sl.dir===d}" aria-label="Falls ${d} degrees">${a}</button>`).join('')}</div></div>
     <div class="ed-row"><label for="edK">Steepness</label><input id="edK" type="range" min="0" max="1" step=".05" value="${sl.k}"><span>${sl.k<.3?'Gentle':sl.k<.65?'Medium':'Steep'}</span></div>
     <div class="ed-row"><button class="sbtn" data-ed="zoomgreen">Zoom to green</button><span class="ed-note">↑ falls away from the tee, ↓ falls towards it. Drag the square handles to resize.</span></div>`}
-  else ctx2=`<div class="ed-row"><button class="sbtn" data-ed="del">Delete ${({tree:'tree',pot:'pot bunker',gorse:'gorse',bunker:'bunker',water:'water'})[sel.type]}</button><span class="ed-note">${sel.type==='tree'?'Drag the handle to change its size.':'Drag the square handles to change its shape.'}</span></div>`;
+  else ctx2=`<div class="ed-row"><button class="sbtn" data-ed="del">Delete ${ED_NAME[sel.type]}</button><span class="ed-note">${sel.type==='tree'||sel.type==='cactus'?'Drag the handle to change its size.':'Drag the square handles to change its shape.'}</span></div>`;
   const parBtns=[[null,`Auto (${autoPar(H.len)})`],[3,'3'],[4,'4'],[5,'5']].map(([v,t])=>`<button data-par="${v}" aria-pressed="${c.par===v}">${t}</button>`).join('');
-  $('#edPanel').innerHTML=`<div class="tools">${[...TOOLS,...(c.theme==='links'?LINKS_TOOLS:[])].map(([k,t])=>`<button data-tool="${k}" aria-pressed="${T===k}">${t}</button>`).join('')}</div>
+  $('#edPanel').innerHTML=`<div class="tools">${[...TOOLS,...(THEME_TOOLS[c.theme]||[])].map(([k,t])=>`<button data-tool="${k}" aria-pressed="${T===k}">${t}</button>`).join('')}</div>
     <div class="ed-ctx">${ctx2}</div>
     <div class="ed-row"><label for="edNm">Name</label><input id="edNm" maxlength="24" value="${esc(c.name||'')}" autocomplete="off"></div>
     <div class="ed-row"><span class="ed-lab">Par</span><div class="seg small">${parBtns}</div></div>
-    <div class="ed-row"><span class="ed-lab">Style</span><div class="seg small"><button data-theme="parkland" aria-pressed="${c.theme!=='links'}">Parkland</button><button data-theme="links" aria-pressed="${c.theme==='links'}">Links</button></div></div>
+    <div class="ed-row"><span class="ed-lab">Style</span><div class="seg small">${[['parkland','Parkland'],['links','Links'],['desert','Desert'],['ice','Ice']].map(([k,t])=>`<button data-theme="${k}" aria-pressed="${c.theme===k}">${t}</button>`).join('')}</div></div>
     <div class="ed-actions"><button class="sbtn" data-ed="test">Test play</button><button class="sbtn pri" data-ed="save">${ED.saved?'Saved':'Save hole'}</button><button class="sbtn" data-ed="exit">Done</button></div>
     <div id="edMsg" class="ed-note"></div>`;
   const hw=$('#edHw');if(hw)hw.oninput=()=>{c.hw=+hw.value;hw.nextElementSibling.textContent=`${c.hw*2} yds`;edChanged()};
@@ -2453,7 +2878,7 @@ $('#edPanel').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;const c=ED.hole;
   if(b.dataset.tool){ED.tool=b.dataset.tool;if(ED.tool!=='select')ED.sel=null;edPanel();return}
   if(b.dataset.dir){c.slope.dir=+b.dataset.dir;edChanged();edPanel();return}
-  if(b.dataset.theme){c.theme=b.dataset.theme;if(c.theme!=='links'&&['pot','gorse'].includes(ED.tool))ED.tool='select';edChanged();edPanel();return}
+  if(b.dataset.theme){c.theme=b.dataset.theme;if(THEME_TOOL_KEYS.includes(ED.tool)&&!(THEME_TOOLS[c.theme]||[]).some(t=>t[0]===ED.tool))ED.tool='select';if(ED.sel&&THEME_TOOL_KEYS.includes(ED.sel.type))ED.sel=null;edChanged();edPanel();return}
   if(b.dataset.par!==undefined){c.par=b.dataset.par==='null'?null:+b.dataset.par;edChanged();edPanel();return}
   const a=b.dataset.ed;
   if(a==='del'){const s=ED.sel;if(s.type==='fw'){if(c.fw.length>2)c.fw.splice(s.i,1)}else c[LISTS[s.type]].splice(s.i,1);ED.sel=null;edChanged();edPanel()}
@@ -2487,7 +2912,7 @@ function drawEd(){
   const sel=ED.sel,o=edItem(sel);
   if(o&&sel.type!=='fw'){
     ctx.strokeStyle='#f2c14e';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();
-    if(sel.type==='tree'){const [x,y]=S(o.x,o.y);ctx.arc(x,y,o.r*s+3,0,7)}else{const [x,y]=S(o.x,o.y);ctx.ellipse(x,y,o.rx*s+3,o.ry*s+3,0,0,7)}
+    if(sel.type==='tree'||sel.type==='cactus'){const [x,y]=S(o.x,o.y);ctx.arc(x,y,o.r*s+3,0,7)}else{const [x,y]=S(o.x,o.y);ctx.ellipse(x,y,o.rx*s+3,o.ry*s+3,0,0,7)}
     ctx.stroke();ctx.setLineDash([]);
     for(const h of edHandles(sel)){const [x,y]=S(h.x,h.y);ctx.fillStyle='#f2c14e';ctx.strokeStyle='#1d1a0e';ctx.lineWidth=1.5;ctx.fillRect(x-8,y-8,16,16);ctx.strokeRect(x-8,y-8,16,16)}
   }
@@ -2499,14 +2924,14 @@ function drawEd(){
 const b64u={enc:u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode(...u8.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
   dec:str=>{str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';const b=atob(str),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}};
 const packEll=e=>[Math.round(e.x),Math.round(e.y),Math.round(e.rx),Math.round(e.ry)],unell=a=>({x:a[0],y:a[1],rx:a[2],ry:a[3]});
-function packHole(h){return{n:h.name,p:h.par||0,f:h.fw.map(p=>[Math.round(p[0]),Math.round(p[1])]),w:h.hw,g:packEll(h.green),a:h.water.map(packEll),b:h.bunkers.map(packEll),t:h.trees.map(t=>[Math.round(t.x),Math.round(t.y),Math.round(t.r*2)]),s:[h.slope.dir,Math.round(h.slope.k*100)],...(h.theme==='links'?{th:'l',po:(h.pots||[]).map(packEll),go:(h.gorse||[]).map(packEll)}:{})}}
+function packHole(h){return{n:h.name,p:h.par||0,f:h.fw.map(p=>[Math.round(p[0]),Math.round(p[1])]),w:h.hw,g:packEll(h.green),a:h.water.map(packEll),b:h.bunkers.map(packEll),t:h.trees.map(t=>[Math.round(t.x),Math.round(t.y),Math.round(t.r*2)]),s:[h.slope.dir,Math.round(h.slope.k*100)],...(h.theme==='links'?{th:'l',po:(h.pots||[]).map(packEll),go:(h.gorse||[]).map(packEll)}:h.theme==='desert'?{th:'d',ca:(h.cacti||[]).map(t=>[Math.round(t.x),Math.round(t.y),Math.round(t.r*10)])}:h.theme==='ice'?{th:'i',ic:(h.ice||[]).map(packEll),sn:(h.snow||[]).map(packEll)}:{})}}
 function unpackHole(o){
   const num=v=>typeof v==='number'&&isFinite(v)&&Math.abs(v)<2000,arr=(a,n)=>Array.isArray(a)&&a.length<=n;
-  o.po=o.po||[];o.go=o.go||[];
-  if(!o||!arr(o.f,40)||o.f.length<2||!arr(o.g,4)||!arr(o.a,40)||!arr(o.b,60)||!arr(o.t,400)||!arr(o.s,2)||!arr(o.po,80)||!arr(o.go,60))throw new Error('bad hole');
-  const all=[...o.f.flat(),...o.g,...o.a.flat(),...o.b.flat(),...o.t.flat(),...o.s,o.w,...o.po.flat(),...o.go.flat()];if(!all.every(num))throw new Error('bad numbers');
+  o.po=o.po||[];o.go=o.go||[];o.ca=o.ca||[];o.ic=o.ic||[];o.sn=o.sn||[];
+  if(!o||!arr(o.f,40)||o.f.length<2||!arr(o.g,4)||!arr(o.a,40)||!arr(o.b,60)||!arr(o.t,400)||!arr(o.s,2)||!arr(o.po,80)||!arr(o.go,60)||!arr(o.ca,200)||!arr(o.ic,40)||!arr(o.sn,80))throw new Error('bad hole');
+  const all=[...o.f.flat(),...o.g,...o.a.flat(),...o.b.flat(),...o.t.flat(),...o.s,o.w,...o.po.flat(),...o.go.flat(),...o.ca.flat(),...o.ic.flat(),...o.sn.flat()];if(!all.every(num))throw new Error('bad numbers');
   return{id:uid(),name:String(o.n||'Shared hole').slice(0,24),par:[3,4,5].includes(o.p)?o.p:null,fw:o.f.map(p=>[p[0],p[1]]),hw:Math.max(7,Math.min(22,o.w)),green:unell(o.g),
-    water:o.a.map(unell),bunkers:o.b.map(unell),theme:o.th==='l'?'links':'parkland',pots:o.po.map(unell),gorse:o.go.map(unell),trees:o.t.map(t=>({x:t[0],y:t[1],r:Math.max(2,Math.min(9,t[2]/2))})),slope:{dir:((o.s[0]%360)+360)%360,k:Math.max(0,Math.min(1,o.s[1]/100))}};
+    water:o.a.map(unell),bunkers:o.b.map(unell),theme:({l:'links',d:'desert',i:'ice'})[o.th]||'parkland',pots:o.po.map(unell),gorse:o.go.map(unell),cacti:o.ca.map(t=>({x:t[0],y:t[1],r:Math.max(1.2,Math.min(3,t[2]/10))})),ice:o.ic.map(unell),snow:o.sn.map(unell),trees:o.t.map(t=>({x:t[0],y:t[1],r:Math.max(2,Math.min(9,t[2]/2))})),slope:{dir:((o.s[0]%360)+360)%360,k:Math.max(0,Math.min(1,o.s[1]/100))}};
 }
 async function makeShareCode(course){
   const holes=course.holes.map(id=>CUST.holes.find(h=>h.id===id)).filter(Boolean);
@@ -2549,12 +2974,12 @@ function openMenu(screen){
       <div class="blurb">Names</div>
       ${[0,1,2,3].map(k=>`<div class="prow"${k>=pnpCount?' hidden':''}><span class="dot" style="background:${PCOLS[k]}"></span><input id="pname${k}" maxlength="14" value="${esc(pnpNames[k])}" aria-label="Player ${k+1} name" autocomplete="off"></div>`).join('')}
       <div class="blurb">Everyone plays the Clubhouse set, so it's a fair fight. Tee shots go in order, then whoever's furthest from the hole plays next. Max score on a hole is par + 5. No coins or XP.</div>
-      ${CUST.courses.length||courseOpen('links')?`<label class="blurb" for="pCourse">Course</label><select id="pCourse" class="sel"><option value="">Ashby Green · 9 holes · par ${COURSE_PAR}</option>${courseOpen('links')?`<option value="__links"${pnpCourse==='__links'?' selected':''}>Gullhaven Links · 9 holes · par 36</option>`:''}${CUST.courses.map(co=>{const hs=courseHoles(co);return `<option value="${co.id}"${co.id===pnpCourse?' selected':''}>${esc(co.name)} · ${hs.length} hole${hs.length>1?'s':''}</option>`}).join('')}</select>`:''}
-      <button id="mGo" class="mbtn pri"><b>Tee off</b><span>${(()=>{if(pnpCourse==='__links')return 'Gullhaven Links · 9 holes · par 36';const co=CUST.courses.find(c=>c.id===pnpCourse);if(!co)return `Ashby Green · 9 holes · par ${COURSE_PAR}`;const hs=courseHoles(co).map(toPlayable);return `${esc(co.name)} · ${hs.length} holes · par ${hs.reduce((a,h)=>a+h.par,0)}`})()}</span></button>`;
+      ${CUST.courses.length||courseOpen('links')?`<label class="blurb" for="pCourse">Course</label><select id="pCourse" class="sel"><option value="">Ashby Green · 9 holes · par ${COURSE_PAR}</option>${Object.entries(COURSES).filter(([k])=>k!=='ashby'&&courseOpen(k)).map(([k,C])=>`<option value="__${k}"${pnpCourse==='__'+k?' selected':''}>${C.name} · 9 holes · par ${C.holes.reduce((a,h)=>a+h.par,0)}</option>`).join('')}${CUST.courses.map(co=>{const hs=courseHoles(co);return `<option value="${co.id}"${co.id===pnpCourse?' selected':''}>${esc(co.name)} · ${hs.length} hole${hs.length>1?'s':''}</option>`}).join('')}</select>`:''}
+      <button id="mGo" class="mbtn pri"><b>Tee off</b><span>${(()=>{const BK=pnpCourse.startsWith('__')&&COURSES[pnpCourse.slice(2)];if(BK)return `${BK.name} · 9 holes · par ${BK.holes.reduce((a,h)=>a+h.par,0)}`;const co=CUST.courses.find(c=>c.id===pnpCourse);if(!co)return `Ashby Green · 9 holes · par ${COURSE_PAR}`;const hs=courseHoles(co).map(toPlayable);return `${esc(co.name)} · ${hs.length} holes · par ${hs.reduce((a,h)=>a+h.par,0)}`})()}</span></button>`;
     if($('#pCourse'))$('#pCourse').onchange=()=>{pnpCourse=$('#pCourse').value;keepNames();openMenu('pnp')};
     b.querySelectorAll('.seg button').forEach(x=>x.onclick=()=>{pnpCount=+x.dataset.n;keepNames();openMenu('pnp')});
     $('#mBack').onclick=()=>{keepNames();openMenu('home')};
-    $('#mGo').onclick=()=>{keepNames();const names=pnpNames.slice(0,pnpCount).map((n,k)=>n.trim()||`Player ${k+1}`);const co=CUST.courses.find(c=>c.id===pnpCourse);if(pnpCourse==='__links')return startGame({mode:'pnp',names,course:LINKS});startGame(co?{mode:'pnp',names,course:courseHoles(co).map(toPlayable),courseName:co.name}:{mode:'pnp',names})};
+    $('#mGo').onclick=()=>{keepNames();const names=pnpNames.slice(0,pnpCount).map((n,k)=>n.trim()||`Player ${k+1}`);const co=CUST.courses.find(c=>c.id===pnpCourse);const BK=pnpCourse.startsWith('__')&&COURSES[pnpCourse.slice(2)];if(BK)return startGame({mode:'pnp',names,course:BK.holes});startGame(co?{mode:'pnp',names,course:courseHoles(co).map(toPlayable),courseName:co.name}:{mode:'pnp',names})};
     return;
   }
   if(screen==='courses'){
@@ -2699,7 +3124,7 @@ function openMenu(screen){
     const bestOf=k=>{try{return +localStorage.getItem(COURSES[k].best)||null}catch(e){return null}};
     b.innerHTML=`<div class="screen-h"><div class="sheet-title">Solo round</div><button id="mBack" class="ghost">Back</button></div>
       <div class="blurb">Pick a course. Both count towards your handicap and earn coins, XP and reward bags.</div>
-      ${Object.entries(COURSES).filter(([k])=>courseOpen(k)).map(([k,C])=>`<button class="mbtn" data-solo="${k}"><b>${C.name}</b><span>9 holes · par ${C.holes.reduce((a,h)=>a+h.par,0)}${bestOf(k)?` · Best ${bestOf(k)}`:''}${k==='links'?' · Gusting wind, gorse, pot bunkers':''}</span></button>`).join('')}`;
+      ${Object.entries(COURSES).filter(([k])=>courseOpen(k)).map(([k,C])=>`<button class="mbtn" data-solo="${k}"><b>${C.name}</b><span>9 holes · par ${C.holes.reduce((a,h)=>a+h.par,0)}${bestOf(k)?` · Best ${bestOf(k)}`:''}${C.tag?' · '+C.tag:''}</span></button>`).join('')}`;
     $('#mBack').onclick=()=>openMenu('home');
     b.querySelectorAll('[data-solo]').forEach(x=>x.onclick=()=>startGame({mode:'solo',course:COURSES[x.dataset.solo].holes}));
     return;
@@ -2716,7 +3141,7 @@ function openMenu(screen){
   const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
   b.innerHTML=`<div class="menu-hero"><div class="k">A golf RPG</div><div class="menu-title">Fairway<br><span>Tales</span></div><div class="blurb">Handicap ${hcpLabel()}${best?` · Best round ${best}`:''}</div></div>
     ${resume?`<button id="mResume" class="mbtn pri"><b>Resume</b><span>${esc(where)}</span></button>`:''}
-    <button id="mStory" class="mbtn"><b>Story · Chapter ${SF().champion?2:1}</b><span>${SF().ch2champ?'Through to the County Championship. Chapter 3 coming soon.':SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
+    <button id="mStory" class="mbtn"><b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span></button>
     <button id="mSolo" class="mbtn"><b>Solo round</b><span>9 holes with your own bag. Earn coins and club XP.</span></button>
     <button id="mPnp" class="mbtn"><b>Pass &amp; play</b><span>2 to 4 players on one phone. Everyone on the Clubhouse set.</span></button>
     <button id="mPractice" class="mbtn"><b>Practice</b><span>Pick any hole. Unlimited undo, no rewards.</span></button>
