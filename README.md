@@ -12,6 +12,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 
 - **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
 - **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
+- **Challenges:** send friends a link, everyone plays the same pins and wind on their own phone, then compare on a leaderboard.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
 - **Play a hole:** any hole, unlimited undo.
@@ -33,6 +34,13 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.11 · 26 October 2026
+- **Challenges.** Play your friends on your own phones. Create a challenge on any course you've unlocked and everyone gets the same pins, the same wind and the same gusts.
+- **Send it** as a link (tap to open straight into the challenge) or a code, through WhatsApp or anywhere else. No accounts, no server, works offline.
+- **Results come back as codes too.** Paste them in for a leaderboard with hole-by-hole scorecards and each player's swing level. Edited result codes are rejected.
+- **Pick the clubs:** own bags (counts towards your handicap) or everyone on the Clubhouse set.
+- Your first round is the one that counts. Replays are just for fun.
 
 ### 0.10 · 26 October 2026
 - **Swing difficulty.** Hitting it straight is now a skill to earn. The swing reads your whole stroke: drifting sideways on the way down gives you *outside-in* (slice) or *inside-out* (hook), and a bendy upswing curves the ball too. Small swipe errors bend the ball more, timing is stricter and there's more random scatter.

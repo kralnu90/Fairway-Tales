@@ -143,6 +143,16 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .dlt{font-size:10px;font-weight:800;margin-left:2px}.dlt.up{color:var(--good)}.dlt.dn{color:var(--hazard)}
 .st.fx{grid-template-columns:76px 1fr 44px}
 .odds{font-size:13px;font-weight:800;color:var(--chalk)}
+.lb{display:grid;grid-template-columns:28px 1fr auto;gap:2px 10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.lb.me{border-color:var(--flag)}
+.lb-n{font-family:var(--display);font-size:22px;color:var(--flag);text-align:center}
+.lb-name{font-weight:800;display:flex;flex-direction:column}.lb-name small{font-size:11px;color:var(--muted)}
+.lb-t{font-family:var(--display);font-size:22px}.lb-t i{font-style:normal;font-size:13px;color:var(--muted);font-family:inherit;font-weight:800}
+.lb-card{grid-column:1/-1;display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:4px}
+.lb-card span{text-align:center;font-size:12px;font-weight:800;padding:3px 0;border-radius:6px;background:var(--panel2)}
+.lb-card .u{background:#2e6b3a}.lb-card .uu{background:#c9a227;color:#1d1a0e}.lb-card .o{background:#5a3b2a}.lb-card .oo{background:#7a2e2e}
+.hrow .t small{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.chend{border-color:var(--flag)!important}
 .dscale{display:flex;flex-direction:column;gap:4px}
 .dscale div{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--muted);padding:6px 10px;border-radius:8px;background:var(--panel2)}
 .dscale div.on{background:var(--flag);color:#1d1a0e}
@@ -611,7 +621,7 @@ const fitName=f=>FIT_STYLES[f.s].n;
 function fitDelta(f){const S=FIT_STYLES[f.s],o={};for(const k in S.up)o[k]=(o[k]||0)+S.up[k]*FIT_BON[f.t];for(const k in S.down)o[k]=(o[k]||0)-S.down[k]*FIT_PEN[f.t];return o}
 const fitBias=f=>FIT_STYLES[f.s].bias?FIT_STYLES[f.s].bias*(1.2+.3*f.t):0;
 function fitsOn(id,over){const m={...((save.fitOn||{})[id]||{}),...(over||{})};return Object.values(m).map(fitById).filter(Boolean)}
-function fitFx(id){const fs=mode==='pnp'?[]:fitsOn(id);let launch=1,roll=1,bias=0;for(const f of fs){const S=FIT_STYLES[f.s];if(S.launch)launch+=S.launch;if(S.roll)roll+=S.roll;bias+=fitBias(f)}return{launch,roll,bias}}
+function fitFx(id){const fs=clubGear()?[]:fitsOn(id);let launch=1,roll=1,bias=0;for(const f of fs){const S=FIT_STYLES[f.s];if(S.launch)launch+=S.launch;if(S.roll)roll+=S.roll;bias+=fitBias(f)}return{launch,roll,bias}}
 function fitWhere(fid){for(const [cid,m] of Object.entries(save.fitOn||{}))for(const [sl,v] of Object.entries(m))if(v===fid)return{cid,sl};return null}
 function fitEffects(f){const d=fitDelta(f),S=FIT_STYLES[f.s],parts=Object.entries(d).filter(([,v])=>Math.abs(v)>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${v>0?'+':'−'}${fmtStat(Math.round(Math.abs(v)*10)/10)} ${STAT_NAME[k]}`);
   if(S.launch)parts.push(`${S.launch>0?'Higher':'Lower'} flight`);if(S.roll)parts.push(`${S.roll>0?'+':'−'}${Math.abs(S.roll*100)}% roll`);if(S.bias)parts.push(`${S.bias<0?'Draw':'Fade'} bias ${fitBias(f).toFixed(1)}°`);return parts.join(' · ')}
@@ -633,13 +643,15 @@ function persist(){try{localStorage.setItem('fsl-save',JSON.stringify(save))}cat
 // 'practice' (one hole, your bag, unlimited undo, no rewards)
 let mode='solo';
 const STARTER={driver:'cd',wood3:'c3',iron5:'c5',iron7:'c7',iron9:'c9',pw:'cpw',sw:'csw',putter:'cput'};
-const bagOf=t=>mode==='pnp'?STARTER[t]:save.bag[t];
+let CH=null; // the challenge being played, if any
+const clubGear=()=>mode==='pnp'||!!(CH&&CH.g==='club');
+const bagOf=t=>clubGear()?STARTER[t]:save.bag[t];
 const ownLvl=id=>save.owned[id]?save.owned[id].lvl:1;
-const lvlOf=id=>mode==='pnp'?1:ownLvl(id);
+const lvlOf=id=>clubGear()?1:ownLvl(id);
 function statsOf(id,lv=lvlOf(id),fits=true,over=null){
   const d=DEF[id],L=lv-1,out={};
   STAT_KEYS.forEach((k,i)=>{out[k]=d.t==='putter'&&(k==='P'||k==='S')?0:Math.min(20,d.st[i]+L*.5+(d.f.includes(k)?L*.5:0))});
-  if(fits&&mode!=='pnp'&&save.owned[id]){for(const f of fitsOn(id,over)){const dl=fitDelta(f);for(const k in dl)if(!(d.t==='putter'&&(k==='P'||k==='S')))out[k]=Math.max(0,Math.min(24,out[k]+dl[k]))}}
+  if(fits&&!clubGear()&&save.owned[id]){for(const f of fitsOn(id,over)){const dl=fitDelta(f);for(const k in dl)if(!(d.t==='putter'&&(k==='P'||k==='S')))out[k]=Math.max(0,Math.min(24,out[k]+dl[k]))}}
   for(const k of STAT_KEYS)out[k]=Math.round(out[k]*10)/10;
   return out;
 }
@@ -652,7 +664,7 @@ const carryOf=i=>Math.round(CLUBS[i].c*(1+statsOf(bagOf(TYPES[i])).P*.008)*((typ
 function isCapped(o){return CAPS[o.lvl]&&!o.tuned.includes(o.lvl)}
 // Adds XP to the equipped club (solo rounds only); returns a short line for the shot toast
 function gainXp(amt){
-  if((mode!=='solo'&&mode!=='rival')||isCustom())return '';
+  if((mode!=='solo'&&mode!=='rival')||isCustom()||clubGear())return '';
   return addXp(eqId(),Math.round(amt*rewardMul()));
 }
 function addXp(id,amt){
@@ -996,12 +1008,13 @@ const playedStrokes=()=>scores.reduce((a,s)=>a+(s||0),0);
 
 function loadHole(i){
   holeIdx=i; H=COURSE[i];
-  const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random())*.6;
+  const R=CH?seeded(CH.seed*31+i*977):Math.random; gustR=CH?seeded(CH.seed*17+i*331+5):Math.random;
+  const a=R()*Math.PI*2, r=Math.sqrt(R())*.6;
   PIN={x:H.green.x+Math.cos(a)*r*H.green.rx,y:H.green.y+Math.sin(a)*r*H.green.ry};
-  const wa=Math.random()*Math.PI*2, ws=Math.round(Math.random()*14);
+  const wa=R()*Math.PI*2, ws=Math.round(R()*14);
   wind={x:Math.sin(wa)*ws,y:Math.cos(wa)*ws,mph:ws};
-  if(H.calm){const m=Math.round(Math.random()*6);setWind(wa,m)}
-  if(H.gusty){const base=4+Math.round(Math.random()*((H.gustMax||14)-2));windBase={a:wa,m:base};setWind(wa,base)}
+  if(H.calm){const m=Math.round(R()*6);setWind(wa,m)}
+  if(H.gusty){const base=4+Math.round(R()*((H.gustMax||14)-2));windBase={a:wa,m:base};setWind(wa,base)}
   if(H.still)setWind(wa,rangeWind?Math.round(4+Math.random()*12):0);
   // Honours: on later holes the best score on the previous hole tees off first
   order=players.map((_,k)=>k);
@@ -1022,6 +1035,7 @@ function loadHole(i){
 let lastCfg={mode:'solo'};
 function startGame(cfg){
   if(!cfg.drill)drill=null;
+  CH=cfg.challenge||null;
   lastCfg=cfg; mode=cfg.mode; mulls=(mode==='solo'||mode==='rival')?1:0;
   COURSE=cfg.course||HOLES; exitEditorUI();
   const names=cfg.mode==='pnp'?cfg.names:['You'];
@@ -1088,7 +1102,7 @@ function hud(){
   const P=players[pi],multi=players.length>1;
   $('#who').hidden=!multi;
   if(multi)$('#who').innerHTML=`<i style="background:${P.col}"></i>${esc(P.name)}`;
-  $('#bagBtn').hidden=mode==='pnp'; $('#cardBtn').hidden=mode==='practice';
+  $('#bagBtn').hidden=clubGear(); $('#cardBtn').hidden=mode==='practice';
   $('#clubName').textContent=ed.n;
   $('#clubName').style.color=ed.r==='common'?'':RAR[ed.r].col;
   $('#clubCarry').textContent=c.putter?`Lv ${lv}`:`${carryOf(ci)} yds · Lv ${lv}`;
@@ -1217,7 +1231,9 @@ function stepRoll(dt){
   if(dp<cap&&!lipped){lipped=true;SFX.lip();const a=(Math.random()-.5)*50*RAD,c=Math.cos(a),sn=Math.sin(a);vel={x:(vel.x*c-vel.y*sn)*.7,y:(vel.x*sn+vel.y*c)*.7}}
   if(dp>.2)lipped=false;
 }
-let windBase=null, rangeWind=false, drill=null;
+let windBase=null, rangeWind=false, drill=null, gustR=Math.random;
+// small seeded random generator, so a challenge gives everyone the same pins, wind and gusts
+function seeded(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const PG={lie:'mix',surf:'ashby',band:'mix'}; try{Object.assign(PG,JSON.parse(localStorage.getItem('fsl-pg'))||{})}catch(e){}
 const savePG=()=>{try{localStorage.setItem('fsl-pg',JSON.stringify(PG))}catch(e){}};
 const onDrill=k=>mode==='practice'&&H&&H.drill&&(!k||H.drill===k)&&drill;
@@ -1287,7 +1303,7 @@ function rangeDone(head,how){
 }
 function setWind(a,m){wind={x:Math.sin(a)*m,y:Math.cos(a)*m,mph:m};$('#windMph').textContent=m;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
 // On the links the wind shifts between shots
-function gust(){if(!H.gusty||!windBase)return'';const old=wind.mph,a=windBase.a+(Math.random()-.5)*70*RAD,m=Math.max(2,Math.round(windBase.m*(.55+Math.random()*.9)));setWind(a,m);
+function gust(){if(!H.gusty||!windBase)return'';const old=wind.mph,a=windBase.a+(gustR()-.5)*70*RAD,m=Math.max(2,Math.round(windBase.m*(.55+gustR()*.9)));setWind(a,m);
   const w=document.querySelector('.wind');w.classList.remove('gusted');void w.offsetWidth;w.classList.add('gusted');return Math.abs(m-old)>=4?`<br><b>Gust:</b> wind now ${m} mph`:''}
 function readyAgain(){
   const gl=gust();if(gl)setTimeout(()=>{if(!$('#toast').hidden)$('#toast').innerHTML+=gl},0);
@@ -1379,9 +1395,11 @@ function endHole(){
       const bk=COURSES[courseKey()].best;let cb=null;try{cb=+localStorage.getItem(bk)||null}catch(e){}
       const tot=playedStrokes(),rel=tot-coursePar(),isBest=!cb||tot<cb;
       if(isBest){cb=tot;try{localStorage.setItem(bk,cb)}catch(e){}if(courseKey()==='ashby')best=cb}
-      const hc=recordRound(rel,'solo'),bags=rel<0?2:rel===0?1:0;
+      const hc=CH&&CH.g==='club'?null:recordRound(rel,CH?'challenge':'solo'),bags=rel<0?2:rel===0?1:0;
+      const chx=CH?chRecord(tot,rel):'';
       const bagBtn=bags?`<button id="openLoot" class="btn">Open reward bag${bags>1?` ×${bags}`:''}</button>`:'';
-      showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${cb}`}</div>${rw}${hcpChangeHTML(hc)}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
+      showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${cb}`}</div>${rw}${hc?hcpChangeHTML(hc):''}${chx}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
+      if(CH){const id=CH.id;$('#chShareRes').onclick=()=>shareText(resultShareText(id),'#chMsg');$('#chBoard').onclick=()=>{$('#end').hidden=true;gameOn=false;chOpen=id;openMenu('chview')}}
       if(bags)$('#openLoot').onclick=()=>{$('#openLoot').remove();$('#again').classList.remove('alt');showLoot(bags>1?'Under par · 2 reward bags':'Level par · reward bag',openBag('clubhouse',bags))};
       $('#endBag').onclick=()=>openSheet('shop');
       $('#again').onclick=newRound;
@@ -2983,7 +3001,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.10';
+const GAME_VERSION='0.11';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3416,6 +3434,60 @@ function openMenu(screen){
     b.querySelectorAll('[data-solo]').forEach(x=>x.onclick=()=>startGame({mode:'solo',course:COURSES[x.dataset.solo].holes}));
     return;
   }
+  if(screen==='challenges'){
+    const list=Object.entries(chStore()).sort((a,b)=>b[1].t-a[1].t);
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Challenges</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="blurb">Play the same 9 holes as your friends on your own phones: same pins, same wind, same gusts. Then swap result codes for a leaderboard. No accounts, no internet needed.</div>
+      ${chFlash?`<div class="reward">${esc(chFlash)}</div>`:''}
+      <button id="chNew" class="mbtn pri"><b>Create a challenge</b><span>Pick a course, then send the code to your friends</span></button>
+      <div class="cc"><div class="cc-name">Got a code?</div><div class="blurb">Paste a challenge or a friend's result. The whole message is fine.</div>
+        <textarea id="chIn" class="bk" placeholder="Paste here" aria-label="Challenge or result code"></textarea>
+        <div class="acts"><button id="chAdd" class="sbtn pri">Add</button></div><div id="chAddMsg" class="blurb"></div></div>
+      ${list.length?'<div class="group-h">Your challenges</div>':''}
+      ${list.map(([id,e])=>{const {rows,par}=chBoard(e),me=rows.findIndex(r=>r.me);return `<button class="hrow" data-ch="${id}"><span class="n">${me>=0?me+1:'·'}</span><span class="t">${esc(COURSES[e.ch.c].name)} <small>from ${esc(e.ch.host)}</small></span><span class="m">${e.mine?`You ${toPar(e.mine.s.reduce((a,b)=>a+b,0)-par)} · ${rows.length} player${rows.length>1?'s':''}`:'Not played yet'}</span></button>`}).join('')}`;
+    chFlash='';
+    $('#mBack').onclick=()=>openMenu('home');$('#chNew').onclick=()=>openMenu('chnew');
+    $('#chAdd').onclick=()=>{try{const r=addCode($('#chIn').value);chOpen=r.id;chFlash=r.msg;openMenu('chview')}catch(e){$('#chAddMsg').textContent=e.message}};
+    b.querySelectorAll('[data-ch]').forEach(x=>x.onclick=()=>{chOpen=x.dataset.ch;openMenu('chview')});
+    return;
+  }
+  if(screen==='chnew'){
+    const open=Object.entries(COURSES).filter(([k])=>courseOpen(k));let pick=open[0][0],gear='own';
+    const render=()=>{b.innerHTML=`<div class="screen-h"><div class="sheet-title">New challenge</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="cc"><div class="cc-name">Your name</div><div class="prow"><input id="chName" maxlength="20" value="${esc(myName())}" placeholder="How friends will see you" autocomplete="off"></div></div>
+      <div class="cc"><div class="cc-name">Course</div>${open.map(([k,C])=>`<button class="part" data-c="${k}" aria-pressed="${pick===k}">${C.name}<em>par ${C.holes.reduce((a,h)=>a+h.par,0)}</em><small>${C.tag||'Parkland, trees and water'}</small></button>`).join('')}</div>
+      <div class="cc"><div class="cc-name">Clubs</div><div class="seg small pg-seg"><button data-g="own" aria-pressed="${gear==='own'}">Own bags</button><button data-g="club" aria-pressed="${gear==='club'}">Clubhouse set</button></div>
+        <div class="blurb">${gear==='own'?'Everyone plays their own clubs and fittings. Counts towards your handicap.':'Everyone on the starter set, so it\'s all about the swing. Doesn\'t count towards handicaps.'} Everyone plays on their own swing level, shown on the leaderboard.</div></div>
+      <button id="chMake" class="mbtn pri"><b>Create and share</b><span>You'll get a link and a code to send</span></button>`;
+      $('#mBack').onclick=()=>openMenu('challenges');
+      b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{setMyName($('#chName').value.trim());pick=x.dataset.c;render()});
+      b.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{setMyName($('#chName').value.trim());gear=x.dataset.g;render()});
+      $('#chMake').onclick=()=>{const n=$('#chName').value.trim();if(!n){$('#chName').focus();$('#chName').placeholder='Add your name first';return}setMyName(n);chOpen=newChallenge(pick,gear);chFlash='Challenge created. Send it to your friends, then play your round.';openMenu('chview')}};
+    render();return;
+  }
+  if(screen==='chview'){
+    const e=chStore()[chOpen];if(!e)return openMenu('challenges');
+    const C=COURSES[e.ch.c],{rows,par}=chBoard(e);
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Challenge</div><button id="mBack" class="ghost">Back</button></div>
+      ${chFlash?`<div class="reward">${esc(chFlash)}</div>`:''}
+      <div class="cc"><div class="cc-top"><div class="cc-name">${esc(C.name)}</div><span class="chip">par ${par}</span></div>
+        <div class="blurb">From ${esc(e.ch.host)} · ${e.ch.g==='club'?'Clubhouse set':'Own bags'} · same pins and wind for everyone</div>
+        ${!e.mine&&!myName()?`<div class="prow"><input id="chName" maxlength="20" placeholder="Your name for the leaderboard" autocomplete="off"></div>`:''}
+        <div class="acts">${e.mine?'<button id="chPlay" class="sbtn">Play again (won\'t count)</button>':'<button id="chPlay" class="sbtn pri">Play my round</button>'}<button id="chShare" class="sbtn">Invite friends</button>${e.mine?'<button id="chMine" class="sbtn">Send my result</button>':''}</div><div id="chMsg" class="blurb"></div></div>
+      <div class="group-h">Leaderboard</div>
+      ${rows.length?rows.map((r,k)=>`<div class="lb${r.me?' me':''}"><span class="lb-n">${k+1}</span><span class="lb-name">${esc(r.n)}${r.me?' (you)':''}<small>${DIFF[r.lv].n} swing${r.g==='club'?'':''}</small></span><span class="lb-t">${r.tot} <i>${toPar(r.tot-par)}</i></span>
+        <div class="lb-card">${r.s.map((v,h)=>{const d=v-C.holes[h].par;return `<span class="${d<=-2?'uu':d===-1?'u':d===1?'o':d>=2?'oo':''}">${v}</span>`}).join('')}</div></div>`).join(''):'<div class="blurb">No scores yet. Play your round, and paste friends\' results below as they come in.</div>'}
+      <div class="cc"><div class="cc-name">Add a friend's result</div><textarea id="chIn" class="bk" placeholder="Paste their result here" aria-label="Result code"></textarea>
+        <div class="acts"><button id="chAdd" class="sbtn pri">Add result</button><button id="chDel" class="sbtn">Delete challenge</button></div><div id="chAddMsg" class="blurb"></div></div>`;
+    chFlash='';
+    $('#mBack').onclick=()=>openMenu('challenges');
+    $('#chPlay').onclick=()=>{const ni=$('#chName');if(ni){const n=ni.value.trim();if(!n){ni.focus();ni.placeholder='Add your name first';return}setMyName(n)}playChallenge(chOpen)};
+    $('#chShare').onclick=()=>shareText(challengeShareText(chOpen),'#chMsg');
+    if($('#chMine'))$('#chMine').onclick=()=>shareText(resultShareText(chOpen),'#chMsg');
+    $('#chAdd').onclick=()=>{try{const r=addCode($('#chIn').value);chFlash=r.msg;chOpen=r.id;openMenu('chview')}catch(err){$('#chAddMsg').textContent=err.message}};
+    let arm=false;$('#chDel').onclick=()=>{if(!arm){arm=true;$('#chDel').textContent='Tap again to delete';return}delete chStore()[chOpen];persist();openMenu('challenges')};
+    return;
+  }
   if(screen==='ground'){
     const seg=(key,opts)=>`<div class="seg small pg-seg">${Object.entries(opts).map(([k,o])=>`<button data-pg="${key}" data-v="${k}" aria-pressed="${PG[key]===k}">${o.n}</button>`).join('')}</div>`;
     b.innerHTML=`<div class="screen-h"><div class="sheet-title">Practice ground</div><button id="mBack" class="ghost">Back</button></div>
@@ -3449,12 +3521,12 @@ function openMenu(screen){
     return;
   }
   const resume=gameOn&&state!=='done';
-  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:onRange()?'Driving range':onDrill()?`${H.drill==='chip'?'Chipping green':'Putting green'} · ${drillStat()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
-  const IC=(d)=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`,CH='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:onRange()?'Driving range':onDrill()?`${H.drill==='chip'?'Chipping green':'Putting green'} · ${drillStat()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`${CH?`Challenge · ${COURSES[CH.c].name}`:'Solo round'} · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
+  const IC=(d)=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`,CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
   const ICONS={resume:'<path d="M8 5l11 7-11 7z" fill="currentColor"/>',story:'<path d="M4 19V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM8 7h6M8 11h6"/>',solo:'<path d="M6 21V3l11 4-11 4"/><circle cx="17" cy="19" r="2"/>',
-    pnp:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',ground:'<path d="M4 20h16M7 20V9l5-5 5 5v11M10 20v-5h4v5"/>',practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+    pnp:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',chal:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>',ground:'<path d="M4 20h16M7 20V9l5-5 5 5v11M10 20v-5h4v5"/>',practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
     create:'<path d="M3 21l3.5-1 11-11-2.5-2.5-11 11zM14 6l2.5 2.5M17 3l4 4"/>',bag:'<path d="M7 8h10l-1 13H8zM9 8V5a3 3 0 0 1 6 0v3"/>'};
-  const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CH}</button>`;
+  const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CHEV}</button>`;
   b.innerHTML=`<div class="hero-card"><canvas id="heroCv" aria-label="A golfer teeing off" role="img"></canvas><div class="hero-tag">${esc(heroTheme().tag)}</div></div>
     <div class="hero-row"><div><div class="k">A golf RPG</div><div class="menu-title">Fairway <span>Tales</span></div></div><div class="hero-stats"><span class="chip">HCP ${hcp()==null?'36':fmtH(hcp())}</span><span class="chip">${DIFF[swingLv()].n} swing</span>${best?`<span class="chip">Best ${best}</span>`:''}</div></div>
     ${seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: swing difficulty</div></div>
@@ -3462,9 +3534,10 @@ function openMenu(screen){
       <div class="blurb">You're on <b>${DIFF[swingLv()].n}</b>. You can lock your level in Settings.</div>
       <div class="acts"><button id="wnOk" class="sbtn pri">Got it</button><button id="wnSet" class="sbtn">Settings</button></div></div>`}
     ${resume?MB('mResume','resume','Resume',esc(where),' pri'):''}
-    <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CH}</button>
+    <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CHEV}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
+    ${MB('mChal','chal','Challenges','Same course, same pins, same wind. Play your friends on your own phones.')}
     ${MB('mGround','ground','Practice ground','Driving range, chipping green and putting green.')}
     ${MB('mPractice','practice','Play a hole','Pick any hole. Unlimited undo, no rewards.')}
     ${MB('mCreate','create','Course creator',CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes')}
@@ -3482,6 +3555,7 @@ function openMenu(screen){
   $('#mPnp').onclick=()=>openMenu('pnp');
   $('#mPractice').onclick=()=>openMenu('practice');
   $('#mGround').onclick=()=>openMenu('ground');
+  $('#mChal').onclick=()=>openMenu('challenges');
   $('#mCreate').onclick=()=>openMenu('courses');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
@@ -3645,6 +3719,63 @@ async function openShare(co){
   $('#mBack').onclick=()=>openMenu('courses');
   $('#shCopy').onclick=()=>{const t=$('#shOut');try{navigator.clipboard.writeText(t.value).then(()=>{$('#shMsg').textContent='Copied.'},()=>{t.select();$('#shMsg').textContent='Copy blocked here. The text is selected, so copy it manually.'})}catch(e){t.select()}};
 }
+/* ---------- Challenges: same course, same pins and wind, everyone plays on their own phone, then swaps result codes ---------- */
+let chOpen=null;
+const chStore=()=>(save.chal=save.chal||{});
+const myName=()=>{try{return localStorage.getItem('fsl-ch-name')||''}catch(e){return ''}};
+const setMyName=n=>{try{localStorage.setItem('fsl-ch-name',n)}catch(e){}};
+const chHash=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36).slice(0,5)};
+const encObj=o=>b64u.enc(new TextEncoder().encode(JSON.stringify(o)));
+const decObj=str=>JSON.parse(new TextDecoder().decode(b64u.dec(str)));
+const chCode=c=>`FTC1:${encObj({v:1,id:c.id,c:c.c,seed:c.seed,g:c.g,h:c.host})}:FT`;
+const chLink=(k,code)=>{const base=location.protocol.startsWith('http')&&!location.host.includes('claude')?location.origin+location.pathname:'https://kralnu90.github.io/Fairway-Tales/';return `${base}#${k}=${code.slice(5,-3)}`};
+function resCode(id,r){const body={id,n:r.n,s:r.s,lv:r.lv,g:r.g};body.k=chHash(id+JSON.stringify(r.s)+r.n);return `FTR1:${encObj(body)}:FT`}
+function readCode(text){
+  const t=String(text).replace(/\s+/g,''),m=t.match(/FT([CR])1:([A-Za-z0-9_-]+):FT/)||t.match(/#(ch|r)=([A-Za-z0-9_-]+)/);
+  if(!m)throw new Error('No challenge or result code found. They start with FTC1: or FTR1:.');
+  const kind=m[1]==='C'||m[1]==='ch'?'C':'R';let o;try{o=decObj(m[2])}catch(e){throw new Error('That code is broken. Make sure you copied all of it.')}
+  if(kind==='C'){if(!o.id||!COURSES[o.c]||typeof o.seed!=='number')throw new Error('That challenge code is broken.');return{kind,ch:{id:String(o.id).slice(0,12),c:o.c,seed:o.seed>>>0,g:o.g==='club'?'club':'own',host:String(o.h||'A friend').slice(0,20)}}}
+  if(!o.id||!Array.isArray(o.s)||o.s.length!==9||!o.s.every(v=>Number.isInteger(v)&&v>0&&v<20))throw new Error('That result code is broken.');
+  if(o.k!==chHash(o.id+JSON.stringify(o.s)+o.n))throw new Error('That result code has been changed, so it can\'t be added.');
+  return{kind,r:{id:String(o.id),n:String(o.n||'Player').slice(0,20),s:o.s,lv:Math.max(0,Math.min(4,o.lv|0)),g:o.g==='club'?'club':'own'}};
+}
+function addCode(text){
+  const x=readCode(text),st=chStore();
+  if(x.kind==='C'){if(!st[x.ch.id])st[x.ch.id]={ch:x.ch,mine:null,res:[],t:Date.now()};persist();return{msg:`Added ${x.ch.host}'s challenge.`,id:x.ch.id}}
+  const e=st[x.r.id];if(!e)throw new Error('That result is for a challenge you haven\'t joined. Add the challenge code first.');
+  if(e.mine&&e.mine.n===x.r.n&&JSON.stringify(e.mine.s)===JSON.stringify(x.r.s))return{msg:'That\'s your own result.',id:x.r.id};
+  const i=e.res.findIndex(q=>q.n===x.r.n);if(i>=0)e.res[i]=x.r;else e.res.push(x.r);persist();return{msg:`Added ${x.r.n}'s score.`,id:x.r.id};
+}
+function newChallenge(c,g){const id=Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),ch={id,c,seed:Math.floor(Math.random()*2**31),g,host:myName()||'Me'};chStore()[id]={ch,mine:null,res:[],t:Date.now()};persist();return id}
+function chRecord(tot,rel){
+  const e=chStore()[CH.id];if(!e)return '';
+  const s=COURSE.map((_,k)=>scores[k]||0),first=!e.mine;
+  if(first){e.mine={n:myName()||'Me',s,lv:swingLv(),g:CH.g};persist()}
+  return `<div class="cc chend"><div class="cc-name">Challenge: ${esc(COURSES[CH.c].name)}</div>
+    <div class="blurb">${first?'Your score is in. Send your result to the others, and paste theirs into the challenge to see the leaderboard.':`Replay: your first round (${e.mine.s.reduce((a,b)=>a+b,0)}) is the one that counts.`}</div>
+    <div class="acts"><button id="chShareRes" class="sbtn pri">Send my result</button><button id="chBoard" class="sbtn">Leaderboard</button></div><div id="chMsg" class="blurb"></div></div>`;
+}
+function chBoard(e){
+  const par=COURSES[e.ch.c].holes.reduce((a,h)=>a+h.par,0);
+  const rows=[...(e.mine?[{...e.mine,me:true}]:[]),...e.res].map(r=>({...r,tot:r.s.reduce((a,b)=>a+b,0)})).sort((a,b)=>a.tot-b.tot);
+  return {rows,par};
+}
+function shareText(text,msgSel){
+  const done=m=>{const el=$(msgSel);if(el)el.textContent=m};
+  if(navigator.share){navigator.share({text}).then(()=>done('Shared.'),()=>{})}
+  else{try{navigator.clipboard.writeText(text).then(()=>done('Copied. Paste it into WhatsApp or wherever.'),()=>done('Copy blocked. Long-press the code to copy it.'))}catch(e){done('Copy blocked. Long-press the code to copy it.')}}
+}
+function challengeShareText(id){const e=chStore()[id],C=COURSES[e.ch.c],code=chCode(e.ch);
+  return `⛳ Fairway Tales challenge from ${e.ch.host}: ${C.name}, 9 holes, ${e.ch.g==='club'?'everyone on the Clubhouse set':'bring your own bag'}. Same pins and same wind for everyone.\n\nTap to play: ${chLink('ch',code)}\n\nOr paste this into Challenges:\n${code}`}
+function resultShareText(id){const e=chStore()[id],m=e.mine,tot=m.s.reduce((a,b)=>a+b,0),par=COURSES[e.ch.c].holes.reduce((a,h)=>a+h.par,0),code=resCode(id,m);
+  return `⛳ ${m.n} shot ${tot} (${toPar(tot-par)}) in ${e.ch.host}'s ${COURSES[e.ch.c].name} challenge.\n\nTap to add it: ${chLink('r',code)}\n\nOr paste this into the challenge:\n${code}`}
+function playChallenge(id){const e=chStore()[id];startGame({mode:'solo',course:COURSES[e.ch.c].holes,challenge:e.ch})}
+// links like …/Fairway-Tales/#ch=CODE open straight into the challenge
+function handleLinkHash(){
+  const h=location.hash;if(!/^#(ch|r)=/.test(h))return false;
+  try{const r=addCode(h);history.replaceState(null,'',location.pathname+location.search);chOpen=r.id;chFlash=r.msg;openMenu('chview');return true}catch(e){chFlash=e.message;openMenu('challenges');return true}
+}
+let chFlash='';
 function keepNames(){for(let k=0;k<4;k++){const el=$('#pname'+k);if(el)pnpNames[k]=el.value}try{localStorage.setItem('fsl-names',JSON.stringify(pnpNames));localStorage.setItem('fsl-pcount',pnpCount)}catch(e){}}
 $('#menuBtn').onclick=()=>openMenu('home');
 
@@ -3658,7 +3789,7 @@ function frame(now){
   if(worldOn)worldFrame(dt);else if(editMode){draw();drawEd()}else{updateCam(dt);draw()}
   requestAnimationFrame(frame);
 }
-applySettings();startGame({mode:'solo'});gameOn=false;endFly();resize();updateCam(0,true);openMenu('home');requestAnimationFrame(frame);
+applySettings();startGame({mode:'solo'});gameOn=false;endFly();resize();updateCam(0,true);if(!handleLinkHash())openMenu('home');addEventListener('hashchange',()=>{if(!gameOn||state==='done')handleLinkHash()});requestAnimationFrame(frame);
 })();
 </script>
 <script>
