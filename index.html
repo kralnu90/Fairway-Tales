@@ -100,7 +100,7 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .sheet-title{font-family:var(--display);font-size:26px;flex:1}
 .wallet{display:flex;gap:6px;flex-wrap:wrap}
 .tabs{display:flex;gap:6px}
-.tabs button{flex:1;height:38px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;cursor:pointer}
+.tabs button{flex:1;min-width:0;font-size:13px;padding:0 4px;height:38px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--flag);color:#1d1a0e;border-color:var(--flag)}
 .sheet-body{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:20px;overscroll-behavior:contain}
 .group-h{font-family:var(--display);font-size:16px;color:var(--muted);margin-top:4px}
@@ -127,6 +127,22 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .swap{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:8px}
 .swap-row{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800}
 .swap-row span{flex:1}
+.fitrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fchip{font-size:11px;font-weight:800;border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--panel2);color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.fchip i{font-style:normal;opacity:.7;margin-right:4px;text-transform:uppercase;font-size:9px;letter-spacing:.06em}
+.bench{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--line);padding-top:10px}
+.bench-slot{display:flex;flex-direction:column;gap:6px}
+.bench-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.bench-h span{flex:1}
+.part{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800;text-align:left;color:var(--chalk);font-family:inherit;width:100%;cursor:pointer}
+.part small{grid-column:1;font-size:11px;color:var(--muted);font-weight:700}
+.part em{grid-row:1/3;grid-column:2;font-style:normal;font-size:11px;color:var(--muted)}
+.part[aria-pressed="true"]{border-color:var(--flag);box-shadow:0 0 0 1px var(--flag) inset}
+.cmp{display:grid;grid-template-columns:auto 1fr auto auto;gap:4px 10px;font-size:12px;font-weight:800;background:rgba(14,29,21,.5);border-radius:10px;padding:10px 12px;align-items:center;font-variant-numeric:tabular-nums}
+.cmp .up{color:var(--good)}.cmp .dn{color:var(--hazard)}.cmp .eq{color:var(--muted)}
+.dlt{font-size:10px;font-weight:800;margin-left:2px}.dlt.up{color:var(--good)}.dlt.dn{color:var(--hazard)}
+.st.fx{grid-template-columns:76px 1fr 44px}
+.odds{font-size:13px;font-weight:800;color:var(--chalk)}
 .reward{color:var(--flag);font-weight:800}
 /* story overworld */
 .world{position:fixed;inset:0;z-index:18;background:#2c5a33;overflow:hidden;touch-action:none}
@@ -202,6 +218,7 @@ label.group-h{display:block}
 .li span{flex:1;min-width:0}
 .li-coins{color:var(--flag)}.li-kit{color:var(--chalk)}.li-dup{color:var(--muted)}
 .li-shard{color:#c58af0;border-color:#5b3f73}
+.li-fit0{color:#b8c4b0}.li-fit1{color:#8fd88a;border-color:#3d6b3a}.li-fit2{color:#6fb3e8;border-color:#2e5878}.li-fit3{color:#c58af0;border-color:#c58af0}.li-fit4{color:var(--flag);border-color:var(--flag)}
 .li-rare{color:#6fb3e8;border-color:#2e5878}.li-epic{color:#c58af0;border-color:#c58af0}.li-legendary{color:var(--flag);border-color:var(--flag)}
 @keyframes lootin{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
 @keyframes bagpop{0%{transform:scale(.6) rotate(-8deg)}60%{transform:scale(1.1) rotate(4deg)}100%{transform:none}}
@@ -366,6 +383,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="bag" aria-selected="true">Bag</button>
     <button role="tab" data-tab="shop" aria-selected="false">Pro shop</button>
+    <button role="tab" data-tab="fit" aria-selected="false">Fittings</button>
     <button role="tab" data-tab="all" aria-selected="false">Collection</button>
   </div>
   <div id="sheetBody" class="sheet-body"></div>
@@ -561,14 +579,47 @@ const STAT_KEYS=['P','C','S','F'], STAT_NAME={P:'Power',C:'Control',S:'Spin',F:'
 const MAX_LV=10, CAPS={4:{kits:1,coins:500},7:{kits:3,coins:1500}}, KIT_PRICE=600;
 const needXp=l=>40+30*l;
 
+/* ---------- Fittings: heads, shafts and grips that trade one stat for another ---------- */
+const FIT_TIER=[{n:'Common',col:'#b8c4b0'},{n:'Uncommon',col:'#8fd88a'},{n:'Rare',col:'#6fb3e8'},{n:'Epic',col:'#c58af0'},{n:'Legendary',col:'#f2c14e'}];
+const FIT_BON=[1,1.4,1.8,2.3,3], FIT_PEN=[1,.85,.7,.5,.3];   // rarer parts: bigger bonus, smaller penalty
+const FIT_STYLES={
+  max:{slot:'head',n:'Max head',up:{P:2},down:{C:2},blurb:'More distance, less accuracy.'},
+  lite:{slot:'head',n:'Lite head',up:{C:2},down:{P:1.5},blurb:'Straighter, a little shorter.'},
+  forged:{slot:'head',n:'Forged head',up:{S:2},down:{F:1.5},blurb:'More spin, punishes mis-hits.'},
+  cavity:{slot:'head',n:'Cavity head',up:{F:2},down:{S:1.5},blurb:'Forgiving, but spins less.'},
+  stiff:{slot:'shaft',n:'Stiff shaft',up:{P:1},down:{S:1},launch:-.08,roll:.15,blurb:'Lower flight that runs out.'},
+  soft:{slot:'shaft',n:'Soft shaft',up:{S:1},down:{P:1},launch:.1,roll:-.15,blurb:'Higher flight that stops quicker.'},
+  tour:{slot:'shaft',n:'Tour shaft',up:{C:1.5},down:{F:1.5},blurb:'Tighter dispersion for good swings.'},
+  slim:{slot:'grip',n:'Slim grip',up:{S:.5},down:{},bias:-1,blurb:'Draw bias. Fights a slice.'},
+  oversize:{slot:'grip',n:'Oversize grip',up:{C:.5},down:{},bias:1,blurb:'Fade bias. Fights a hook.'},
+  tacky:{slot:'grip',n:'Tacky grip',up:{F:1.5},down:{P:.5},blurb:'Steadier on bad swings.'},
+  blade:{slot:'head',putter:true,n:'Blade putter head',up:{C:2},down:{F:1.5},blurb:'Holds its line, smaller sweet spot.'},
+  mallet:{slot:'head',putter:true,n:'Mallet putter head',up:{F:2},down:{C:1.5},blurb:'Huge sweet spot, harder to aim.'},
+  pistol:{slot:'grip',putter:true,n:'Pistol putter grip',up:{C:1.5},down:{F:.5},blurb:'Precise feel.'},
+  fat:{slot:'grip',putter:true,n:'Fat putter grip',up:{F:1.5},down:{C:.5},blurb:'Quiet hands.'}
+};
+const FIT_SLOT_NAME={head:'Head',shaft:'Shaft',grip:'Grip'}, FIT_PRICE=250;
+const fitSlots=id=>DEF[id].t==='putter'?['head','grip']:['head','shaft','grip'];
+const fitById=fid=>(save.fits||[]).find(f=>f.id===fid);
+const fitName=f=>FIT_STYLES[f.s].n;
+function fitDelta(f){const S=FIT_STYLES[f.s],o={};for(const k in S.up)o[k]=(o[k]||0)+S.up[k]*FIT_BON[f.t];for(const k in S.down)o[k]=(o[k]||0)-S.down[k]*FIT_PEN[f.t];return o}
+const fitBias=f=>FIT_STYLES[f.s].bias?FIT_STYLES[f.s].bias*(1.2+.3*f.t):0;
+function fitsOn(id,over){const m={...((save.fitOn||{})[id]||{}),...(over||{})};return Object.values(m).map(fitById).filter(Boolean)}
+function fitFx(id){const fs=mode==='pnp'?[]:fitsOn(id);let launch=1,roll=1,bias=0;for(const f of fs){const S=FIT_STYLES[f.s];if(S.launch)launch+=S.launch;if(S.roll)roll+=S.roll;bias+=fitBias(f)}return{launch,roll,bias}}
+function fitWhere(fid){for(const [cid,m] of Object.entries(save.fitOn||{}))for(const [sl,v] of Object.entries(m))if(v===fid)return{cid,sl};return null}
+function fitEffects(f){const d=fitDelta(f),S=FIT_STYLES[f.s],parts=Object.entries(d).filter(([,v])=>Math.abs(v)>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${v>0?'+':'−'}${fmtStat(Math.round(Math.abs(v)*10)/10)} ${STAT_NAME[k]}`);
+  if(S.launch)parts.push(`${S.launch>0?'Higher':'Lower'} flight`);if(S.roll)parts.push(`${S.roll>0?'+':'−'}${Math.abs(S.roll*100)}% roll`);if(S.bias)parts.push(`${S.bias<0?'Draw':'Fade'} bias ${fitBias(f).toFixed(1)}°`);return parts.join(' · ')}
+const newFitId=()=>'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function rollFitTier(boost){return +pickWeighted((boost?[35,33,20,9,3]:[55,28,12,4,1]).map((w,i)=>({w,i}))).i}
+function makeFit(tier,style){const keys=Object.keys(FIT_STYLES),sid=style||keys[Math.floor(Math.random()*keys.length)];const f={id:newFitId(),s:sid,t:tier};save.fits.push(f);return f}
 function freshSave(){
   const owned={},bag={};
   for(const d of DEFS)if(d.src==='starter'){owned[d.id]={lvl:1,xp:0,tuned:[]};bag[d.t]=d.id}
-  return{coins:150,kits:0,owned,bag,shards:{},pity:0,rounds:[]};
+  return{coins:150,kits:0,owned,bag,shards:{},pity:0,rounds:[],fits:[],fitOn:{}};
 }
 let save; try{save=JSON.parse(localStorage.getItem('fsl-save'))}catch(e){}
 if(!save||!save.owned)save=freshSave();
-function ensureSave(){save.shards=save.shards||{};save.pity=save.pity||0;save.rounds=save.rounds||[]}
+function ensureSave(){save.shards=save.shards||{};save.pity=save.pity||0;save.rounds=save.rounds||[];save.fits=save.fits||[];save.fitOn=save.fitOn||{}}
 ensureSave();
 function persist(){try{localStorage.setItem('fsl-save',JSON.stringify(save))}catch(e){}}
 
@@ -579,9 +630,11 @@ const STARTER={driver:'cd',wood3:'c3',iron5:'c5',iron7:'c7',iron9:'c9',pw:'cpw',
 const bagOf=t=>mode==='pnp'?STARTER[t]:save.bag[t];
 const ownLvl=id=>save.owned[id]?save.owned[id].lvl:1;
 const lvlOf=id=>mode==='pnp'?1:ownLvl(id);
-function statsOf(id,lv=lvlOf(id)){
+function statsOf(id,lv=lvlOf(id),fits=true,over=null){
   const d=DEF[id],L=lv-1,out={};
   STAT_KEYS.forEach((k,i)=>{out[k]=d.t==='putter'&&(k==='P'||k==='S')?0:Math.min(20,d.st[i]+L*.5+(d.f.includes(k)?L*.5:0))});
+  if(fits&&mode!=='pnp'&&save.owned[id]){for(const f of fitsOn(id,over)){const dl=fitDelta(f);for(const k in dl)if(!(d.t==='putter'&&(k==='P'||k==='S')))out[k]=Math.max(0,Math.min(24,out[k]+dl[k]))}}
+  for(const k of STAT_KEYS)out[k]=Math.round(out[k]*10)/10;
   return out;
 }
 const eqId=()=>bagOf(TYPES[ci]);
@@ -627,23 +680,23 @@ const tierOk=d=>!d.tier||hcpVal()<=TIERS[d.tier].max;
 // Chance of each drop = its weight / the table's total weight. 'good' drops reset the pity counter.
 const SHARDS_NEEDED=5, PITY_AT=6, DUP_XP=150, SHARD_DUP_XP=60;
 const LOOT={
-  toby:[{w:35,t:'coins',n:40},{w:15,t:'coins',n:80},{w:25,t:'shard',c:'gale',n:1},{w:10,t:'shard',c:'gale',n:2},{w:8,t:'kit',n:1},{w:6,t:'rare'},{w:1,t:'club',c:'gale'}],
-  dot:[{w:35,t:'coins',n:50},{w:15,t:'coins',n:100},{w:24,t:'shard',c:'backdraft',n:1},{w:10,t:'shard',c:'backdraft',n:2},{w:8,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'backdraft'}],
-  marcus:[{w:35,t:'coins',n:60},{w:15,t:'coins',n:120},{w:23,t:'shard',c:'hollow',n:1},{w:10,t:'shard',c:'hollow',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'hollow'}],
-  duncan:[{w:30,t:'coins',n:150},{w:15,t:'coins',n:300},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
-  callum:[{w:35,t:'coins',n:70},{w:15,t:'coins',n:140},{w:24,t:'shard',c:'bumprun',n:1},{w:10,t:'shard',c:'bumprun',n:2},{w:8,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'bumprun'}],
-  fiona:[{w:35,t:'coins',n:80},{w:15,t:'coins',n:160},{w:23,t:'shard',c:'stinger',n:1},{w:10,t:'shard',c:'stinger',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'stinger'}],
-  tam:[{w:35,t:'coins',n:90},{w:15,t:'coins',n:180},{w:23,t:'shard',c:'tidewater',n:1},{w:10,t:'shard',c:'tidewater',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'tidewater'}],
-  gideon:[{w:30,t:'coins',n:250},{w:15,t:'coins',n:500},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
-  ricky:[{w:35,t:'coins',n:100},{w:15,t:'coins',n:200},{w:23,t:'shard',c:'sidewinder',n:1},{w:10,t:'shard',c:'sidewinder',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'sidewinder'}],
-  priya:[{w:35,t:'coins',n:110},{w:15,t:'coins',n:220},{w:23,t:'shard',c:'oasis',n:1},{w:10,t:'shard',c:'oasis',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'oasis'}],
-  wes:[{w:35,t:'coins',n:120},{w:15,t:'coins',n:240},{w:23,t:'shard',c:'thunderclap',n:1},{w:10,t:'shard',c:'thunderclap',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'thunderclap'}],
-  celia:[{w:30,t:'coins',n:350},{w:15,t:'coins',n:700},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
-  nils:[{w:35,t:'coins',n:140},{w:15,t:'coins',n:280},{w:23,t:'shard',c:'snowplough',n:1},{w:10,t:'shard',c:'snowplough',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'snowplough'}],
-  yuki:[{w:35,t:'coins',n:150},{w:15,t:'coins',n:300},{w:23,t:'shard',c:'katana',n:1},{w:10,t:'shard',c:'katana',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'katana'}],
-  brock:[{w:35,t:'coins',n:160},{w:15,t:'coins',n:320},{w:23,t:'shard',c:'avalanche',n:1},{w:10,t:'shard',c:'avalanche',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'avalanche'}],
-  elena:[{w:30,t:'coins',n:450},{w:15,t:'coins',n:900},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
-  clubhouse:[{w:40,t:'coins',n:30},{w:25,t:'coins',n:60},{w:10,t:'coins',n:120},{w:15,t:'kit',n:1},{w:7,t:'shardAny',n:1},{w:3,t:'rare'}]
+  toby:[{w:9,t:'fit'},{w:35,t:'coins',n:40},{w:15,t:'coins',n:80},{w:25,t:'shard',c:'gale',n:1},{w:10,t:'shard',c:'gale',n:2},{w:8,t:'kit',n:1},{w:6,t:'rare'},{w:1,t:'club',c:'gale'}],
+  dot:[{w:9,t:'fit'},{w:35,t:'coins',n:50},{w:15,t:'coins',n:100},{w:24,t:'shard',c:'backdraft',n:1},{w:10,t:'shard',c:'backdraft',n:2},{w:8,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'backdraft'}],
+  marcus:[{w:9,t:'fit'},{w:35,t:'coins',n:60},{w:15,t:'coins',n:120},{w:23,t:'shard',c:'hollow',n:1},{w:10,t:'shard',c:'hollow',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'hollow'}],
+  duncan:[{w:9,t:'fit',boost:1},{w:30,t:'coins',n:150},{w:15,t:'coins',n:300},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  callum:[{w:9,t:'fit'},{w:35,t:'coins',n:70},{w:15,t:'coins',n:140},{w:24,t:'shard',c:'bumprun',n:1},{w:10,t:'shard',c:'bumprun',n:2},{w:8,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'bumprun'}],
+  fiona:[{w:9,t:'fit'},{w:35,t:'coins',n:80},{w:15,t:'coins',n:160},{w:23,t:'shard',c:'stinger',n:1},{w:10,t:'shard',c:'stinger',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'stinger'}],
+  tam:[{w:9,t:'fit'},{w:35,t:'coins',n:90},{w:15,t:'coins',n:180},{w:23,t:'shard',c:'tidewater',n:1},{w:10,t:'shard',c:'tidewater',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'tidewater'}],
+  gideon:[{w:9,t:'fit',boost:1},{w:30,t:'coins',n:250},{w:15,t:'coins',n:500},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  ricky:[{w:9,t:'fit'},{w:35,t:'coins',n:100},{w:15,t:'coins',n:200},{w:23,t:'shard',c:'sidewinder',n:1},{w:10,t:'shard',c:'sidewinder',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'sidewinder'}],
+  priya:[{w:9,t:'fit'},{w:35,t:'coins',n:110},{w:15,t:'coins',n:220},{w:23,t:'shard',c:'oasis',n:1},{w:10,t:'shard',c:'oasis',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'oasis'}],
+  wes:[{w:9,t:'fit'},{w:35,t:'coins',n:120},{w:15,t:'coins',n:240},{w:23,t:'shard',c:'thunderclap',n:1},{w:10,t:'shard',c:'thunderclap',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'thunderclap'}],
+  celia:[{w:9,t:'fit',boost:1},{w:30,t:'coins',n:350},{w:15,t:'coins',n:700},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  nils:[{w:9,t:'fit'},{w:35,t:'coins',n:140},{w:15,t:'coins',n:280},{w:23,t:'shard',c:'snowplough',n:1},{w:10,t:'shard',c:'snowplough',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'snowplough'}],
+  yuki:[{w:9,t:'fit'},{w:35,t:'coins',n:150},{w:15,t:'coins',n:300},{w:23,t:'shard',c:'katana',n:1},{w:10,t:'shard',c:'katana',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'katana'}],
+  brock:[{w:9,t:'fit'},{w:35,t:'coins',n:160},{w:15,t:'coins',n:320},{w:23,t:'shard',c:'avalanche',n:1},{w:10,t:'shard',c:'avalanche',n:2},{w:9,t:'kit',n:1},{w:7,t:'rare'},{w:1,t:'club',c:'avalanche'}],
+  elena:[{w:9,t:'fit',boost:1},{w:30,t:'coins',n:450},{w:15,t:'coins',n:900},{w:15,t:'kit',n:1},{w:20,t:'shardAny',n:1},{w:8,t:'shardAny',n:2},{w:11,t:'rare'},{w:1,t:'kit',n:3}],
+  clubhouse:[{w:9,t:'fit'},{w:40,t:'coins',n:30},{w:25,t:'coins',n:60},{w:10,t:'coins',n:120},{w:15,t:'kit',n:1},{w:7,t:'shardAny',n:1},{w:3,t:'rare'}]
 };
 const SHARD_CLUBS=['gale','backdraft','hollow','bumprun','stinger','tidewater','sidewinder','oasis','thunderclap','snowplough','katana','avalanche'];
 const isGood=e=>e.t==='shard'||e.t==='shardAny'||e.t==='rare'||e.t==='club';
@@ -673,6 +726,7 @@ function grant(e){
   else if(e.t==='shardAny'){const open=SHARD_CLUBS.filter(c=>!save.owned[c]);giveShards(open.length?open[Math.floor(Math.random()*open.length)]:SHARD_CLUBS[Math.floor(Math.random()*SHARD_CLUBS.length)],e.n)}
   else if(e.t==='rare'){const rares=DEFS.filter(d=>d.r==='rare'),fresh=rares.filter(d=>!save.owned[d.id]),pool=fresh.length?fresh:rares;giveClub(pool[Math.floor(Math.random()*pool.length)].id)}
   else if(e.t==='club')giveClub(e.c);
+  else if(e.t==='fit'){const f=makeFit(rollFitTier(e.boost));out.push({cls:'fit'+f.t,txt:`${fitName(f)} · ${FIT_TIER[f.t].n} fitting`,tag:f.t>=3?FIT_TIER[f.t].n.toUpperCase():'FITTING'})}
   persist();return out;
 }
 function openBag(name,rolls){let lines=[];for(let k=0;k<rolls;k++)lines=lines.concat(grant(rollTable(name)));return lines}
@@ -841,7 +895,9 @@ function autoBounds(h){
   (h.cactiList||[]).forEach(t=>add(t.x,t.y));for(const e of [...(h.ice||[]),...(h.snow||[])])add(e.x-e.rx,e.y+e.ry),add(e.x+e.rx,e.y-e.ry);
   return{x0:Math.floor(x0-30),x1:Math.ceil(x1+30),y0:-14,y1:Math.ceil(y1+25)};
 }
-HOLES.forEach((h,hi)=>prepHole(h,hi));
+const RANGE={name:'Driving range',par:4,range:true,still:true,fw:[[0,25],[0,390]],hw:34,green:{x:0,y:445,rx:16,ry:11},water:[],bunkers:[],
+  trees:[[12,-74,-42,20,440,3,5],[12,42,74,20,440,3,5]],bounds:{x0:-78,x1:78,y0:-14,y1:465},sl:{x:0,y:-.3,a:.1,b:.1}};
+HOLES.forEach((h,hi)=>prepHole(h,hi));prepHole(RANGE,130);
 LINKS.forEach((h,hi)=>prepHole(h,hi+50));
 MESA.forEach((h,hi)=>prepHole(h,hi+70));
 FROST.forEach((h,hi)=>prepHole(h,hi+90));
@@ -898,6 +954,7 @@ function loadHole(i){
   wind={x:Math.sin(wa)*ws,y:Math.cos(wa)*ws,mph:ws};
   if(H.calm){const m=Math.round(Math.random()*6);setWind(wa,m)}
   if(H.gusty){const base=4+Math.round(Math.random()*((H.gustMax||14)-2));windBase={a:wa,m:base};setWind(wa,base)}
+  if(H.still)setWind(wa,rangeWind?Math.round(4+Math.random()*12):0);
   // Honours: on later holes the best score on the previous hole tees off first
   order=players.map((_,k)=>k);
   if(i>0&&mode==='pnp')order.sort((a,b)=>(players[a].scores[i-1]||99)-(players[b].scores[i-1]||99)||a-b);
@@ -905,10 +962,10 @@ function loadHole(i){
   state='ready'; clearUndo(); gameOn=true;
   $('#end').hidden=true; $('#toast').hidden=true;
   useTurn(order[0]);
-  $('#hname').textContent=`Hole ${i+1} · ${H.name}`;
+  $('#hname').textContent=H.range?'Driving range':`Hole ${i+1} · ${H.name}`;
   $('#par').textContent=H.par; $('#len').textContent=H.len;
-  if(!H.gusty&&!H.calm){$('#windMph').textContent=ws;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
-  $('#log').textContent=i===0?'Drag anywhere on the course to nudge your aim, or tap to jump it.':`Hole ${i+1}, par ${H.par}.`;
+  if(!H.gusty&&!H.calm&&!H.still){$('#windMph').textContent=ws;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
+  $('#log').textContent=H.range?'Every ball comes back to the tee. Open your bag to swap fittings between shots.':i===0?'Drag anywhere on the course to nudge your aim, or tap to jump it.':`Hole ${i+1}, par ${H.par}.`;
   endFly();
   if(players.length>1){flyPending=true;showPass(true)}else startFly();
   hud(); if(W)updateCam(0,true);
@@ -977,7 +1034,7 @@ function fmtDist(yd,putt){return putt||yd<20?`${Math.round(yd*3)} ft`:`${Math.ro
 function hud(){
   const c=club(), s=surfaceAt(ball.x,ball.y);
   $('#stroke').textContent=Math.min(strokes+1,99);
-  $('#total').textContent=mode==='practice'?'Practice':mode==='rival'?rivalLine():toPar(playedStrokes()-playedPar());
+  $('#total').textContent=onRange()?'Range':mode==='practice'?'Practice':mode==='rival'?rivalLine():toPar(playedStrokes()-playedPar());
   const ed=eqDef(),lv=lvlOf(ed.id);
   const P=players[pi],multi=players.length>1;
   $('#who').hidden=!multi;
@@ -1016,7 +1073,8 @@ function strike(r){
   if(r.speed<.45){mult*=.9;notes.push('decelerated')}
   noise*=1.25-S.C*.03; const ps=1.15-S.C*.02; // control: tighter scatter, less punished by an off-line swipe
   const startDeg=r.path*.25*ps+gauss()*noise*.4;
-  const curveDeg=r.path*.2*ps+gauss()*noise*.6+SP.x*5*sf;
+  const FX=fitFx(eqId());
+  const curveDeg=r.path*.2*ps+gauss()*noise*.6+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
   mult*=1-.04*Math.abs(SP.y);
   const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1);
   // XP: a clean, well-tempoed swing earns the most
@@ -1035,7 +1093,7 @@ function strike(r){
   SFX.swing(p);SFX.strike(p,clean);
   saveUndo();
   shotStart={...ball}; shotClub=c; strokes++;
-  flight={from:{...ball},P0,L:Land,t:0,dur:.8+carry/140,apex:c.apex*Math.min(1,mult)*(1-.35*SP.y),carry,shape,rm:rollMult(),perk,bs:c.bs*sf,xpMsg:gainXp(xpAmt)};
+  flight={from:{...ball},P0,L:Land,t:0,dur:.8+carry/140,apex:c.apex*Math.min(1,mult)*(1-.35*SP.y)*FX.launch,fitRoll:FX.roll,aimA:a,carry,shape,rm:rollMult(),perk,bs:c.bs*sf,xpMsg:gainXp(xpAmt)};
   frozen=[{...ball},{...aim},Land];
   trace=[{...ball}]; state='flight'; $('#toast').hidden=true;
   $('#log').innerHTML=`Power <b>${Math.round(p*100)}%</b> · Path <b>${Math.abs(r.path).toFixed(1)}° ${r.path>=0?'R':'L'}</b> · Pause <b>${Math.round(r.pause)}ms</b> · Speed <b>${r.speed.toFixed(2)}</b>`;
@@ -1059,7 +1117,7 @@ function land(){
   if(cac){const a=Math.random()*Math.PI*2,k=6+Math.random()*8;ball={x:cac.x+Math.sin(a)*(cac.r+1),y:cac.y+Math.cos(a)*(cac.r+1)};SFX.land('trees');
     const s2=surfaceAt(ball.x,ball.y);if(s2==='water'||s2==='ob'||s2==='gorse'){ball={...L}}
     else{vel={x:Math.sin(a)*Math.sqrt(2*fricOf(s2)*k),y:Math.cos(a)*Math.sqrt(2*fricOf(s2)*k)};flight.head=head+' · <b>off a cactus!</b>';state='roll';flight.bounce=null;return}}
-  let d=f.carry*shotClub.roll*SURF[s].land*Math.max(0,f.rm)*(f.perk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1)*(s==='green'&&H.hardGreens?2:1)*(s==='green'&&f.perk==='hold'?.5:1), sgn=1, hd=head;
+  let d=f.carry*shotClub.roll*SURF[s].land*Math.max(0,f.rm)*(f.fitRoll||1)*(f.perk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1)*(s==='green'&&H.hardGreens?2:1)*(s==='green'&&f.perk==='hold'?.5:1), sgn=1, hd=head;
   if(f.rm<0&&(s==='green'||s==='fringe')){d=f.carry*.06*-f.rm*f.bs*(f.perk==='spinback'?1.5:1);sgn=-1;hd+=' · <b>spun back</b>'}
   const v=Math.sqrt(2*fricOf(s)*d)*sgn;
   vel={x:dx/m*v,y:dy/m*v}; flight.head=hd; state='roll';
@@ -1105,7 +1163,17 @@ function stepRoll(dt){
   if(dp<cap&&!lipped){lipped=true;SFX.lip();const a=(Math.random()-.5)*50*RAD,c=Math.cos(a),sn=Math.sin(a);vel={x:(vel.x*c-vel.y*sn)*.7,y:(vel.x*sn+vel.y*c)*.7}}
   if(dp>.2)lipped=false;
 }
-let windBase=null;
+let windBase=null, rangeWind=false;
+const onRange=()=>mode==='practice'&&H&&H.range;
+function startRange(){startGame({mode:'practice',course:[RANGE],hole:0,range:true})}
+// On the range every ball comes back to the tee, and the toast reads like a launch monitor
+function rangeDone(head,how){
+  const f=flight,a=f.aimA??0,ux=Math.sin(a),uy=Math.cos(a),dx=ball.x-shotStart.x,dy=ball.y-shotStart.y;
+  const total=dx*ux+dy*uy,off=dx*uy-dy*ux,side=Math.abs(off)<.5?'dead straight':`${Math.abs(off).toFixed(0)} yds ${off>0?'right':'left'}`;
+  const xl=xpLine();
+  ball={x:0,y:1};strokes=0;state='ready';frozen=null;clearUndo();aim=defaultAim();hud();
+  toast(how==='ob'?`${head}<br><b>Out of the range.</b> Ball's back on the mat.`:`${head}<br>Total <b>${Math.round(total)} yds</b> · ${side} · peak ${Math.round(f.apex||0)} yds${xl}`);
+}
 function setWind(a,m){wind={x:Math.sin(a)*m,y:Math.cos(a)*m,mph:m};$('#windMph').textContent=m;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
 // On the links the wind shifts between shots
 function gust(){if(!H.gusty||!windBase)return'';const old=wind.mph,a=windBase.a+(Math.random()-.5)*70*RAD,m=Math.max(2,Math.round(windBase.m*(.55+Math.random()*.9)));setWind(a,m);
@@ -1124,6 +1192,7 @@ const tiltK=()=>.12*(1.3-eqStats().C*.03);
 const capR=()=>{const pid=bagOf('putter');return .09*(1+statsOf(pid).F*.02)*(DEF[pid].perk==='capture'?1.4:1)};
 const xpLine=()=>flight&&flight.xpMsg?`<br><span class="reward">${flight.xpMsg}</span>`:'';
 function stopBall(head){
+  if(onRange()&&!flight.putt)return rangeDone(head);
   const moved=dist(shotStart,ball);
   if(flight.putt){const left=dist(ball,PIN);flight.xpMsg=gainXp(left<1?10:4)}
   const xl=xpLine(); readyAgain();
@@ -1138,6 +1207,7 @@ function dropFromWater(from,head,kind){
   toast(`${head}<br><b>${kind==='gorse'?'Into the gorse.</b> Unplayable, penalty drop, +1 stroke.':'Splash.</b> Penalty drop, +1 stroke.'}${xl}`);
 }
 function penalty(head){
+  if(onRange())return rangeDone(head,'ob');
   ball={...shotStart}; strokes++; const xl=xpLine(); readyAgain();
   toast(`${head}<br><b>Out of bounds.</b> +1 stroke, replay from where you hit.${xl}`);
 }
@@ -1455,18 +1525,63 @@ $('#undo').onclick=()=>{
 };
 
 /* ---------- Bag, pro shop & collection ---------- */
-let sheetTab='bag', swapOpen=null, wipeArm=false;
+let sheetTab='bag', swapOpen=null, wipeArm=false, fitOpen=null, fitPick=null, tradeSel=[];
 let sheetFromMenu=false;
-function openSheet(tab,fromMenu=false){if(state==='flight'||state==='roll')return;sheetFromMenu=fromMenu;if(fromMenu)$('#menu').hidden=true;sheetTab=tab||'bag';swapOpen=null;$('#sheet').hidden=false;renderSheet()}
+function openSheet(tab,fromMenu=false){if(state==='flight'||state==='roll')return;sheetFromMenu=fromMenu;if(fromMenu)$('#menu').hidden=true;sheetTab=tab||'bag';swapOpen=null;fitOpen=null;fitPick=null;$('#sheet').hidden=false;renderSheet()}
 $('#sheetClose').onclick=()=>{$('#sheet').hidden=true;if(sheetFromMenu){openMenu('home');return}if(state==='ready'&&mode!=='pnp'){ci=Math.min(ci,PUTTER);aim=defaultAim()}hud()};
 $('#bagBtn').onclick=()=>openSheet('bag');
 $('#clubBtn').onclick=()=>openSheet('bag');
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{sheetTab=b.dataset.tab;swapOpen=null;renderSheet()});
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{sheetTab=b.dataset.tab;swapOpen=null;fitOpen=null;fitPick=null;renderSheet()});
 const canTune=o=>isCapped(o)&&o.xp>=needXp(o.lvl);
 const fmtStat=v=>Number.isInteger(v)?v:v.toFixed(1);
 function statBars(id){
-  const s=statsOf(id,ownLvl(id)),t=DEF[id].t;
-  return `<div class="stats">${STAT_KEYS.filter(k=>t!=='putter'||k==='C'||k==='F').map(k=>`<div class="st"><span>${STAT_NAME[k]}</span><div class="bar"><i style="width:${s[k]/20*100}%"></i></div><b>${fmtStat(s[k])}</b></div>`).join('')}</div>`;
+  const s=statsOf(id,ownLvl(id)),b=statsOf(id,ownLvl(id),false),t=DEF[id].t;
+  return `<div class="stats">${STAT_KEYS.filter(k=>t!=='putter'||k==='C'||k==='F').map(k=>{const dv=Math.round((s[k]-b[k])*10)/10;return `<div class="st"><span>${STAT_NAME[k]}</span><div class="bar"><i style="width:${Math.min(100,s[k]/20*100)}%"></i></div><b>${fmtStat(s[k])}${dv?`<span class="dlt ${dv>0?'up':'dn'}">${dv>0?'+':''}${fmtStat(dv)}</span>`:''}</b></div>`}).join('')}</div>`;
+}
+const fitLabel=f=>`<span style="color:${FIT_TIER[f.t].col}">${fitName(f)}</span>`;
+function fitRow(id){
+  const m=(save.fitOn||{})[id]||{};
+  return `<div class="fitrow">${fitSlots(id).map(sl=>{const f=fitById(m[sl]);return `<span class="fchip"${f?` style="color:${FIT_TIER[f.t].col};border-color:${FIT_TIER[f.t].col}55"`:''}><i>${FIT_SLOT_NAME[sl]}</i>${f?fitName(f).replace(/ (head|shaft|grip|putter head|putter grip)$/,''):'Stock'}</span>`}).join('')}</div>`;
+}
+// Fitting bench: pick a part for a slot, see before and after, then fit it
+function benchHTML(id){
+  const putter=DEF[id].t==='putter',m=save.fitOn[id]||{};
+  let h=`<div class="bench">`;
+  for(const sl of fitSlots(id)){
+    const cur=fitById(m[sl]),opts=save.fits.filter(f=>FIT_STYLES[f.s].slot===sl&&!!FIT_STYLES[f.s].putter===putter&&f.id!==m[sl]).sort((a,b)=>b.t-a.t||fitName(a).localeCompare(fitName(b)));
+    h+=`<div class="bench-slot"><div class="bench-h"><span>${FIT_SLOT_NAME[sl]} · ${cur?fitLabel(cur)+` <small>${FIT_TIER[cur.t].n}</small>`:'Stock'}</span>${cur?`<button class="sbtn" data-act="unfit" data-id="${id}" data-sl="${sl}">Remove</button>`:''}</div>`;
+    if(cur)h+=`<div class="blurb">${fitEffects(cur)}</div>`;
+    if(!opts.length)h+=`<div class="blurb">No spare ${putter?'putter ':''}${sl}s. They drop from reward bags, the trade-in, or Common ones from the pro shop.</div>`;
+    for(const f of opts){const w=fitWhere(f.id);h+=`<button class="part" data-act="pickfit" data-id="${id}" data-f="${f.id}" aria-pressed="${fitPick&&fitPick.f===f.id}">${fitLabel(f)}<em>${FIT_TIER[f.t].n}${w?` · on ${TYPE_NAME[DEF[w.cid].t]}`:''}</em><small>${fitEffects(f)}</small></button>`}
+    if(fitPick&&fitPick.id===id&&fitPick.sl===sl)h+=compareHTML(id,sl,fitPick.f);
+    h+=`</div>`;
+  }
+  return h+`<div class="acts"><button class="sbtn" data-act="range">Try it on the range</button><button class="sbtn" data-act="fitclose">Close bench</button></div></div>`;
+}
+function compareHTML(id,sl,fid){
+  save.fitOn[id]=save.fitOn[id]||{};
+  const lv=ownLvl(id),bef=statsOf(id,lv),aft=statsOf(id,lv,true,{[sl]:fid}),t=DEF[id].t,f=fitById(fid),w=fitWhere(fid);
+  const rows=STAT_KEYS.filter(k=>t!=='putter'||k==='C'||k==='F').map(k=>{const dv=Math.round((aft[k]-bef[k])*10)/10;return `<span>${STAT_NAME[k]}</span><span></span><span>${fmtStat(bef[k])} → ${fmtStat(aft[k])}</span><span class="${dv>0?'up':dv<0?'dn':'eq'}">${dv>0?'+':''}${dv?fmtStat(dv):'·'}</span>`}).join('');
+  const fx0=fitFx(id),old=save.fitOn[id][sl];save.fitOn[id][sl]=fid;const fx1=fitFx(id);if(old)save.fitOn[id][sl]=old;else delete save.fitOn[id][sl];
+  const ex=[];if(Math.abs(fx1.launch-fx0.launch)>.001)ex.push(`Flight ${Math.round((fx1.launch-1)*100)>=0?'+':''}${Math.round((fx1.launch-1)*100)}%`);if(Math.abs(fx1.roll-fx0.roll)>.001)ex.push(`Roll ${Math.round((fx1.roll-1)*100)>=0?'+':''}${Math.round((fx1.roll-1)*100)}%`);if(Math.abs(fx1.bias-fx0.bias)>.01)ex.push(fx1.bias?`${fx1.bias<0?'Draw':'Fade'} bias ${Math.abs(fx1.bias).toFixed(1)}°`:'No shape bias');
+  return `<div class="cmp">${rows}</div>${ex.length?`<div class="blurb">${ex.join(' · ')}</div>`:''}<div class="acts"><button class="sbtn pri" data-act="dofit" data-id="${id}" data-sl="${sl}" data-f="${fid}">Fit ${esc(fitName(f))}${w?` (moves it off your ${TYPE_NAME[DEF[w.cid].t]})`:''}</button></div>`;
+}
+const tradeTier=()=>{const fs=tradeSel.map(fitById).filter(Boolean);if(fs.length<3)return null;return Math.min(4,Math.round(fs.reduce((a,f)=>a+f.t,0)/3))};
+function fitTabHTML(){
+  const all=[...save.fits].sort((a,b)=>b.t-a.t||fitName(a).localeCompare(fitName(b)));
+  let h=`<div class="cc"><div class="cc-top"><div class="cc-name">Fittings</div><span class="chip">${all.length} part${all.length===1?'':'s'}</span></div>
+    <div class="blurb">Every club has a head, shaft and grip slot (putters: head and grip). Parts trade one stat for another, so pick what suits your game. Rarer parts give a bigger boost for a smaller cost. Fit them from the <b>Fittings</b> button on any club in your bag.</div>
+    <div class="acts"><button class="sbtn pri" data-act="range">Driving range</button><button class="sbtn" data-act="rwind">Range wind: ${rangeWind?'On':'Off'}</button></div></div>`;
+  const bt=tradeTier();
+  h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Trade-in</div><span class="chip">${tradeSel.length}/3 picked</span></div>
+    <div class="blurb">Pick any 3 parts and swap them for 1 random part. Its rarity is the average of the three, with a 25% chance of one tier better.</div>
+    ${bt!=null?`<div class="odds">You'll get: <span style="color:${FIT_TIER[bt].col}">${FIT_TIER[bt].n}</span>${bt<4?` (75%) or <span style="color:${FIT_TIER[bt+1].col}">${FIT_TIER[bt+1].n}</span> (25%)`:' (guaranteed)'}</div>`:''}
+    <div class="acts"><button class="sbtn pri" data-act="trade" ${bt!=null?'':'disabled'}>Trade in 3 parts</button>${tradeSel.length?'<button class="sbtn" data-act="tradeclear">Clear</button>':''}</div></div>`;
+  if(!all.length)return h+`<div class="blurb">No parts yet. They're rare drops from reward bags (about 1 in 12), and the pro shop sells Common ones.</div>`;
+  for(let t=4;t>=0;t--){const fs=all.filter(f=>f.t===t);if(!fs.length)continue;
+    h+=`<div class="group-h" style="color:${FIT_TIER[t].col}">${FIT_TIER[t].n} · ${fs.length}</div>`+fs.map(f=>{const w=fitWhere(f.id),on=tradeSel.includes(f.id);
+      return `<button class="part" data-act="tsel" data-f="${f.id}" aria-pressed="${on}">${fitLabel(f)}<em>${on?'Picked':w?`On ${TYPE_NAME[DEF[w.cid].t]}`:'Spare'}</em><small>${fitEffects(f)}</small></button>`}).join('')}
+  return h;
 }
 function clubCard(id,mode){
   const d=DEF[id],o=save.owned[id],R=RAR[d.r];
@@ -1478,11 +1593,13 @@ function clubCard(id,mode){
     h+=`<div class="lvrow"><span class="lv">Lv ${o.lvl}</span><div class="bar${full?' cap':''}"><i style="width:${max?100:Math.min(100,o.xp/needXp(o.lvl)*100)}%"></i></div><span>${max?'Max level':full?'Needs a tune-up':`${o.xp}/${needXp(o.lvl)} XP`}</span></div>`;
   }
   h+=statBars(id);
+  if(o&&mode==='bag')h+=fitRow(id);
   if(d.perkText)h+=`<div class="perk">Perk: ${d.perkText}</div>`;
   if(d.blurb)h+=`<div class="blurb">${d.blurb}</div>`;
   const acts=[];
   if(o){
     if(canTune(o)){const c=CAPS[o.lvl],ok=save.kits>=c.kits&&save.coins>=c.coins;acts.push(`<button class="sbtn pri" data-act="tune" data-id="${id}" ${ok?'':'disabled'}>Tune up to Lv ${o.lvl+1} · ${c.kits} kit${c.kits>1?'s':''} + ${c.coins} coins</button>`)}
+    if(mode==='bag')acts.push(`<button class="sbtn${fitOpen===id?' pri':''}" data-act="fit" data-id="${id}">Fittings</button>`);
     if(mode==='bag'){const n=DEFS.filter(x=>x.t===d.t&&x.id!==id&&save.owned[x.id]).length;acts.push(`<button class="sbtn" data-act="swap" data-t="${d.t}" ${n?'':'disabled'}>${n?`Swap (${n} more)`:`Only ${TYPE_NAME[d.t].toLowerCase()} you own`}</button>`)}
     else if(save.bag[d.t]!==id)acts.push(`<button class="sbtn" data-act="equip" data-id="${id}">Put in bag</button>`);
     else acts.push(`<span class="blurb">In your bag</span>`);
@@ -1492,15 +1609,17 @@ function clubCard(id,mode){
   else if(SRC[d.src])acts.push(`<span class="blurb">Locked · ${d.srcText||SRC[d.src]}</span>`);
   if(!o&&SHARD_CLUBS.includes(id)){const n=save.shards[id]||0;h+=`<div class="lvrow"><span>Shards</span><div class="bar"><i style="width:${n/SHARDS_NEEDED*100}%;background:#c58af0"></i></div><span>${n}/${SHARDS_NEEDED}</span></div>`}
   if(acts.length)h+=`<div class="acts">${acts.join('')}</div>`;
+  if(mode==='bag'&&fitOpen===id)h+=benchHTML(id);
   if(mode==='bag'&&swapOpen===d.t)h+=`<div class="swap">${DEFS.filter(x=>x.t===d.t&&x.id!==id&&save.owned[x.id]).map(x=>`<div class="swap-row"><span style="color:${RAR[x.r].col}">${x.n} · Lv ${save.owned[x.id].lvl}</span><button class="sbtn" data-act="equip" data-id="${x.id}">Equip</button></div>`).join('')}</div>`;
   return h+'</div>';
 }
 function renderSheet(){
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===sheetTab));
   $('#coins').textContent=save.coins;$('#kits').textContent=save.kits;$('#hcpChip').textContent=hcp()==null?'36*':fmtH(hcp());
-  $('.sheet-title').textContent=sheetTab==='shop'?'Pro shop':sheetTab==='all'?'Collection':'Your bag';
+  $('.sheet-title').textContent=sheetTab==='shop'?'Pro shop':sheetTab==='all'?'Collection':sheetTab==='fit'?'Fittings':'Your bag';
   let h='';
   if(sheetTab==='bag')h=TYPES.map(t=>clubCard(save.bag[t],'bag')).join('');
+  else if(sheetTab==='fit')h=fitTabHTML();
   else if(sheetTab==='shop'){
     h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. They also drop from reward bags and rival rematches.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
     h=`<div class="cc hcp-card"><div class="cc-top"><div class="cc-name">Your handicap: ${hcpLabel()}</div></div><div class="blurb">Lower your handicap to unlock better stock. It's worked out from your best 3 of your last 5 solo rounds or Club Championships.</div></div>`+h;
@@ -1513,6 +1632,7 @@ function renderSheet(){
       h+=`<div class="group-h">${open?'':'🔒 '}${label}</div>`+items.map(d=>clubCard(d.id,'shop')).join('');
     }
     if(coming)h+=`<div class="blurb">${coming} more club${coming>1?'s':''} arriving as you beat the members of Ashby Green.</div>`;
+    h+=`<div class="group-h">Fittings · Common parts</div><div class="blurb">Better parts only come from reward bags and the trade-in.</div>`+Object.entries(FIT_STYLES).map(([k,S])=>`<div class="cc"><div class="cc-top"><div class="cc-name">${S.n}</div><span class="rar" style="color:${FIT_TIER[0].col}">Common</span></div><div class="blurb">${S.blurb} ${fitEffects({s:k,t:0})}</div><div class="acts"><button class="sbtn pri" data-act="buyfit" data-s="${k}" ${save.coins>=FIT_PRICE?'':'disabled'}>Buy · ${FIT_PRICE} coins</button></div></div>`).join('');
   }else{
     h+=`<div class="blurb">${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs collected</div>`;
     for(const t of TYPES)h+=`<div class="group-h">${TYPE_NAME[t]}</div>`+DEFS.filter(d=>d.t===t).map(d=>clubCard(d.id,'all')).join('');
@@ -1527,7 +1647,21 @@ $('#sheetBody').addEventListener('click',e=>{
     if(!wipeArm){wipeArm=true;setTimeout(()=>{wipeArm=false;if(!$('#sheet').hidden&&sheetTab==='all')renderSheet()},3000);renderSheet();return}
     wipeArm=false;save=freshSave();clearUndo();persist();renderSheet();return;
   }
-  if(act==='swap')swapOpen=swapOpen===b.dataset.t?null:b.dataset.t;
+  if(act==='fit'){fitOpen=fitOpen===id?null:id;fitPick=null;swapOpen=null}
+  else if(act==='fitclose'){fitOpen=null;fitPick=null}
+  else if(act==='pickfit'){const sl=FIT_STYLES[fitById(b.dataset.f).s].slot;fitPick=fitPick&&fitPick.f===b.dataset.f?null:{id,sl,f:b.dataset.f}}
+  else if(act==='dofit'){const fid=b.dataset.f,w=fitWhere(fid);if(w)delete save.fitOn[w.cid][w.sl];(save.fitOn[id]=save.fitOn[id]||{})[b.dataset.sl]=fid;fitPick=null;tradeSel=tradeSel.filter(x=>x!==fid);clearUndo();SFX.loot()}
+  else if(act==='unfit'){delete save.fitOn[id][b.dataset.sl];fitPick=null;clearUndo()}
+  else if(act==='buyfit'){if(save.coins<FIT_PRICE)return;save.coins-=FIT_PRICE;const f=makeFit(0,b.dataset.s);clearUndo();persist();renderSheet();showLoot('Pro shop',[{cls:'fit0',txt:`${fitName(f)} · Common fitting`,tag:'BOUGHT'}]);return}
+  else if(act==='range'){$('#sheet').hidden=true;fitOpen=null;fitPick=null;persist();startRange();return}
+  else if(act==='rwind'){rangeWind=!rangeWind}
+  else if(act==='tsel'){const fid=b.dataset.f;tradeSel=tradeSel.includes(fid)?tradeSel.filter(x=>x!==fid):tradeSel.length<3?[...tradeSel,fid]:tradeSel}
+  else if(act==='tradeclear')tradeSel=[];
+  else if(act==='trade'){const bt=tradeTier();if(bt==null)return;
+    for(const fid of tradeSel){const w=fitWhere(fid);if(w)delete save.fitOn[w.cid][w.sl];save.fits=save.fits.filter(f=>f.id!==fid)}
+    const up=bt<4&&Math.random()<.25,f=makeFit(bt+(up?1:0));tradeSel=[];clearUndo();persist();renderSheet();
+    showLoot(up?'Trade-in · upgraded!':'Trade-in',[{cls:'fit'+f.t,txt:`${fitName(f)} · ${FIT_TIER[f.t].n} fitting`,tag:up?'UPGRADE':'NEW'},{cls:'dup',txt:fitEffects(f)}]);return}
+  else if(act==='swap')swapOpen=swapOpen===b.dataset.t?null:b.dataset.t;
   else if(act==='equip'){save.bag[DEF[id].t]=id;swapOpen=null}
   else if(act==='buy'){const d=DEF[id];if(save.coins<d.price||!tierOk(d)||!inStock(d))return;save.coins-=d.price;save.owned[id]={lvl:1,xp:0,tuned:[]};save.bag[d.t]=id;clearUndo()}
   else if(act==='kit'){if(save.coins<KIT_PRICE)return;save.coins-=KIT_PRICE;save.kits++;clearUndo()}
@@ -1577,7 +1711,7 @@ if(window.ResizeObserver)new ResizeObserver(()=>{const r=cv.getBoundingClientRec
 // Hole flyover: start over the green, follow the hole back to the tee, then settle on the normal view
 let fly=null,flyPending=false,lastFlyKey='';
 function startFly(){
-  if(!SET.flyover||RM){return}
+  if(!SET.flyover||RM||H.range){return}
   const key=`${mode}:${holeIdx}`;if(mode==='practice'&&key===lastFlyKey)return;lastFlyKey=key;
   fly={t:0,dur:3.4};
   $('#flyName').textContent=`Hole ${holeIdx+1} · ${H.name}`;$('#flyMeta').textContent=`Par ${H.par} · ${H.len} yds · ${wind.mph} mph wind`;
@@ -1662,6 +1796,8 @@ function draw(){
   ctx.fillStyle='#f4f4f0';ctx.beginPath();ctx.arc(-4,2,.7,0,7);ctx.arc(4,2,.7,0,7);ctx.fill();
   // yardage stakes
   for(const k of H.stakes){ctx.fillStyle=k.col;ctx.beginPath();ctx.arc(k.x,k.y,Math.max(1,3*px),0,7);ctx.fill()}
+  if(H.range){ctx.lineWidth=1.5*px;for(let y=50;y<=400;y+=50){ctx.strokeStyle=y%100?'rgba(255,255,255,.35)':'rgba(255,255,255,.7)';ctx.setLineDash([6*px,5*px]);ctx.beginPath();ctx.moveTo(-H.hw,y);ctx.lineTo(H.hw,y);ctx.stroke()}ctx.setLineDash([]);
+    for(const [y,col] of [[100,'#ec7a55'],[150,'#f2c14e'],[200,'#6fb3e8'],[250,'#c58af0'],[300,'#8fd88a']]){ctx.fillStyle='rgba(255,255,255,.25)';ctx.beginPath();ctx.ellipse(y%100?-14:14,y,6,4.5,0,0,7);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=1.6*px;ctx.stroke();ctx.fillStyle=col;ctx.fillRect((y%100?-14:14)-.15,y,.3,4)}}
   // water
   for(const w of H.water){ell(w,1.06);ctx.fillStyle=P.waterE;ctx.fill()}
   for(const w of H.water){ell(w);ctx.fillStyle=H.theme==='ice'?'#3f9fb0':'#2b77a3';ctx.fill();ell({x:w.x-w.rx*.2,y:w.y+w.ry*.15,rx:w.rx*.55,ry:w.ry*.6});ctx.fillStyle=H.theme==='ice'?'#5bbac6':'#3b8ebd';ctx.fill()}
@@ -1709,6 +1845,9 @@ function draw(){
     ctx.strokeStyle='#5d9a52';ctx.lineWidth=.35;ctx.beginPath();ctx.arc(t.x,t.y,t.r*.55,0,7);ctx.stroke();ctx.fillStyle='#f6d2e0';ctx.beginPath();ctx.arc(t.x+t.r*.2,t.y+t.r*.25,.35,0,7);ctx.fill()}
   for(const t of H.treesList){ctx.fillStyle=H.theme==='ice'?'rgba(40,60,90,.3)':'rgba(10,30,15,.35)';ctx.beginPath();ctx.arc(t.x+1.2,t.y-1.5,t.r,0,7);ctx.fill()}
   for(const t of H.treesList)drawTree(t,H.theme);
+  if(H.range){ctx.save();ctx.setTransform(d,0,0,d,0,0);ctx.font='800 11px "Nunito Sans",system-ui,sans-serif';ctx.textAlign='left';
+    for(let y=50;y<=400;y+=50){const sx=W/2+(-H.hw+2-cam.x)*s,sy=H2/2-(y-cam.y)*s;if(sy<-10||sy>H2+10)continue;const t=`${y}`;const tw=ctx.measureText(t).width+8;ctx.fillStyle='rgba(14,29,21,.75)';ctx.beginPath();ctx.roundRect(sx,sy-8,tw,16,5);ctx.fill();ctx.fillStyle='#eef3e4';ctx.fillText(t,sx+4,sy+4)}
+    ctx.restore()}
   // cup
   ctx.fillStyle='#10150f';ctx.beginPath();ctx.arc(PIN.x,PIN.y,Math.max(.065,3.5*px),0,7);ctx.fill();
   // aim
@@ -2724,7 +2863,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.8';
+const GAME_VERSION='0.9';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3071,6 +3210,9 @@ function openMenu(screen){
       ${sec('Clubs and progress',`<p>Good swings earn <b>XP</b> for the club you used. At Lv 4 and Lv 7 a club needs a <b>tuning kit</b> to keep going.</p>
         <p>Your <b>handicap</b> comes from your best solo rounds, and a lower handicap unlocks better stock in the pro shop.</p>
         <p>Beat rivals in <b>Story</b> mode and finish rounds at par or better for <b>reward bags</b>. Collect 5 shards to forge a rival's Epic club.</p>`)}
+      ${sec('Fittings',`<p>Every club has a <b>head</b>, <b>shaft</b> and <b>grip</b> slot (putters have a head and a grip). Each part boosts one thing and costs you another. A Max head adds power but loses control, and a Slim grip pulls your shots into a draw.</p>
+        <p>Parts come in five rarities from Common to Legendary. Rarer parts give a bigger boost for a smaller cost. They're rare drops from reward bags, and the pro shop sells Common ones.</p>
+        <p>In the <b>Fittings</b> tab, trade 3 parts for 1 random part with the average rarity of the three, or one tier better 25% of the time. Test your setup on the <b>driving range</b> in Practice.</p>`)}
       <button id="mHome" class="mbtn pri"><b>Got it</b><span>Back to the menu</span></button>`;
     $('#mBack').onclick=$('#mHome').onclick=()=>openMenu('home');
     return;
@@ -3148,9 +3290,11 @@ function openMenu(screen){
   if(screen==='practice'){
     b.innerHTML=`<div class="screen-h"><div class="sheet-title">Practice</div><button id="mBack" class="ghost">Back</button></div>
       <div class="blurb">Pick a hole. Your own bag, unlimited undo, no coins or XP.</div>
+      <button id="mRange" class="mbtn"><b>Driving range</b><span>Hit balls with your setup. Carry, total and how far off line, every shot.</span></button>
       ${Object.entries(COURSES).filter(([k])=>courseOpen(k)).map(([key,C])=>`<div class="group-h">${C.name}</div>`+C.holes.map((h,k)=>`<button class="hrow" data-c="${key}" data-h="${k}"><span class="n">${k+1}</span><span class="t">${esc(h.name)}</span><span class="m">Par ${h.par} · ${h.len} yds</span></button>`).join('')).join('')}`;
     $('#mBack').onclick=()=>openMenu('home');
     b.querySelectorAll('.hrow').forEach(x=>x.onclick=()=>startGame({mode:'practice',hole:+x.dataset.h,course:COURSES[x.dataset.c].holes}));
+    $('#mRange').onclick=()=>startRange();
     return;
   }
   const resume=gameOn&&state!=='done';
@@ -3168,7 +3312,7 @@ function openMenu(screen){
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
     ${MB('mPractice','practice','Practice','Pick any hole. Unlimited undo, no rewards.')}
     ${MB('mCreate','create','Course creator',CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes')}
-    ${MB('mBag','bag','Bag &amp; pro shop',`${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs`)}
+    ${MB('mBag','bag','Bag, fittings &amp; shop',`${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs${save.fits.length?` · ${save.fits.length} part${save.fits.length>1?'s':''}`:''}`)}
     <div class="mgrid">
       <button id="mHelp" class="mbtn small${seenHelp()?'':' pri'}"><b>How to play</b><span>${seenHelp()?'Controls and tips':'New? Start here'}</span></button>
       <button id="mSettings" class="mbtn small"><b>Settings</b><span>Sound, left-handed, flyovers</span></button>

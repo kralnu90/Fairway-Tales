@@ -13,8 +13,9 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
 - **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
 - **Pass & play:** 2 to 4 players on one phone.
-- **Practice:** any hole, unlimited undo.
+- **Practice:** any hole, unlimited undo, plus a driving range to test your setup.
 - **Course creator:** build holes, make courses and share them with codes.
+- **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
 - **Bag & pro shop:** 40 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
@@ -30,6 +31,15 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.9 · 26 October 2026
+- **Fittings.** Every club now has a head, shaft and grip slot (putters have a head and a grip). There are 14 kinds of part: Max, Lite, Forged and Cavity heads; Stiff, Soft and Tour shafts; Slim (draw bias), Oversize (fade bias) and Tacky grips; plus Blade and Mallet putter heads and Pistol and Fat putter grips.
+- **Five rarities,** Common to Legendary. Rarer parts give a bigger boost for a smaller cost.
+- **Rare drops:** about 1 in 12 reward bags hold a part. Championship and qualifier bags give better odds.
+- **Trade-in:** swap any 3 parts for 1 random part. Its rarity is the average of the three, with a 25% chance of one tier better.
+- **Fitting bench:** tap Fittings on any club in your bag to see before and after stats, then fit, move or remove parts.
+- **Driving range** in Practice: every ball comes back to the tee and you see carry, total, how far off line and peak height. Wind is off by default, and you can turn it on in the Fittings tab.
+- **Pro shop** sells Common parts for 250 coins.
 
 ### 0.8 · 26 October 2026
 - **Chapter 3: Sun Mesa.** Drive to the desert for the County Championship. Meet Dolores Vance, beat Ricky Salazar, Dr Priya Shah and Big Wes Calder, then take the title from Celia Ashcombe.
