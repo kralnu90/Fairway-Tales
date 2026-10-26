@@ -13,7 +13,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
 - **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
 - **Pass & play:** 2 to 4 players on one phone.
-- **Practice:** any hole, unlimited undo, plus a driving range to test your setup.
+- **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
+- **Play a hole:** any hole, unlimited undo.
 - **Course creator:** build holes, make courses and share them with codes.
 - **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
 - **Bag & pro shop:** 40 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
@@ -38,7 +39,10 @@ There's a full guide on the main menu too.
 - **Rare drops:** about 1 in 12 reward bags hold a part. Championship and qualifier bags give better odds.
 - **Trade-in:** swap any 3 parts for 1 random part. Its rarity is the average of the three, with a 25% chance of one tier better.
 - **Fitting bench:** tap Fittings on any club in your bag to see before and after stats, then fit, move or remove parts.
-- **Driving range** in Practice: every ball comes back to the tee and you see carry, total, how far off line and peak height. Wind is off by default, and you can turn it on in the Fittings tab.
+- **Practice ground,** its own spot on the main menu:
+  - **Driving range:** every ball comes back to the mat with carry, total, how far off line and peak height. Calm or breezy.
+  - **Chipping green:** partial shots from 15 to 70 yards off fairway, rough or bunker lies. One ball at a time, scored on how close it finishes (average, best, chip-ins).
+  - **Putting green:** hole out from random spots on four surfaces: Ashby Green (medium), Gullhaven Links (big and bumpy), Sun Mesa (slow and grainy) and Frostpeak (lightning quick). Pick short, medium, long or mixed distances. Tracks putts per hole and one-putts.
 - **Pro shop** sells Common parts for 250 coins.
 
 ### 0.8 · 26 October 2026

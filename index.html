@@ -143,6 +143,8 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .dlt{font-size:10px;font-weight:800;margin-left:2px}.dlt.up{color:var(--good)}.dlt.dn{color:var(--hazard)}
 .st.fx{grid-template-columns:76px 1fr 44px}
 .odds{font-size:13px;font-weight:800;color:var(--chalk)}
+.pg .ed-row{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.pg-seg{display:flex;flex-wrap:wrap;gap:6px}.pg-seg button{flex:1 1 auto}
 .reward{color:var(--flag);font-weight:800}
 /* story overworld */
 .world{position:fixed;inset:0;z-index:18;background:#2c5a33;overflow:hidden;touch-action:none}
@@ -897,7 +899,18 @@ function autoBounds(h){
 }
 const RANGE={name:'Driving range',par:4,range:true,still:true,fw:[[0,25],[0,390]],hw:34,green:{x:0,y:445,rx:16,ry:11},water:[],bunkers:[],
   trees:[[12,-74,-42,20,440,3,5],[12,42,74,20,440,3,5]],bounds:{x0:-78,x1:78,y0:-14,y1:465},sl:{x:0,y:-.3,a:.1,b:.1}};
-HOLES.forEach((h,hi)=>prepHole(h,hi));prepHole(RANGE,130);
+const CHIP={name:'Chipping green',par:3,drill:'chip',still:true,fw:[[0,14],[0,62]],hw:13,green:{x:0,y:84,rx:15,ry:11},water:[],
+  bunkers:[{x:-21,y:86,rx:5,ry:7},{x:17,y:97,rx:7,ry:4},{x:20,y:72,rx:4,ry:4}],trees:[[8,-66,-38,10,130,3,5],[8,38,66,10,130,3,5]],bounds:{x0:-70,x1:70,y0:-14,y1:135},sl:{x:.3,y:-.4,a:.3,b:.25}};
+const PUTT={name:'Putting green',par:2,drill:'putt',still:true,fw:[[0,6],[0,10]],hw:5,green:{x:0,y:40,rx:24,ry:18},water:[],bunkers:[],trees:[[10,-50,-32,0,80,3,5],[10,32,50,0,80,3,5]],bounds:{x0:-55,x1:55,y0:-14,y1:80},sl:{x:.3,y:-.3,a:.3,b:.25}};
+// Putting surfaces: how fast they roll, how much they move, and which course they look like
+const PUTT_SURF={
+  ashby:{n:'Ashby Green',d:'Medium pace, gentle borrow',fric:2.2,m:.35,a:.28,b:.24,theme:'parkland'},
+  links:{n:'Gullhaven Links',d:'Big, bumpy and wild',fric:2.2,m:.55,a:.5,b:.45,theme:'links'},
+  mesa:{n:'Sun Mesa',d:'Slow and grainy',fric:2.9,m:.4,a:.25,b:.2,theme:'desert'},
+  frost:{n:'Frostpeak',d:'Lightning quick',fric:1.6,m:.35,a:.3,b:.26,theme:'ice'}};
+const PUTT_BANDS={short:{n:'Short',d:'3 to 10 ft',lo:3,hi:10},mid:{n:'Medium',d:'10 to 25 ft',lo:10,hi:25},long:{n:'Long',d:'25 to 50 ft',lo:25,hi:50},mix:{n:'Mixed',d:'3 to 50 ft',lo:3,hi:50}};
+const CHIP_LIES={mix:{n:'Mixed',d:'A bit of everything'},fairway:{n:'Fairway',d:'Tight lies, 20 to 70 yds'},rough:{n:'Rough',d:'Round the green'},sand:{n:'Bunker',d:'Greenside sand'}};
+HOLES.forEach((h,hi)=>prepHole(h,hi));prepHole(RANGE,130);prepHole(CHIP,131);prepHole(PUTT,132);
 LINKS.forEach((h,hi)=>prepHole(h,hi+50));
 MESA.forEach((h,hi)=>prepHole(h,hi+70));
 FROST.forEach((h,hi)=>prepHole(h,hi+90));
@@ -962,10 +975,10 @@ function loadHole(i){
   state='ready'; clearUndo(); gameOn=true;
   $('#end').hidden=true; $('#toast').hidden=true;
   useTurn(order[0]);
-  $('#hname').textContent=H.range?'Driving range':`Hole ${i+1} · ${H.name}`;
+  $('#hname').textContent=H.range||H.drill?H.name:`Hole ${i+1} · ${H.name}`;
   $('#par').textContent=H.par; $('#len').textContent=H.len;
   if(!H.gusty&&!H.calm&&!H.still){$('#windMph').textContent=ws;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
-  $('#log').textContent=H.range?'Every ball comes back to the tee. Open your bag to swap fittings between shots.':i===0?'Drag anywhere on the course to nudge your aim, or tap to jump it.':`Hole ${i+1}, par ${H.par}.`;
+  $('#log').textContent=H.drill==='chip'?'Get it close. Each ball is one shot, then a new one drops somewhere else.':H.drill==='putt'?'Hole out from wherever it stops. A new ball and pin after every hole.':H.range?'Every ball comes back to the tee. Open your bag to swap fittings between shots.':i===0?'Drag anywhere on the course to nudge your aim, or tap to jump it.':`Hole ${i+1}, par ${H.par}.`;
   endFly();
   if(players.length>1){flyPending=true;showPass(true)}else startFly();
   hud(); if(W)updateCam(0,true);
@@ -973,6 +986,7 @@ function loadHole(i){
 // Start a game. cfg: {mode, names?, hole?}
 let lastCfg={mode:'solo'};
 function startGame(cfg){
+  if(!cfg.drill)drill=null;
   lastCfg=cfg; mode=cfg.mode; mulls=(mode==='solo'||mode==='rival')?1:0;
   COURSE=cfg.course||HOLES; exitEditorUI();
   const names=cfg.mode==='pnp'?cfg.names:['You'];
@@ -1034,7 +1048,7 @@ function fmtDist(yd,putt){return putt||yd<20?`${Math.round(yd*3)} ft`:`${Math.ro
 function hud(){
   const c=club(), s=surfaceAt(ball.x,ball.y);
   $('#stroke').textContent=Math.min(strokes+1,99);
-  $('#total').textContent=onRange()?'Range':mode==='practice'?'Practice':mode==='rival'?rivalLine():toPar(playedStrokes()-playedPar());
+  $('#total').textContent=onRange()?'Range':onDrill()?drillStat():mode==='practice'?'Practice':mode==='rival'?rivalLine():toPar(playedStrokes()-playedPar());
   const ed=eqDef(),lv=lvlOf(ed.id);
   const P=players[pi],multi=players.length>1;
   $('#who').hidden=!multi;
@@ -1163,9 +1177,66 @@ function stepRoll(dt){
   if(dp<cap&&!lipped){lipped=true;SFX.lip();const a=(Math.random()-.5)*50*RAD,c=Math.cos(a),sn=Math.sin(a);vel={x:(vel.x*c-vel.y*sn)*.7,y:(vel.x*sn+vel.y*c)*.7}}
   if(dp>.2)lipped=false;
 }
-let windBase=null, rangeWind=false;
+let windBase=null, rangeWind=false, drill=null;
+const PG={lie:'mix',surf:'ashby',band:'mix'}; try{Object.assign(PG,JSON.parse(localStorage.getItem('fsl-pg'))||{})}catch(e){}
+const savePG=()=>{try{localStorage.setItem('fsl-pg',JSON.stringify(PG))}catch(e){}};
+const onDrill=k=>mode==='practice'&&H&&H.drill&&(!k||H.drill===k)&&drill;
+function startDrill(kind){
+  drill={kind,n:0,sum:0,best:null,ins:0,putts:0,one:0,ghosts:[]};
+  if(kind==='putt'){const S=PUTT_SURF[PG.surf]||PUTT_SURF.ashby;PUTT.theme=S.theme;PUTT.greenFric=S.fric;PUTT.name=`Putting green · ${S.n}`}
+  startGame({mode:'practice',course:[kind==='chip'?CHIP:PUTT],hole:0,drill:kind});
+  drillNext();
+}
+const rnd2=(a,b)=>a+Math.random()*(b-a);
+function drillNext(){
+  const G=H.green;
+  const pinIn=k=>{const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*k;return{x:G.x+Math.cos(a)*r*G.rx,y:G.y+Math.sin(a)*r*G.ry}};
+  let p=null;
+  if(H.drill==='chip'){
+    PIN=pinIn(.6);
+    const lie=PG.lie==='mix'?pickWeighted([{w:4,v:'fairway'},{w:4,v:'rough'},{w:2,v:'sand'}]).v:PG.lie;
+    for(let k=0;k<800&&!p;k++){let q;
+      if(lie==='fairway')q={x:rnd2(-H.hw+2,H.hw-2),y:rnd2(16,58)};
+      else if(lie==='sand'){const b=H.bunkers[Math.floor(Math.random()*H.bunkers.length)],a=Math.random()*7,r=Math.sqrt(Math.random())*.65;q={x:b.x+Math.cos(a)*r*b.rx,y:b.y+Math.sin(a)*r*b.ry}}
+      else{const a=rnd2(-2,2),r=rnd2(17,40);q={x:G.x+Math.sin(a)*r,y:G.y-Math.cos(a)*r}}
+      if(surfaceAt(q.x,q.y)===lie&&q.y>8)p=q}
+    drill.lie=lie;
+  }else{
+    const S=PUTT_SURF[PG.surf]||PUTT_SURF.ashby,a0=Math.random()*Math.PI*2;
+    H.sl={x:Math.sin(a0)*S.m,y:Math.cos(a0)*S.m,a:S.a*(Math.random()<.5?-1:1),b:S.b*(Math.random()<.5?-1:1)};
+    PIN=pinIn(.55);const B=PUTT_BANDS[PG.band]||PUTT_BANDS.mix;
+    for(let k=0;k<800&&!p;k++){const a=Math.random()*Math.PI*2,r=rnd2(B.lo,B.hi)/3,q={x:PIN.x+Math.sin(a)*r,y:PIN.y+Math.cos(a)*r};if(inEll(q.x,q.y,G,.93))p=q}
+  }
+  p=p||{x:0,y:H.drill==='chip'?40:G.y-5};
+  ball={...p};players[0].ball={...p};players[0].strokes=0;players[0].holed=false;players[0].pvUsed=0;strokes=0;
+  state='ready';trace=[];frozen=null;clearUndo();setSpin(0,0);ci=autoClub();aim=defaultAim();hud();if(W)updateCam(0,true);
+}
+function drillStat(){
+  if(!drill)return 'Practice';
+  if(drill.kind==='chip')return drill.n?`Avg ${Math.round(drill.sum/drill.n)} ft`:'Chipping';
+  return drill.n?`${(drill.putts/drill.n).toFixed(1)} putts`:'Putting';
+}
+// A chip is one ball: we measure how close it finished, then put a new ball down
+function chipDone(head,how){
+  const ft=how==='in'?0:Math.round(dist(ball,PIN)*3);
+  let line;
+  if(how==='ob')line='<b>Out of the practice area.</b> That one doesn\'t count.';
+  else{drill.n++;drill.sum+=ft;if(how==='in')drill.ins++;const nb=drill.best==null||ft<drill.best;if(nb)drill.best=ft;
+    drill.ghosts.push({x:ball.x,y:ball.y});if(drill.ghosts.length>8)drill.ghosts.shift();
+    line=how==='in'?'<b>Chipped in!</b>':`<b>${ft} ft</b> from the pin${nb&&drill.n>1?' · <b>new best</b>':''}`;
+    line+=`<br>${drill.n} ball${drill.n>1?'s':''} · avg ${Math.round(drill.sum/drill.n)} ft · best ${drill.best} ft${drill.ins?` · ${drill.ins} chip-in${drill.ins>1?'s':''}`:''}`;
+    if(how==='in'){SFX.cup();SFX.chime(false)}}
+  drillNext();
+  toast(`${head}<br>${line}`);
+}
+function puttHoled(){
+  const n=strokes;drill.n++;drill.putts+=n;if(n===1)drill.one++;
+  SFX.cup();if(n===1)SFX.chime(false);
+  const msg=`<b>${n===1?'One putt!':`Holed in ${n} putts`}</b><br>${drill.n} hole${drill.n>1?'s':''} · ${(drill.putts/drill.n).toFixed(1)} putts on average · ${drill.one} one-putt${drill.one===1?'':'s'}`;
+  drillNext();toast(msg);
+}
 const onRange=()=>mode==='practice'&&H&&H.range;
-function startRange(){startGame({mode:'practice',course:[RANGE],hole:0,range:true})}
+function startRange(){drill=null;startGame({mode:'practice',course:[RANGE],hole:0,range:true})}
 // On the range every ball comes back to the tee, and the toast reads like a launch monitor
 function rangeDone(head,how){
   const f=flight,a=f.aimA??0,ux=Math.sin(a),uy=Math.cos(a),dx=ball.x-shotStart.x,dy=ball.y-shotStart.y;
@@ -1193,6 +1264,7 @@ const capR=()=>{const pid=bagOf('putter');return .09*(1+statsOf(pid).F*.02)*(DEF
 const xpLine=()=>flight&&flight.xpMsg?`<br><span class="reward">${flight.xpMsg}</span>`:'';
 function stopBall(head){
   if(onRange()&&!flight.putt)return rangeDone(head);
+  if(onDrill('chip')&&!flight.putt)return chipDone(head);
   const moved=dist(shotStart,ball);
   if(flight.putt){const left=dist(ball,PIN);flight.xpMsg=gainXp(left<1?10:4)}
   const xl=xpLine(); readyAgain();
@@ -1208,6 +1280,7 @@ function dropFromWater(from,head,kind){
 }
 function penalty(head){
   if(onRange())return rangeDone(head,'ob');
+  if(onDrill('chip'))return chipDone(head,'ob');
   ball={...shotStart}; strokes++; const xl=xpLine(); readyAgain();
   toast(`${head}<br><b>Out of bounds.</b> +1 stroke, replay from where you hit.${xl}`);
 }
@@ -1229,6 +1302,8 @@ function cardHTML(){
 }
 function showEnd(html){const e=$('#end');e.innerHTML=html;e.hidden=false}
 function holeOut(){
+  if(onDrill('chip')&&!flight.putt){ball={...PIN};vel={x:0,y:0};if(flight)flight.bounce=null;return chipDone(`<b>${shotClub.n}</b>`,'in')}
+  if(onDrill('putt')){vel={x:0,y:0};if(flight)flight.bounce=null;return puttHoled()}
   ball={...PIN}; vel={x:0,y:0}; scores[holeIdx]=strokes; players[pi].holed=true;
   if(flight)flight.bounce=null;
   if(flight&&flight.putt)gainXp(20);
@@ -1378,7 +1453,7 @@ $('#cardBtn').onclick=()=>{
 let resetArm=0;
 $('#reset').onclick=()=>{
   const now=performance.now();
-  if(now-resetArm<2500){resetArm=0;$('#reset').textContent='Restart';if(mode==='practice')loadHole(holeIdx);else newRound();return}
+  if(now-resetArm<2500){resetArm=0;$('#reset').textContent='Restart';if(onDrill()){drill.n=drill.sum=drill.ins=drill.putts=drill.one=0;drill.best=null;drill.ghosts=[];drillNext();return}if(mode==='practice')loadHole(holeIdx);else newRound();return}
   resetArm=now;$('#reset').textContent='Tap again to restart';
   setTimeout(()=>{if(resetArm&&performance.now()-resetArm>=2400){resetArm=0;$('#reset').textContent='Restart'}},2500);
 };
@@ -1556,7 +1631,7 @@ function benchHTML(id){
     if(fitPick&&fitPick.id===id&&fitPick.sl===sl)h+=compareHTML(id,sl,fitPick.f);
     h+=`</div>`;
   }
-  return h+`<div class="acts"><button class="sbtn" data-act="range">Try it on the range</button><button class="sbtn" data-act="fitclose">Close bench</button></div></div>`;
+  return h+`<div class="acts"><button class="sbtn" data-act="fitclose">Close bench</button></div></div>`;
 }
 function compareHTML(id,sl,fid){
   save.fitOn[id]=save.fitOn[id]||{};
@@ -1571,7 +1646,7 @@ function fitTabHTML(){
   const all=[...save.fits].sort((a,b)=>b.t-a.t||fitName(a).localeCompare(fitName(b)));
   let h=`<div class="cc"><div class="cc-top"><div class="cc-name">Fittings</div><span class="chip">${all.length} part${all.length===1?'':'s'}</span></div>
     <div class="blurb">Every club has a head, shaft and grip slot (putters: head and grip). Parts trade one stat for another, so pick what suits your game. Rarer parts give a bigger boost for a smaller cost. Fit them from the <b>Fittings</b> button on any club in your bag.</div>
-    <div class="acts"><button class="sbtn pri" data-act="range">Driving range</button><button class="sbtn" data-act="rwind">Range wind: ${rangeWind?'On':'Off'}</button></div></div>`;
+    <div class="blurb">Try a new setup at the <b>Practice ground</b> on the main menu.</div></div>`;
   const bt=tradeTier();
   h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Trade-in</div><span class="chip">${tradeSel.length}/3 picked</span></div>
     <div class="blurb">Pick any 3 parts and swap them for 1 random part. Its rarity is the average of the three, with a 25% chance of one tier better.</div>
@@ -1653,8 +1728,6 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='dofit'){const fid=b.dataset.f,w=fitWhere(fid);if(w)delete save.fitOn[w.cid][w.sl];(save.fitOn[id]=save.fitOn[id]||{})[b.dataset.sl]=fid;fitPick=null;tradeSel=tradeSel.filter(x=>x!==fid);clearUndo();SFX.loot()}
   else if(act==='unfit'){delete save.fitOn[id][b.dataset.sl];fitPick=null;clearUndo()}
   else if(act==='buyfit'){if(save.coins<FIT_PRICE)return;save.coins-=FIT_PRICE;const f=makeFit(0,b.dataset.s);clearUndo();persist();renderSheet();showLoot('Pro shop',[{cls:'fit0',txt:`${fitName(f)} · Common fitting`,tag:'BOUGHT'}]);return}
-  else if(act==='range'){$('#sheet').hidden=true;fitOpen=null;fitPick=null;persist();startRange();return}
-  else if(act==='rwind'){rangeWind=!rangeWind}
   else if(act==='tsel'){const fid=b.dataset.f;tradeSel=tradeSel.includes(fid)?tradeSel.filter(x=>x!==fid):tradeSel.length<3?[...tradeSel,fid]:tradeSel}
   else if(act==='tradeclear')tradeSel=[];
   else if(act==='trade'){const bt=tradeTier();if(bt==null)return;
@@ -1711,7 +1784,7 @@ if(window.ResizeObserver)new ResizeObserver(()=>{const r=cv.getBoundingClientRec
 // Hole flyover: start over the green, follow the hole back to the tee, then settle on the normal view
 let fly=null,flyPending=false,lastFlyKey='';
 function startFly(){
-  if(!SET.flyover||RM||H.range){return}
+  if(!SET.flyover||RM||H.range||H.drill){return}
   const key=`${mode}:${holeIdx}`;if(mode==='practice'&&key===lastFlyKey)return;lastFlyKey=key;
   fly={t:0,dur:3.4};
   $('#flyName').textContent=`Hole ${holeIdx+1} · ${H.name}`;$('#flyMeta').textContent=`Par ${H.par} · ${H.len} yds · ${wind.mph} mph wind`;
@@ -1845,6 +1918,7 @@ function draw(){
     ctx.strokeStyle='#5d9a52';ctx.lineWidth=.35;ctx.beginPath();ctx.arc(t.x,t.y,t.r*.55,0,7);ctx.stroke();ctx.fillStyle='#f6d2e0';ctx.beginPath();ctx.arc(t.x+t.r*.2,t.y+t.r*.25,.35,0,7);ctx.fill()}
   for(const t of H.treesList){ctx.fillStyle=H.theme==='ice'?'rgba(40,60,90,.3)':'rgba(10,30,15,.35)';ctx.beginPath();ctx.arc(t.x+1.2,t.y-1.5,t.r,0,7);ctx.fill()}
   for(const t of H.treesList)drawTree(t,H.theme);
+  if(onDrill('chip'))for(const [k,g] of drill.ghosts.entries()){ctx.fillStyle=`rgba(255,255,255,${.25+.5*(k+1)/drill.ghosts.length})`;ctx.beginPath();ctx.arc(g.x,g.y,Math.max(.25,2.5*px),0,7);ctx.fill()}
   if(H.range){ctx.save();ctx.setTransform(d,0,0,d,0,0);ctx.font='800 11px "Nunito Sans",system-ui,sans-serif';ctx.textAlign='left';
     for(let y=50;y<=400;y+=50){const sx=W/2+(-H.hw+2-cam.x)*s,sy=H2/2-(y-cam.y)*s;if(sy<-10||sy>H2+10)continue;const t=`${y}`;const tw=ctx.measureText(t).width+8;ctx.fillStyle='rgba(14,29,21,.75)';ctx.beginPath();ctx.roundRect(sx,sy-8,tw,16,5);ctx.fill();ctx.fillStyle='#eef3e4';ctx.fillText(t,sx+4,sy+4)}
     ctx.restore()}
@@ -3287,21 +3361,43 @@ function openMenu(screen){
     b.querySelectorAll('[data-solo]').forEach(x=>x.onclick=()=>startGame({mode:'solo',course:COURSES[x.dataset.solo].holes}));
     return;
   }
+  if(screen==='ground'){
+    const seg=(key,opts)=>`<div class="seg small pg-seg">${Object.entries(opts).map(([k,o])=>`<button data-pg="${key}" data-v="${k}" aria-pressed="${PG[key]===k}">${o.n}</button>`).join('')}</div>`;
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Practice ground</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="blurb">Your own bag and fittings, no coins or XP. Swap clubs and parts from the bag between balls.</div>
+      <div class="cc pg"><div class="cc-top"><div class="cc-name">Driving range</div></div>
+        <div class="blurb">Full swings. Every ball comes back to the mat with carry, total, how far off line and peak height.</div>
+        <div class="ed-row"><span class="ed-lab">Wind</span><div class="seg small pg-seg"><button data-wind="0" aria-pressed="${!rangeWind}">Calm</button><button data-wind="1" aria-pressed="${rangeWind}">Breezy</button></div></div>
+        <div class="acts"><button id="pgRange" class="sbtn pri">Hit some balls</button></div></div>
+      <div class="cc pg"><div class="cc-top"><div class="cc-name">Chipping green</div></div>
+        <div class="blurb">Partial shots from 15 to 70 yards. One ball at a time, scored on how close it finishes. Ease off the swipe for shorter shots.</div>
+        <div class="ed-row"><span class="ed-lab">Lie</span>${seg('lie',CHIP_LIES)}</div><div class="blurb">${CHIP_LIES[PG.lie].d}</div>
+        <div class="acts"><button id="pgChip" class="sbtn pri">Start chipping</button></div></div>
+      <div class="cc pg"><div class="cc-top"><div class="cc-name">Putting green</div></div>
+        <div class="blurb">Hole out from random spots. A new pin and a new slope after every hole.</div>
+        <div class="ed-row"><span class="ed-lab">Surface</span>${seg('surf',PUTT_SURF)}</div><div class="blurb">${PUTT_SURF[PG.surf].d}</div>
+        <div class="ed-row"><span class="ed-lab">Distance</span>${seg('band',PUTT_BANDS)}</div><div class="blurb">${PUTT_BANDS[PG.band].d}</div>
+        <div class="acts"><button id="pgPutt" class="sbtn pri">Start putting</button></div></div>`;
+    $('#mBack').onclick=()=>openMenu('home');
+    b.querySelectorAll('[data-pg]').forEach(x=>x.onclick=()=>{PG[x.dataset.pg]=x.dataset.v;savePG();openMenu('ground')});
+    b.querySelectorAll('[data-wind]').forEach(x=>x.onclick=()=>{rangeWind=x.dataset.wind==='1';openMenu('ground')});
+    $('#pgRange').onclick=()=>startRange();$('#pgChip').onclick=()=>startDrill('chip');$('#pgPutt').onclick=()=>startDrill('putt');
+    return;
+  }
   if(screen==='practice'){
     b.innerHTML=`<div class="screen-h"><div class="sheet-title">Practice</div><button id="mBack" class="ghost">Back</button></div>
       <div class="blurb">Pick a hole. Your own bag, unlimited undo, no coins or XP.</div>
-      <button id="mRange" class="mbtn"><b>Driving range</b><span>Hit balls with your setup. Carry, total and how far off line, every shot.</span></button>
       ${Object.entries(COURSES).filter(([k])=>courseOpen(k)).map(([key,C])=>`<div class="group-h">${C.name}</div>`+C.holes.map((h,k)=>`<button class="hrow" data-c="${key}" data-h="${k}"><span class="n">${k+1}</span><span class="t">${esc(h.name)}</span><span class="m">Par ${h.par} · ${h.len} yds</span></button>`).join('')).join('')}`;
     $('#mBack').onclick=()=>openMenu('home');
     b.querySelectorAll('.hrow').forEach(x=>x.onclick=()=>startGame({mode:'practice',hole:+x.dataset.h,course:COURSES[x.dataset.c].holes}));
-    $('#mRange').onclick=()=>startRange();
+
     return;
   }
   const resume=gameOn&&state!=='done';
-  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
+  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:onRange()?'Driving range':onDrill()?`${H.drill==='chip'?'Chipping green':'Putting green'} · ${drillStat()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`Solo round · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
   const IC=(d)=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`,CH='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
   const ICONS={resume:'<path d="M8 5l11 7-11 7z" fill="currentColor"/>',story:'<path d="M4 19V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM8 7h6M8 11h6"/>',solo:'<path d="M6 21V3l11 4-11 4"/><circle cx="17" cy="19" r="2"/>',
-    pnp:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+    pnp:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',ground:'<path d="M4 20h16M7 20V9l5-5 5 5v11M10 20v-5h4v5"/>',practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
     create:'<path d="M3 21l3.5-1 11-11-2.5-2.5-11 11zM14 6l2.5 2.5M17 3l4 4"/>',bag:'<path d="M7 8h10l-1 13H8zM9 8V5a3 3 0 0 1 6 0v3"/>'};
   const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CH}</button>`;
   b.innerHTML=`<div class="hero-card"><canvas id="heroCv" aria-label="A golfer teeing off" role="img"></canvas><div class="hero-tag">${esc(heroTheme().tag)}</div></div>
@@ -3310,7 +3406,8 @@ function openMenu(screen){
     <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CH}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
-    ${MB('mPractice','practice','Practice','Pick any hole. Unlimited undo, no rewards.')}
+    ${MB('mGround','ground','Practice ground','Driving range, chipping green and putting green.')}
+    ${MB('mPractice','practice','Play a hole','Pick any hole. Unlimited undo, no rewards.')}
     ${MB('mCreate','create','Course creator',CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes')}
     ${MB('mBag','bag','Bag, fittings &amp; shop',`${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs${save.fits.length?` · ${save.fits.length} part${save.fits.length>1?'s':''}`:''}`)}
     <div class="mgrid">
@@ -3325,6 +3422,7 @@ function openMenu(screen){
   $('#mSolo').onclick=()=>courseOpen('links')?openMenu('solo'):startGame({mode:'solo'});
   $('#mPnp').onclick=()=>openMenu('pnp');
   $('#mPractice').onclick=()=>openMenu('practice');
+  $('#mGround').onclick=()=>openMenu('ground');
   $('#mCreate').onclick=()=>openMenu('courses');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
