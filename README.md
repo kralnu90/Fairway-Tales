@@ -8,6 +8,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 
 (Formerly Stroke of Luck. Old links forward here automatically.)
 
+☕ Enjoying it? [Support it on Ko-fi](https://ko-fi.com/kralnu90).
+
 ## What's in it
 
 - **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
@@ -19,7 +21,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Course creator:** build holes, make courses and share them with codes.
 - **Swing difficulty** that follows your handicap, with bigger rewards for better players.
 - **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
-- **Bag & pro shop:** 40 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
+- **Bag & pro shop:** 44 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
 ## How to play
@@ -34,6 +36,9 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.12 · 26 October 2026
+- **Support the game:** a Ko-fi button on the main menu, plus a one-time note when you finish a chapter. Donations are optional and unlock nothing, so the game stays the same for everyone.
 
 ### 0.11 · 26 October 2026
 - **Challenges.** Play your friends on your own phones. Create a challenge on any course you've unlocked and everyone gets the same pins, the same wind and the same gusts.

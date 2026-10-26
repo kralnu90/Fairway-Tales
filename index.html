@@ -157,6 +157,7 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .dscale div{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--muted);padding:6px 10px;border-radius:8px;background:var(--panel2)}
 .dscale div.on{background:var(--flag);color:#1d1a0e}
 .whatsnew{border-color:var(--flag)!important}
+.mbtn.kofi{border-color:#5b3f2a;background:linear-gradient(135deg,#2a2016,var(--panel) 70%)}.mbtn.kofi b{color:var(--flag)}
 .pg .ed-row{display:flex;flex-direction:column;align-items:stretch;gap:6px}
 .pg-seg{display:flex;flex-wrap:wrap;gap:6px}.pg-seg button{flex:1 1 auto}
 .reward{color:var(--flag);font-weight:800}
@@ -2607,7 +2608,7 @@ function afterMatch(id,res){
     if(M.prize){lines=[...grant({t:'club',c:M.prize.club}),...grant({t:'coins',n:M.prize.coins}),...grant({t:'kit',n:M.prize.kits})]}
     else lines=[...grant({t:'rare'}),...grant({t:'shard',c:M.shard,n:2})];
     persist();updateGoal();updateCoins();
-    return say(M.win,()=>showLoot(M.prize?(id==='duncan'?'Champion\'s prize':`${RIVALS[id].title} won`):`Beat ${name} · first win`,lines,()=>say([NARR(M.next)])));
+    return say(M.win,()=>showLoot(M.prize?(id==='duncan'?'Champion\'s prize':`${RIVALS[id].title} won`):`Beat ${name} · first win`,lines,()=>say(M.prize?[NARR(M.next),NARR('Enjoying Fairway Tales? It\'s free, and if you\'d like to support it there\'s a Ko-fi button on the main menu.')]:[NARR(M.next)])));
   }
   if(res==='win'){const lines=openBag(id,1);updateCoins();return say([N(id,M.rematch)],()=>showLoot(`Beat ${name} · rematch`,lines))}
   persist();
@@ -3001,7 +3002,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.11';
+const GAME_VERSION='0.12';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3548,6 +3549,7 @@ function openMenu(screen){
       <button id="mReview" class="mbtn small"><b>Leave a review</b><span>Goes straight to Kris</span></button>
       <button id="mBackup" class="mbtn small"><b>Backup</b><span>Move your save</span></button>
     </div>
+    <button id="mKofi" class="mbtn small kofi"><b>☕ Support the game</b><span>Fairway Tales is free. If you're enjoying it, you can buy Kris a coffee on Ko-fi.</span></button>
     <div class="blurb" style="text-align:center;margin-top:8px">© 2026 kralnu90. All rights reserved.</div>`;
   if(resume)$('#mResume').onclick=()=>{$('#menu').hidden=true;if(players.length>1&&state==='ready')showPass(false)};
   $('#mStory').onclick=()=>openWorld();
@@ -3559,6 +3561,7 @@ function openMenu(screen){
   $('#mCreate').onclick=()=>openMenu('courses');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
+  $('#mKofi').onclick=()=>{try{window.open(KOFI,'_blank','noopener')}catch(e){location.href=KOFI}};
   $('#mReview').onclick=()=>openMenu('review');
   $('#mHelp').onclick=()=>openMenu('help');
   $('#mSettings').onclick=()=>openMenu('settings');
@@ -3681,6 +3684,7 @@ function drawHeroGolfer(c,x,y,s,a,cock,turn,th){
   c.fillStyle='#1d1a17';if(look<1){c.fillRect(sh.x-4,sh.y-11,2,2.4);c.fillRect(sh.x+2,sh.y-11,2,2.4)}else c.fillRect(sh.x+look*.5+4,sh.y-11,2,2.4);
   c.restore();
 }
+const KOFI='https://ko-fi.com/kralnu90';
 const seenNew=()=>{try{return localStorage.getItem('fsl-seen-diff')==='1'}catch(e){return true}};
 const markNew=()=>{try{localStorage.setItem('fsl-seen-diff','1')}catch(e){}};
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};
