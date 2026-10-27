@@ -51,7 +51,8 @@ body{background:var(--ink);color:var(--chalk);font-family:var(--body);overflow:h
 #course{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
 .chips{position:absolute;left:8px;top:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
 .chip{background:rgba(14,29,21,.78);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
-.toast{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(14,29,21,.88);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;line-height:1.35;pointer-events:none}
+.toast{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(14,29,21,.88);border:1px solid var(--line);border-radius:12px;padding:8px 38px 8px 12px;font-size:13px;font-weight:700;line-height:1.35;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.toast::after{content:'×';position:absolute;top:2px;right:6px;width:28px;height:28px;display:grid;place-items:center;font-size:22px;font-weight:400;color:var(--muted)}
 .toast b{color:var(--flag)}
 .stage.has-spin .toast{right:104px}
 .spin{position:absolute;right:8px;bottom:8px;width:88px;display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -1165,7 +1166,10 @@ function hud(){
 }
 const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':'Rough'):SURF[s].name;
 const fricOf=s=>s==='green'&&H.greenFric?H.greenFric:SURF[s].fric;
-function toast(html){const t=$('#toast');t.innerHTML=html;t.hidden=false}
+// Shot summaries clear themselves after 10 seconds, or tap the card (or its ×) to close it straight away
+let toastT=0;
+function toast(html){const t=$('#toast');t.innerHTML=html;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},10000)}
+$('#toast').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();clearTimeout(toastT);$('#toast').hidden=true});
 
 /* ---------- Shots ---------- */
 const dirOf=a=>({x:Math.sin(a),y:Math.cos(a)});
@@ -3194,7 +3198,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.13';
+const GAME_VERSION='0.13.1';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}

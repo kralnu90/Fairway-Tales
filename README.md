@@ -38,6 +38,9 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 0.13.1 · 27 October 2026
+- **Shot summary gets out of the way.** The card after each shot now has an **×**. Tap anywhere on it to close it, or it clears itself after 10 seconds, so it no longer hides the pin when you're at the back of the green.
+
 ### 0.13 · 27 October 2026
 - **Daily challenge.** A new mini-game every day, seeded so everyone gets the same pin, wind and balls. Four formats rotate: **closest to the pin** (3 balls at a par 3), **long drive** (3 drives down a narrow fairway), **up and in** (5 chips, every foot adds up) and **putting** (6 holes on a mystery green).
 - **Medals and rewards.** Gold 220 coins plus a 35% chance at a fitting, silver 120, bronze 60. Your first scored go each day counts, then practise it as often as you like. Share your score with friends.
