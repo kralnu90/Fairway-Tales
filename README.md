@@ -6,6 +6,8 @@ Open the link on your phone, then tap **Install app** in Chrome (or **Share → 
 
 A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and level up clubs, and take on the members of Ashby Green Golf Club.
 
+(Formerly Stroke of Luck. Old links forward here automatically.)
+
 ☕ Enjoying it? [Support it on Ko-fi](https://ko-fi.com/kralnu90).
 
 ## What's in it
@@ -34,6 +36,9 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.12.1 · 27 October 2026
+- **Clearer fitting bench.** Each slot now shows what's **fitted now**, and your spare parts are listed separately as "tap one to see the difference, then fit it", marked *Not fitted* or *Fitted to your Driver*. You get a confirmation when a part goes on, and a reminder that each part fits one club at a time.
 
 ### 0.12 · 26 October 2026
 - **Support the game:** a Ko-fi button on the main menu, plus a one-time note when you finish a chapter. Donations are optional and unlock nothing, so the game stays the same for everyone.
