@@ -157,6 +157,24 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .dscale div{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--muted);padding:6px 10px;border-radius:8px;background:var(--panel2)}
 .dscale div.on{background:var(--flag);color:#1d1a0e}
 .whatsnew{border-color:var(--flag)!important}
+.achpop{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:80;display:flex;gap:12px;align-items:center;max-width:min(92vw,420px);
+  background:var(--panel);border:1px solid var(--flag);border-radius:14px;padding:10px 14px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:achin .35s ease-out}
+.achpop .ach-ic{font-size:26px;flex:none}.achpop b{display:block;font-family:var(--display);font-weight:400;font-size:16px;line-height:1.2;color:var(--flag)}.achpop small{display:block;font-size:12px;color:var(--chalk);font-weight:700;line-height:1.35}
+.achpop.legend{background:linear-gradient(135deg,#3a2a0e,#15291f);border-width:2px}.achpop.legend .ach-ic{color:var(--flag);font-size:30px}
+@keyframes achin{from{transform:translate(-50%,-30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@media (prefers-reduced-motion:reduce){.achpop{animation:none}}
+.trow{display:grid;grid-template-columns:34px 1fr auto;gap:2px 10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.trow.done{border-color:#6b5a26;background:linear-gradient(135deg,#2a2412,var(--panel) 60%)}
+.trow .ti{grid-row:1/3;font-size:20px;text-align:center}.trow b{font-weight:800}.trow small{grid-column:2;color:var(--muted);font-size:12px;font-weight:700}
+.trow .tr{grid-row:1/3;grid-column:3;font-size:11px;font-weight:800;color:var(--flag);text-align:right;max-width:110px}
+.trow .bar{grid-column:2;height:5px;margin-top:4px}.trow .bar i{background:var(--flag)}
+.legrow{display:grid;grid-template-columns:44px 1fr;gap:2px 10px;align-items:center;border:1px dashed #6b5a26;border-radius:12px;padding:10px 12px;background:var(--panel)}
+.legrow.done{border-style:solid;border-color:var(--flag);background:linear-gradient(135deg,#3a2a0e,var(--panel) 70%)}
+.legrow .lg{grid-row:1/3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#2a2412;color:var(--flag);font-size:20px}
+.legrow b{color:var(--flag);font-family:var(--display);font-weight:400;font-size:18px}.legrow small{color:var(--muted);font-size:12px;font-weight:700}
+.medal{font-size:44px;line-height:1}.dthr{display:flex;gap:6px;flex-wrap:wrap}.dthr span{font-size:12px;font-weight:800;padding:5px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.tlist{display:grid;gap:8px}.mbtn.fresh{border-color:var(--flag)}
+.streak{display:flex;gap:6px}.streak i{flex:1;height:10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line)}.streak i.on{background:var(--flag);border-color:var(--flag)}
 .mbtn.kofi{border-color:#5b3f2a;background:linear-gradient(135deg,#2a2016,var(--panel) 70%)}.mbtn.kofi b{color:var(--flag)}
 .fitted{font-size:13px;background:rgba(14,29,21,.55);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;color:var(--muted)}
 .fitted.on{border-style:solid;border-color:var(--flag);color:var(--chalk)}
@@ -432,6 +450,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
   </div>
 </div>
 
+<div id="achPop" class="achpop" hidden role="status" aria-live="polite"></div>
 <div id="loot" class="pass loot" hidden>
   <div class="pass-card">
     <div class="loot-bag" aria-hidden="true"></div>
@@ -549,13 +568,13 @@ const RAR={common:{n:'Common',col:'#b8c4b0'},rare:{n:'Rare',col:'#6fb3e8'},epic:
 const UNLOCK_TEXT={beatToby:'Arrives at the pro shop once you beat Toby Crane',beatDot:'Arrives at the pro shop once you beat Dot Ainsworth',beatMarcus:'Arrives at the pro shop once you beat Marcus Vane'};
 const storyFlags=()=>(save.story&&save.story.flags)||{};
 const inStock=d=>d.src==='shop'&&(!d.unlock||storyFlags()[d.unlock]);
-const SRC={rival:'Beat a rival in Story mode',daily:'Daily challenge drop · coming soon',hidden:'Secret course challenge · coming soon'};
+const SRC={rival:'Beat a rival in Story mode',daily:'Play 7 daily challenges',hidden:'Legendary trial',legend:'Legendary trial'};
 const DEFS=[
   {id:'cd',t:'driver',n:'Clubhouse Driver',r:'common',st:[6,5,4,6],f:['P'],src:'starter'},
   {id:'thunder',tier:'low',t:'driver',n:'Thunderhead',r:'rare',st:[11,4,5,5],f:['P'],src:'shop',price:2400,blurb:'Massive carry. Mind the miss.'},
   {id:'needle',tier:'low',t:'driver',n:'Needle',r:'rare',st:[6,11,5,6],f:['C'],src:'shop',price:2400,blurb:'Threads the tightest fairways.'},
   {id:'gale',t:'driver',n:'Gale Breaker',r:'epic',st:[11,8,6,7],f:['P','C'],src:'rival',srcText:'Beat Toby Crane for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 30% less.'},
-  {id:'sun',t:'driver',n:'Sunforged',r:'legendary',st:[14,10,8,10],f:['P','F'],src:'hidden',perk:'roll',perkText:'+25% rollout on every landing.'},
+  {id:'sun',t:'driver',n:'Sunforged',r:'legendary',st:[14,10,8,10],f:['P','F'],src:'legend',srcText:'Trial: carry a drive 300 yards or more in a real round',perk:'noover',perkText:'No overswing penalty. Swinging past 100% just sends it further.'},
   {id:'c3',t:'wood3',n:'Clubhouse 3 Wood',r:'common',st:[6,5,4,6],f:['C'],src:'starter'},
   {id:'finder',tier:'low',t:'wood3',n:'Fairway Finder',r:'rare',st:[7,9,4,9],f:['F'],src:'shop',price:1800,blurb:'Sweeps it clean from any lie.'},
   {id:'hollow',t:'wood3',n:'Hollow Point',r:'epic',st:[12,8,6,7],f:['P'],src:'rival',srcText:'Beat Marcus Vane for shards, then collect 5 to forge it',blurb:'A second driver you can hit off the deck.'},
@@ -593,8 +612,13 @@ const DEFS=[
   {id:'scorpion',tier:'low',t:'pw',n:'Scorpion',r:'rare',st:[6,9,9,8],f:['F'],src:'shop',price:2000,unlock:'visitedMesa',blurb:'Stings it out of the waste.'},
   {id:'whiteout',tier:'tour',t:'iron7',n:'Whiteout',r:'epic',st:[8,12,10,9],f:['C','F'],src:'shop',price:4600,unlock:'visitedFrost',blurb:'Steady when the mountain isn\'t.'},
   {id:'feather',tier:'low',t:'putter',n:'Featherweight',r:'rare',st:[0,9,0,10],f:['F'],src:'shop',price:1800,unlock:'beatMarcus',blurb:'Soft face, big sweet spot.'},
-  {id:'hawkeye',t:'putter',n:'Hawkeye',r:'epic',st:[0,10,0,10],f:['F'],src:'daily',perk:'capture',perkText:'The cup plays 40% bigger.'},
-  {id:'oracle',t:'putter',n:'Oracle',r:'legendary',st:[0,14,0,13],f:['C','F'],src:'hidden',perk:'capture',perkText:'The cup plays 40% bigger.'}
+  {id:'hawkeye',t:'putter',n:'Hawkeye',r:'epic',st:[0,10,0,10],f:['F'],src:'daily',srcText:'Play 7 daily challenges',perk:'capture',perkText:'The cup plays 40% bigger.'},
+  {id:'oracle',t:'putter',n:'Oracle',r:'legendary',st:[0,14,0,13],f:['C','F'],src:'legend',srcText:'Trial: hole 3 putts from 30 ft or more',perk:'oracle',perkText:'Unlimited green reads, and the cup plays 20% bigger.'},
+  {id:'tempest',t:'wood3',n:'Tempest',r:'legendary',st:[13,11,7,10],f:['P','C'],src:'legend',srcText:'Trial: make par or better at Gullhaven with the wind at 18 mph or more',perk:'nowind',perkText:'Wind and gusts have no effect on your shots.'},
+  {id:'starfall',t:'iron5',n:'Starfall',r:'legendary',st:[12,11,8,11],f:['P','F'],src:'legend',srcText:'Trial: make an albatross, or a hole-in-one on a par 4',perk:'lies',perkText:'Rough, fescue and waste areas play like the fairway.'},
+  {id:'heartwood',t:'iron7',n:'Heartwood',r:'legendary',st:[9,14,10,10],f:['C','S'],src:'legend',srcText:'Trial: hit every green in regulation in a 9-hole round',perk:'true',perkText:'Any swipe within 2° of straight flies dead straight.'},
+  {id:'moonshadow',t:'iron9',n:'Moonshadow',r:'legendary',st:[8,12,13,11],f:['S','F'],src:'legend',srcText:'Trial: hole out from off the green 3 times',perk:'anylie',perkText:'Sand, pot bunkers and snowdrifts cost you no distance.'},
+  {id:'phoenix',t:'pw',n:'Phoenix',r:'legendary',st:[7,12,15,10],f:['S','C'],src:'legend',srcText:'Trial: win a 9-hole final under par without using your Mulligan',perk:'phoenix',perkText:'Spin-back is twice as strong.'}
 ];
 const DEF=Object.fromEntries(DEFS.map(d=>[d.id,d]));
 const STAT_KEYS=['P','C','S','F'], STAT_NAME={P:'Power',C:'Control',S:'Spin',F:'Forgiveness'};
@@ -634,6 +658,19 @@ function fitEffects(f){const d=fitDelta(f),S=FIT_STYLES[f.s],parts=Object.entrie
 const newFitId=()=>'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function rollFitTier(boost){return +pickWeighted((boost?[35,33,20,9,3]:[55,28,12,4,1]).map((w,i)=>({w,i}))).i}
 function makeFit(tier,style){const keys=Object.keys(FIT_STYLES),sid=style||keys[Math.floor(Math.random()*keys.length)];const f={id:newFitId(),s:sid,t:tier};save.fits.push(f);return f}
+/* ---------- Career stats, legendary trials and achievements ---------- */
+const st=()=>(save.st=save.st||{});
+const inc=(k,n=1)=>{st()[k]=(st()[k]||0)+n};
+const realPlay=()=>(mode==='solo'||mode==='rival')&&!isCustom();
+let RS={};const newRS=()=>{RS={holes:0,gir:0,bogeyFree:true,run:0,best:0}};newRS();
+let holeMaxWind=0;
+const LEGENDS=['sun','tempest','starfall','heartwood','moonshadow','phoenix','oracle'];
+function awardLegend(id){
+  if(save.owned[id])return;
+  save.owned[id]={lvl:1,xp:0,tuned:[]};inc('legends');persist();
+  achPop({n:`Legendary: ${DEF[id].n}`,d:`${DEF[id].perkText}`,legend:true});
+  try{SFX.forge()}catch(e){}
+}
 function freshSave(){
   const owned={},bag={};
   for(const d of DEFS)if(d.src==='starter'){owned[d.id]={lvl:1,xp:0,tuned:[]};bag[d.t]=d.id}
@@ -643,7 +680,7 @@ let save; try{save=JSON.parse(localStorage.getItem('fsl-save'))}catch(e){}
 if(!save||!save.owned)save=freshSave();
 function ensureSave(){save.shards=save.shards||{};save.pity=save.pity||0;save.rounds=save.rounds||[];save.fits=save.fits||[];save.fitOn=save.fitOn||{}}
 ensureSave();
-function persist(){try{localStorage.setItem('fsl-save',JSON.stringify(save))}catch(e){}}
+function persist(){try{localStorage.setItem('fsl-save',JSON.stringify(save))}catch(e){}if(window.ACH_ON)checkAch()}
 
 // Game mode: 'solo' (your bag, rewards), 'pnp' (pass and play, everyone on the Clubhouse set, no rewards),
 // 'practice' (one hole, your bag, unlimited undo, no rewards)
@@ -773,7 +810,7 @@ function grant(e){
     if(save.owned[id]){addXp(id,SHARD_DUP_XP*n);out.push({cls:'dup',txt:`${n} ${DEF[id].n} shard${n>1?'s':''} → +${SHARD_DUP_XP*n} XP (already forged)`});return}
     save.shards[id]=(save.shards[id]||0)+n;
     out.push({cls:'shard',txt:`${DEF[id].n} shard${n>1?'s':''} ×${n} · ${Math.min(save.shards[id],SHARDS_NEEDED)}/${SHARDS_NEEDED}`});
-    if(save.shards[id]>=SHARDS_NEEDED){save.shards[id]-=SHARDS_NEEDED;save.owned[id]=newOwned();out.push({cls:'epic',txt:`Forged ${DEF[id].n}! · Epic ${TYPE_NAME[DEF[id].t].toLowerCase()}`,tag:'FORGED'})}
+    if(save.shards[id]>=SHARDS_NEEDED){save.shards[id]-=SHARDS_NEEDED;save.owned[id]=newOwned();inc('forged');out.push({cls:'epic',txt:`Forged ${DEF[id].n}! · Epic ${TYPE_NAME[DEF[id].t].toLowerCase()}`,tag:'FORGED'})}
   };
   if(e.t==='coins'){const n=Math.round(e.n*rewardMul());save.coins+=n;out.push({cls:'coins',txt:`+${n} coins${n>e.n?` (+${n-e.n} swing bonus)`:''}`})}
   else if(e.t==='kit'){save.kits+=e.n;out.push({cls:'kit',txt:`+${e.n} tuning kit${e.n>1?'s':''}`})}
@@ -964,6 +1001,11 @@ const PUTT_SURF={
 const PUTT_BANDS={short:{n:'Short',d:'3 to 10 ft',lo:3,hi:10},mid:{n:'Medium',d:'10 to 25 ft',lo:10,hi:25},long:{n:'Long',d:'25 to 50 ft',lo:25,hi:50},mix:{n:'Mixed',d:'3 to 50 ft',lo:3,hi:50}};
 const CHIP_LIES={mix:{n:'Mixed',d:'A bit of everything'},fairway:{n:'Fairway',d:'Tight lies, 20 to 70 yds'},rough:{n:'Rough',d:'Round the green'},sand:{n:'Bunker',d:'Greenside sand'}};
 HOLES.forEach((h,hi)=>prepHole(h,hi));prepHole(RANGE,130);prepHole(CHIP,131);prepHole(PUTT,132);
+// Daily challenge holes
+const LONGD={name:'Daily · Long drive',par:5,drill:'daily',fw:[[0,22],[0,420]],hw:13,green:{x:0,y:462,rx:14,ry:10},water:[],bunkers:[],
+  trees:[[14,-72,-44,30,450,3,5],[14,44,72,30,450,3,5]],bounds:{x0:-76,x1:76,y0:-14,y1:480},sl:{x:0,y:-.3,a:.1,b:.1}};
+prepHole(LONGD,133);
+const DCHIP={...CHIP,drill:'daily',name:'Daily · Up and in'},DPUTT={...PUTT,drill:'daily',name:'Daily · Putting'};
 LINKS.forEach((h,hi)=>prepHole(h,hi+50));
 MESA.forEach((h,hi)=>prepHole(h,hi+70));
 FROST.forEach((h,hi)=>prepHole(h,hi+90));
@@ -1018,14 +1060,14 @@ function loadHole(i){
   const a=R()*Math.PI*2, r=Math.sqrt(R())*.6;
   PIN={x:H.green.x+Math.cos(a)*r*H.green.rx,y:H.green.y+Math.sin(a)*r*H.green.ry};
   const wa=R()*Math.PI*2, ws=Math.round(R()*14);
-  wind={x:Math.sin(wa)*ws,y:Math.cos(wa)*ws,mph:ws};
+  wind={x:Math.sin(wa)*ws,y:Math.cos(wa)*ws,mph:ws};holeMaxWind=ws;
   if(H.calm){const m=Math.round(R()*6);setWind(wa,m)}
   if(H.gusty){const base=4+Math.round(R()*((H.gustMax||14)-2));windBase={a:wa,m:base};setWind(wa,base)}
   if(H.still)setWind(wa,rangeWind?Math.round(4+Math.random()*12):0);
   // Honours: on later holes the best score on the previous hole tees off first
   order=players.map((_,k)=>k);
   if(i>0&&mode==='pnp')order.sort((a,b)=>(players[a].scores[i-1]||99)-(players[b].scores[i-1]||99)||a-b);
-  for(const p of players){p.ball={x:0,y:1};p.strokes=0;p.holed=false;p.pvUsed=0}
+  for(const p of players){p.ball={x:0,y:1};p.strokes=0;p.holed=false;p.pvUsed=0;p.gir=false}
   state='ready'; clearUndo(); gameOn=true;
   $('#end').hidden=true; $('#toast').hidden=true;
   useTurn(order[0]);
@@ -1041,6 +1083,7 @@ function loadHole(i){
 let lastCfg={mode:'solo'};
 function startGame(cfg){
   if(!cfg.drill)drill=null;
+  newRS();
   CH=cfg.challenge||null;
   lastCfg=cfg; mode=cfg.mode; mulls=(mode==='solo'||mode==='rival')?1:0;
   COURSE=cfg.course||HOLES; exitEditorUI();
@@ -1130,12 +1173,15 @@ const angTo=(a,b)=>Math.atan2(b.x-a.x,b.y-a.y);
 
 function strike(r){
   const c=club(), lie=surfaceAt(ball.x,ball.y), L=SURF[lie], S=eqStats(), perk=eqPerk(), sf=spinF();
-  const lie2=lie==='pot'&&perk==='pot'?'sand':lie==='waste'&&perk==='waste'?'fairway':lie==='snow'&&perk==='snow'?'sand':lie, L2=SURF[lie2];
+  let lie2=lie==='pot'&&perk==='pot'?'sand':lie==='waste'&&perk==='waste'?'fairway':lie==='snow'&&perk==='snow'?'sand':lie;
+  if(perk==='lies'&&(lie==='rough'||lie==='waste'))lie2='fairway';
+  if(perk==='anylie'&&(lie==='sand'||lie==='pot'||lie==='snow'))lie2='fairway';
+  const L2=SURF[lie2];
   let pow=lie2==='sand'?(perk==='sand'?1:c.sand?.92:L2.pow):L2.pow;
   pow+=(1-pow)*S.F*.035;                       // forgiveness claws back lie penalties
   const notes=[], fg=1-S.F*.03, DP=DIFF[swingLv()];   // forgiveness softens tempo/overswing scatter
-  let p=r.p, mult=p<=1?p:1+(p-1)*.4, noise=.8*L2.vari*(1-S.F*.02);
-  if(p>1){noise+=(p-1)*25*fg;notes.push('overswing')}
+  let p=r.p, mult=p<=1?p:1+(p-1)*(perk==='noover'?1:.4), noise=.8*L2.vari*(1-S.F*.02);
+  if(p>1&&perk!=='noover'){noise+=(p-1)*25*fg;notes.push('overswing')}
   if(r.pause<DP.rush){noise+=2.5*fg*Math.sqrt(DP.noise);notes.push('rushed transition')}
   else if(r.pause>DP.hang){mult*=.93;notes.push('hung at the top')}
   if(r.follow<.6){mult*=.85;notes.push('short follow-through')}
@@ -1146,11 +1192,12 @@ function strike(r){
   const dft=(r.drift||0)*DP.drift, wbl=(r.wob||0)*DP.wob;
   if(Math.abs(dft)>2.5)notes.push(dft>0?'outside-in':'inside-out');
   if(Math.abs(wbl)>1.5)notes.push('wobbly upswing');
-  const startDeg=r.path*.25*ps*DP.sens+gauss()*noise*.4;
-  const FX=fitFx(eqId());
-  const curveDeg=r.path*.2*ps*DP.sens+dft*.12*ps+wbl*.35*ps+gauss()*noise*.6+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
+  const FX=fitFx(eqId()),trueShot=perk==='true'&&Math.abs(r.path)<2;
+  const startDeg=trueShot?0:r.path*.25*ps*DP.sens+gauss()*noise*.4;
+  const curveDeg=(trueShot?0:r.path*.2*ps*DP.sens+dft*.12*ps+wbl*.35*ps+gauss()*noise*.6)+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
+  if(trueShot)notes.push('Heartwood: dead straight');
   mult*=1-.04*Math.abs(SP.y);
-  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1);
+  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1);
   // XP: a clean, well-tempoed swing earns the most
   const clean=p<=1.02&&r.pause>=70&&r.pause<=700&&Math.abs(r.path)<4&&r.follow>=.6&&r.speed>=.45;
   const okay=p<=1.06&&r.pause>=50&&Math.abs(r.path)<8;
@@ -1172,6 +1219,7 @@ function strike(r){
   trace=[{...ball}]; state='flight'; $('#toast').hidden=true;
   $('#log').innerHTML=`Power <b>${Math.round(p*100)}%</b> · Path <b>${Math.abs(r.path).toFixed(1)}° ${r.path>=0?'R':'L'}</b> · Pause <b>${Math.round(r.pause)}ms</b> · Speed <b>${r.speed.toFixed(2)}</b>`;
   flight.notes=notes;
+  if(realPlay()&&carry>=300)awardLegend('sun');
   setSpin(0,0);
 }
 function flightPos(t){const f=flight;return{x:f.from.x+(f.P0.x-f.from.x)*t+(f.L.x-f.P0.x)*t*t,y:f.from.y+(f.P0.y-f.from.y)*t+(f.L.y-f.P0.y)*t*t}}
@@ -1192,7 +1240,7 @@ function land(){
     const s2=surfaceAt(ball.x,ball.y);if(s2==='water'||s2==='ob'||s2==='gorse'){ball={...L}}
     else{vel={x:Math.sin(a)*Math.sqrt(2*fricOf(s2)*k),y:Math.cos(a)*Math.sqrt(2*fricOf(s2)*k)};flight.head=head+' · <b>off a cactus!</b>';state='roll';flight.bounce=null;return}}
   let d=f.carry*shotClub.roll*SURF[s].land*Math.max(0,f.rm)*(f.fitRoll||1)*(f.perk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1)*(s==='green'&&H.hardGreens?2:1)*(s==='green'&&f.perk==='hold'?.5:1), sgn=1, hd=head;
-  if(f.rm<0&&(s==='green'||s==='fringe')){d=f.carry*.06*-f.rm*f.bs*(f.perk==='spinback'?1.5:1);sgn=-1;hd+=' · <b>spun back</b>'}
+  if(f.rm<0&&(s==='green'||s==='fringe')){d=f.carry*.06*-f.rm*f.bs*(f.perk==='spinback'?1.5:f.perk==='phoenix'?2:1);sgn=-1;hd+=' · <b>spun back</b>'}
   const v=Math.sqrt(2*fricOf(s)*d)*sgn;
   vel={x:dx/m*v,y:dy/m*v}; flight.head=hd; state='roll';
   // a couple of hops before it settles into a roll: higher on firm ground, none in sand, softer with backspin
@@ -1275,6 +1323,7 @@ function drillNext(){
 }
 function drillStat(){
   if(!drill)return 'Practice';
+  if(drill.kind==='daily')return `${drill.fmt==='putts'?'Hole':'Ball'} ${Math.min(drill.i+1,drill.n)}/${drill.n}`;
   if(drill.kind==='chip')return drill.n?`Avg ${Math.round(drill.sum/drill.n)} ft`:'Chipping';
   return drill.n?`${(drill.putts/drill.n).toFixed(1)} putts`:'Putting';
 }
@@ -1287,12 +1336,12 @@ function chipDone(head,how){
     drill.ghosts.push({x:ball.x,y:ball.y});if(drill.ghosts.length>8)drill.ghosts.shift();
     line=how==='in'?'<b>Chipped in!</b>':`<b>${ft} ft</b> from the pin${nb&&drill.n>1?' · <b>new best</b>':''}`;
     line+=`<br>${drill.n} ball${drill.n>1?'s':''} · avg ${Math.round(drill.sum/drill.n)} ft · best ${drill.best} ft${drill.ins?` · ${drill.ins} chip-in${drill.ins>1?'s':''}`:''}`;
-    if(how==='in'){SFX.cup();SFX.chime(false)}}
+    if(how==='in'){SFX.cup();SFX.chime(false);inc('chipPrac');persist()}}
   drillNext();
   toast(`${head}<br>${line}`);
 }
 function puttHoled(){
-  const n=strokes;drill.n++;drill.putts+=n;if(n===1)drill.one++;
+  const n=strokes;drill.n++;drill.putts+=n;if(n===1){drill.one++;inc('onePutt');persist()}
   SFX.cup();if(n===1)SFX.chime(false);
   const msg=`<b>${n===1?'One putt!':`Holed in ${n} putts`}</b><br>${drill.n} hole${drill.n>1?'s':''} · ${(drill.putts/drill.n).toFixed(1)} putts on average · ${drill.one} one-putt${drill.one===1?'':'s'}`;
   drillNext();toast(msg);
@@ -1303,11 +1352,113 @@ function startRange(){drill=null;startGame({mode:'practice',course:[RANGE],hole:
 function rangeDone(head,how){
   const f=flight,a=f.aimA??0,ux=Math.sin(a),uy=Math.cos(a),dx=ball.x-shotStart.x,dy=ball.y-shotStart.y;
   const total=dx*ux+dy*uy,off=dx*uy-dy*ux,side=Math.abs(off)<.5?'dead straight':`${Math.abs(off).toFixed(0)} yds ${off>0?'right':'left'}`;
-  const xl=xpLine();
+  const xl=xpLine();inc('range');persist();
   ball={x:0,y:1};strokes=0;state='ready';frozen=null;clearUndo();aim=defaultAim();hud();
   toast(how==='ob'?`${head}<br><b>Out of the range.</b> Ball's back on the mat.`:`${head}<br>Total <b>${Math.round(total)} yds</b> · ${side} · peak ${Math.round(f.apex||0)} yds${xl}`);
 }
-function setWind(a,m){wind={x:Math.sin(a)*m,y:Math.cos(a)*m,mph:m};$('#windMph').textContent=m;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
+/* ---------- Daily challenge: one seeded mini-game a day, the same for everyone ---------- */
+const DFMT={
+  ctp:{n:'Closest to the pin',d:'Three balls at a par 3. Your closest ball counts.',balls:3,unit:'ft',low:true,med:[5,12,25]},
+  long:{n:'Long drive',d:'Three drives down a narrow fairway. Your longest drive that stays on the short grass counts.',balls:3,unit:'yds',low:false,med:[295,270,245]},
+  chip:{n:'Up and in',d:'Five chips from round the green. Every foot adds up. A chip-in counts as zero, a miss as 60 ft.',balls:5,unit:'ft',low:true,med:[35,70,120]},
+  putts:{n:'Putting',d:'Six holes on a mystery green. Fewest putts wins, 5 at most per hole.',balls:6,unit:'putts',low:true,med:[9,11,13]}};
+const DORDER=['ctp','long','chip','putts'];
+const MEDAL=[{n:'Gold',ic:'🥇',coins:220},{n:'Silver',ic:'🥈',coins:120},{n:'Bronze',ic:'🥉',coins:60}];
+const dayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const dayNum=k=>Math.round(Date.UTC(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10))/864e5);
+const hashStr=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+function dailyToday(){
+  const k=dayKey(),seed=hashStr('ftd'+k),R=seeded(seed),fmt=DORDER[dayNum(k)%4],T={k,fmt,seed};
+  if(fmt==='ctp'){const pool=[...HOLES,...LINKS,...MESA,...FROST].filter(h=>h.par===3);T.hole=pool[Math.floor(R()*pool.length)]}
+  if(fmt==='putts'){const ks=Object.keys(PUTT_SURF);T.surf=ks[Math.floor(R()*ks.length)]}
+  return T;
+}
+const dsave=()=>(save.daily=save.daily||{days:0,gold:0,hist:{}});
+const medalOf=(fmt,v)=>{const F=DFMT[fmt];for(let i=0;i<3;i++)if(F.low?v<=F.med[i]:v>=F.med[i])return i;return -1};
+const fmtScore=(fmt,v)=>fmt==='putts'?`${v} putt${v===1?'':'s'}`:`${v} ${DFMT[fmt].unit}`;
+function startDaily(scored){
+  const T=dailyToday(),F=DFMT[T.fmt],R=seeded(T.seed*7+3);
+  drill={kind:'daily',fmt:T.fmt,k:T.k,R,i:0,n:F.balls,res:[],scored,ghosts:[]};
+  let h=T.fmt==='long'?LONGD:T.fmt==='chip'?DCHIP:DPUTT;
+  if(T.fmt==='ctp')h={...T.hole,drill:'daily',name:`Daily · ${F.n}`};
+  if(T.fmt==='putts'){const S=PUTT_SURF[T.surf];DPUTT.theme=S.theme;DPUTT.greenFric=S.fric;DPUTT.name=`Daily · Putting · ${S.n}`;drill.surf=S}
+  startGame({mode:'practice',course:[h],hole:0,drill:'daily'});
+  windBase=null;
+  if(T.fmt==='ctp'||T.fmt==='long'){const a=R()*Math.PI*2;setWind(a,Math.round(R()*(T.fmt==='long'?8:14)))}else setWind(0,0);
+  if(T.fmt==='ctp'){const G=H.green,a=R()*Math.PI*2,r=Math.sqrt(R())*.6;PIN={x:G.x+Math.cos(a)*r*G.rx,y:G.y+Math.sin(a)*r*G.ry}}
+  $('#log').textContent=`${F.d}${scored?' This one counts.':' Practice run, no rewards.'}`;
+  dailyBall();
+}
+function dailyBall(){
+  const R=drill.R,rr=(a,b)=>a+R()*(b-a),G=H.green;let p=null;
+  const pinIn=k=>{const a=R()*Math.PI*2,r=Math.sqrt(R())*k;return{x:G.x+Math.cos(a)*r*G.rx,y:G.y+Math.sin(a)*r*G.ry}};
+  if(drill.fmt==='chip'){
+    PIN=pinIn(.6);const lie=['fairway','rough','rough','sand','fairway'][drill.i%5];
+    for(let k=0;k<800&&!p;k++){let q;
+      if(lie==='fairway')q={x:rr(-H.hw+2,H.hw-2),y:rr(16,58)};
+      else if(lie==='sand'){const b=H.bunkers[Math.floor(R()*H.bunkers.length)],a=R()*7,r=Math.sqrt(R())*.65;q={x:b.x+Math.cos(a)*r*b.rx,y:b.y+Math.sin(a)*r*b.ry}}
+      else{const a=rr(-2,2),r=rr(17,40);q={x:G.x+Math.sin(a)*r,y:G.y-Math.cos(a)*r}}
+      if(surfaceAt(q.x,q.y)===lie&&q.y>8)p=q}
+  }else if(drill.fmt==='putts'){
+    const S=drill.surf,a0=R()*Math.PI*2;
+    H.sl={x:Math.sin(a0)*S.m,y:Math.cos(a0)*S.m,a:S.a*(R()<.5?-1:1),b:S.b*(R()<.5?-1:1)};
+    PIN=pinIn(.55);const lo=[4,8,14,20,28,38][drill.i%6];
+    for(let k=0;k<800&&!p;k++){const a=R()*Math.PI*2,r=rr(lo,lo+6)/3,q={x:PIN.x+Math.sin(a)*r,y:PIN.y+Math.cos(a)*r};if(inEll(q.x,q.y,G,.93))p=q}
+  }
+  p=p||(drill.fmt==='chip'?{x:0,y:40}:drill.fmt==='putts'?{x:G.x,y:G.y-5}:{x:0,y:1});
+  ball={...p};players[0].ball={...p};players[0].strokes=0;players[0].holed=false;players[0].pvUsed=0;strokes=0;
+  state='ready';trace=[];frozen=null;clearUndo();setSpin(0,0);ci=autoClub();aim=defaultAim();hud();if(W)updateCam(0,true);
+}
+const dailyLine=()=>{const F=DFMT[drill.fmt],r=drill.res;if(!r.length)return '';
+  const v=drill.fmt==='ctp'?Math.min(...r):drill.fmt==='long'?Math.max(...r):r.reduce((a,b)=>a+b,0);
+  return `Ball ${r.length} of ${drill.n} · ${drill.fmt==='ctp'?'best':drill.fmt==='long'?'longest':'total'} ${fmtScore(drill.fmt,v)}`};
+// One-shot formats: closest to the pin, long drive and up and in
+function dailyShot(head,how){
+  let v,line;
+  if(drill.fmt==='long'){
+    const on=!how&&['fairway','green'].includes(surfaceAt(ball.x,ball.y)),yd=Math.round(ball.y-shotStart.y);
+    v=on?yd:0;line=on?`<b>${yd} yds</b> on the fairway`:how?'<b>Out of bounds.</b> No distance.':`<b>${yd} yds</b>, but off the fairway so it doesn't count.`;
+  }else{
+    const miss=drill.fmt==='ctp'?99:60;
+    v=how==='in'?0:how?miss:Math.min(miss,Math.round(dist(ball,PIN)*3));
+    line=how==='in'?'<b>In the hole!</b>':how==='ob'?`<b>Out of bounds.</b> Counts as ${miss} ft.`:how?`<b>In the hazard.</b> Counts as ${miss} ft.`:`<b>${v} ft</b> from the pin`;
+    if(how==='in'){SFX.cup();SFX.chime(true)}
+  }
+  drill.res.push(v);drill.ghosts.push({x:ball.x,y:ball.y});
+  dailyNextOrEnd(`${head}<br>${line}`);
+}
+function dailyHole(n,capped){
+  drill.res.push(n);SFX.cup&&!capped&&SFX.cup();
+  dailyNextOrEnd(capped?`<b>Picked up.</b> That hole counts as ${n}.`:`<b>${n===1?'One putt!':`Holed in ${n}`}</b>`);
+}
+function dailyNextOrEnd(msg){
+  drill.i++;clearUndo();
+  if(drill.i>=drill.n)return dailyEnd();
+  const l=dailyLine();dailyBall();toast(`${msg}<br>${l}`);
+}
+function dailyEnd(){
+  const F=DFMT[drill.fmt],r=drill.res,v=drill.fmt==='ctp'?Math.min(...r):drill.fmt==='long'?Math.max(...r):r.reduce((a,b)=>a+b,0);
+  const m=medalOf(drill.fmt,v);state='done';$('#toast').hidden=true;
+  let rw='';
+  const D=dsave();
+  if(drill.scored&&!D.hist[drill.k]){
+    D.hist[drill.k]={f:drill.fmt,s:v,m};D.days++;inc('daily');if(m===0){D.gold++;inc('dailyGold')}
+    const coins=Math.round((m>=0?MEDAL[m].coins:25)*rewardMul());save.coins+=coins;const bits=[`${coins} coins`];
+    if(m===0&&Math.random()<.35){const f=makeFit(rollFitTier(1));bits.push(`a ${FIT_TIER[f.t].n} ${esc(fitName(f))}`)}
+    if(D.days%7===0){if(!save.owned.hawkeye){save.owned.hawkeye=newOwned();bits.push('the <b>Hawkeye</b> putter')}else{save.coins+=300;bits.push('a 300 coin streak bonus')}}
+    rw=`<div class="cc"><div class="blurb"><b>Rewards:</b> ${bits.join(' + ')}</div></div>`;
+    persist();
+  }else if(!drill.scored)rw='<div class="blurb">Practice run. Rewards only come from your first scored go each day.</div>';
+  const list=r.map((x,k)=>`<span>${drill.fmt==='putts'?'Hole':'Ball'} ${k+1}: ${fmtScore(drill.fmt,x)}</span>`).join('');
+  showEnd(`<div class="k">Daily challenge · ${drill.k}</div><div class="medal">${m>=0?MEDAL[m].ic:'⛳'}</div><div class="big">${fmtScore(drill.fmt,v)}</div>
+    <div class="sub">${F.n} · ${m>=0?`${MEDAL[m].n} medal`:'No medal this time'}</div><div class="dthr" style="justify-content:center;margin:8px 0">${list}</div>${rw}
+    <div class="btns"><button id="dShare" class="btn">Share</button><button id="dAgain" class="btn alt">Practise it</button><button id="dMenu" class="btn alt">Daily</button></div><div id="dMsg" class="blurb"></div>`);
+  $('#dShare').onclick=()=>shareText(dailyShareText(drill.k,drill.fmt,v,m),'#dMsg');
+  $('#dAgain').onclick=()=>startDaily(false);
+  $('#dMenu').onclick=()=>{$('#end').hidden=true;gameOn=false;openMenu('daily')};
+}
+const dailyShareText=(k,fmt,v,m)=>`Fairway Tales daily · ${k}\n${DFMT[fmt].n}: ${fmtScore(fmt,v)} ${m>=0?MEDAL[m].ic:'⛳'}\nSame shot for everyone today. Can you beat it?\nhttps://kralnu90.github.io/Fairway-Tales/`;
+function setWind(a,m){wind={x:Math.sin(a)*m,y:Math.cos(a)*m,mph:m};holeMaxWind=Math.max(holeMaxWind,m);$('#windMph').textContent=m;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
 // On the links the wind shifts between shots
 function gust(){if(!H.gusty||!windBase)return'';const old=wind.mph,a=windBase.a+(gustR()-.5)*70*RAD,m=Math.max(2,Math.round(windBase.m*(.55+gustR()*.9)));setWind(a,m);
   const w=document.querySelector('.wind');w.classList.remove('gusted');void w.offsetWidth;w.classList.add('gusted');return Math.abs(m-old)>=4?`<br><b>Gust:</b> wind now ${m} mph`:''}
@@ -1322,17 +1473,20 @@ function readyAgain(){
 }
 // Putter control narrows how much a tilted pull pushes the putt off line; forgiveness and perks widen the cup
 const tiltK=()=>.12*(1.3-eqStats().C*.03);
-const capR=()=>{const pid=bagOf('putter');return .09*(1+statsOf(pid).F*.02)*(DEF[pid].perk==='capture'?1.4:1)};
+const capR=()=>{const pid=bagOf('putter');return .09*(1+statsOf(pid).F*.02)*(DEF[pid].perk==='capture'?1.4:DEF[pid].perk==='oracle'?1.2:1)};
 const xpLine=()=>flight&&flight.xpMsg?`<br><span class="reward">${flight.xpMsg}</span>`:'';
 function stopBall(head){
+  if(onDrill('daily')){if(drill.fmt!=='putts')return dailyShot(head);if(strokes>=5)return dailyHole(5,true)}
   if(onRange()&&!flight.putt)return rangeDone(head);
   if(onDrill('chip')&&!flight.putt)return chipDone(head);
+  if(!flight.putt&&surfaceAt(ball.x,ball.y)==='green'&&strokes<=H.par-2&&players[pi])players[pi].gir=true;
   const moved=dist(shotStart,ball);
   if(flight.putt){const left=dist(ball,PIN);flight.xpMsg=gainXp(left<1?10:4)}
   const xl=xpLine(); readyAgain();
   toast(`${head}<br>${fmtDist(moved,shotClub.putter)} · ${surfName(surfaceAt(ball.x,ball.y))}${xl}`);
 }
 function dropFromWater(from,head,kind){
+  if(onDrill('daily')&&drill.fmt!=='putts')return dailyShot(head,'water');
   // step back toward where the shot came from until clear of the hazard, then 2 more yards
   const a=angTo(ball,from); let p={...ball};
   for(let i=0;i<200&&['water','gorse'].includes(surfaceAt(p.x,p.y));i++){p.x+=Math.sin(a);p.y+=Math.cos(a)}
@@ -1341,6 +1495,7 @@ function dropFromWater(from,head,kind){
   toast(`${head}<br><b>${kind==='gorse'?'Into the gorse.</b> Unplayable, penalty drop, +1 stroke.':'Splash.</b> Penalty drop, +1 stroke.'}${xl}`);
 }
 function penalty(head){
+  if(onDrill('daily')&&drill.fmt!=='putts')return dailyShot(head,'ob');
   if(onRange())return rangeDone(head,'ob');
   if(onDrill('chip'))return chipDone(head,'ob');
   ball={...shotStart}; strokes++; const xl=xpLine(); readyAgain();
@@ -1362,12 +1517,40 @@ function cardHTML(){
     rrow=`<tr class="now"><th class="pn"><span class="who"><i style="background:${rival.col}"></i>${esc(rival.name.split(' ')[0])}</span></th>${COURSE.map((h,k)=>`<td>${shown(k)?scoreCell(rival.scores[k],h.par):''}</td>`).join('')}<td class="tot">${rival.scores.filter((_,k)=>shown(k)).reduce((a,b)=>a+b,0)||'–'}</td></tr>`}
   return `<div class="card-wrap"><table class="card"><tr><th>Hole</th>${head}<td class="tot">Tot</td></tr><tr><th>Par</th>${pars}<td class="tot">${coursePar()}</td></tr>${rows}${rrow}</table></div>`;
 }
+function holeStats(){
+  const diff=strokes-H.par,putt=!!(flight&&flight.putt),from=shotStart?dist(shotStart,PIN):0;
+  if(!putt&&strokes<=H.par-1)players[pi].gir=true;
+  inc('holes');
+  if(strokes===1)inc('aces');
+  if(diff===-1)inc('birdies');else if(diff===-2)inc('eagles');else if(diff<=-3)inc('albatross');
+  if(!putt&&strokes>1)inc('chipins');
+  if(putt&&from>=10)inc('putt30');
+  if(putt&&from>=50/3)inc('putt50');
+  RS.holes++;if(players[pi].gir)RS.gir++;if(diff>0)RS.bogeyFree=false;
+  if(diff<0){RS.run++;RS.best=Math.max(RS.best,RS.run)}else RS.run=0;
+  if(RS.best>=3)st().hotStreak=1;
+  // legendary trials
+  if(diff<=-3||(strokes===1&&H.par===4))awardLegend('starfall');
+  if((st().chipins||0)>=3)awardLegend('moonshadow');
+  if((st().putt30||0)>=3)awardLegend('oracle');
+  if(courseKey()==='links'&&diff<=0&&holeMaxWind>=18)awardLegend('tempest');
+  persist();
+}
+function roundStats(rel){
+  inc('rounds');if(rel<0)inc('under');
+  if(RS.holes>=9&&RS.bogeyFree)inc('bogeyFree');
+  if(RS.holes>=9&&RS.gir>=9)awardLegend('heartwood');
+  if(rel<0&&swingLv()===4)inc('proUnder');
+  persist();
+}
 function showEnd(html){const e=$('#end');e.innerHTML=html;e.hidden=false}
 function holeOut(){
+  if(onDrill('daily')){vel={x:0,y:0};if(flight)flight.bounce=null;if(drill.fmt==='putts')return dailyHole(strokes);ball={...PIN};return dailyShot(`<b>${shotClub.n}</b>`,'in')}
   if(onDrill('chip')&&!flight.putt){ball={...PIN};vel={x:0,y:0};if(flight)flight.bounce=null;return chipDone(`<b>${shotClub.n}</b>`,'in')}
   if(onDrill('putt')){vel={x:0,y:0};if(flight)flight.bounce=null;return puttHoled()}
   ball={...PIN}; vel={x:0,y:0}; scores[holeIdx]=strokes; players[pi].holed=true;
   if(flight)flight.bounce=null;
+  if(realPlay())holeStats();
   if(flight&&flight.putt)gainXp(20);
   const diff=strokes-H.par;
   SFX.cup();if(diff<=-1||strokes===1)SFX.chime(diff<=-2||strokes===1);
@@ -1380,6 +1563,7 @@ function holeOut(){
 }
 function endHole(){
   state='done'; clearUndo(); hud();
+  if(mode==='pnp'&&holeIdx===COURSE.length-1){inc('pnp');persist()}
   if(mode==='pnp')return setTimeout(endHolePnp,500);
   if(mode==='practice')return setTimeout(endHolePractice,700);
   if(mode==='rival')return setTimeout(endHoleRival,700);
@@ -1402,6 +1586,7 @@ function endHole(){
       const tot=playedStrokes(),rel=tot-coursePar(),isBest=!cb||tot<cb;
       if(isBest){cb=tot;try{localStorage.setItem(bk,cb)}catch(e){}if(courseKey()==='ashby')best=cb}
       const hc=CH&&CH.g==='club'?null:recordRound(rel,CH?'challenge':'solo'),bags=rel<0?2:rel===0?1:0;
+      roundStats(rel);
       const chx=CH?chRecord(tot,rel):'';
       const bagBtn=bags?`<button id="openLoot" class="btn">Open reward bag${bags>1?` ×${bags}`:''}</button>`:'';
       showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${cb}`}</div>${rw}${hc?hcpChangeHTML(hc):''}${chx}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
@@ -1488,6 +1673,7 @@ function endHoleRival(){
   }
   const res=d>0?'win':d<0?'lose':'draw';
   const hc=rival.holes===9?recordRound(t.me-COURSE_PAR,'championship'):null;
+  if(rival.holes===9){roundStats(t.me-COURSE_PAR);if(res==='win'&&t.me<COURSE_PAR&&mulls>=1)awardLegend('phoenix')}
   showEnd(`<div class="k">${esc(label)} · Final</div><div class="big">${res==='win'?'You win!':res==='lose'?`${esc(first)} wins`:'All square'}</div><div class="sub">You ${t.me} · ${esc(first)} ${t.him} over ${rival.holes} holes</div>${hc?hcpChangeHTML(hc):''}${cardHTML()}<div class="btns"><button id="toClub" class="btn">Back to the club</button></div>`);
   gameOn=false;
   $('#toClub').onclick=()=>{$('#end').hidden=true;openWorld({after:{rival:rival.id,res}})};
@@ -1518,7 +1704,7 @@ $('#cardBtn').onclick=()=>{
 let resetArm=0;
 $('#reset').onclick=()=>{
   const now=performance.now();
-  if(now-resetArm<2500){resetArm=0;$('#reset').textContent='Restart';if(onDrill()){drill.n=drill.sum=drill.ins=drill.putts=drill.one=0;drill.best=null;drill.ghosts=[];drillNext();return}if(mode==='practice')loadHole(holeIdx);else newRound();return}
+  if(now-resetArm<2500){resetArm=0;$('#reset').textContent='Restart';if(onDrill('daily')){if(drill.scored){toast('A scored daily can\'t be restarted. Practise it as many times as you like afterwards.');return}startDaily(false);return}if(onDrill()){drill.n=drill.sum=drill.ins=drill.putts=drill.one=0;drill.best=null;drill.ghosts=[];drillNext();return}if(mode==='practice')loadHole(holeIdx);else newRound();return}
   resetArm=now;$('#reset').textContent='Tap again to restart';
   setTimeout(()=>{if(resetArm&&performance.now()-resetArm>=2400){resetArm=0;$('#reset').textContent='Restart'}},2500);
 };
@@ -1645,10 +1831,10 @@ function simPutt(yd,tilt){
 let undoStack=[];
 // Practice: unlimited undo. Solo and story matches: one Mulligan per round, like a provisional ball. Pass and play: none.
 let mulls=0;
-const undoLimit=()=>mode==='practice'?99:(mode==='solo'||mode==='rival')&&mulls>0?1:0;
+const undoLimit=()=>onDrill('daily')?(drill.scored?0:99):mode==='practice'?99:(mode==='solo'||mode==='rival')&&mulls>0?1:0;
 function undoBtn(){const b=$('#undo');b.hidden=mode==='pnp';b.textContent=mode==='practice'?'Undo':`Mulligan · ${mulls}`}
 // One putt preview per hole for each player, except in practice
-const readsPerHole=()=>DEF[bagOf('putter')].perk==='read2'?2:1;
+const readsPerHole=()=>{const pk=DEF[bagOf('putter')].perk;return pk==='oracle'?99:pk==='read2'?2:1};
 const previewAvail=()=>previewOn&&(mode==='practice'||(players[pi].pvUsed||0)<readsPerHole());
 function previewBtn(){const b=$('#preview');if(mode==='practice'){b.textContent='Preview';b.disabled=false;return}
   const left=readsPerHole()-(players[pi].pvUsed||0);b.disabled=left<=0;b.textContent=left<=0?'Read used':`Preview · ${left}`}
@@ -1836,7 +2022,7 @@ function predictShot(c){
   const P0={x:ball.x+D0.x*d,y:ball.y+D0.y*d},P={x:ball.x+D1.x*d,y:ball.y+D1.y*d};
   const at=t=>({x:ball.x+(P0.x-ball.x)*t+(P.x-P0.x)*t*t,y:ball.y+(P0.y-ball.y)*t+(P.y-P0.y)*t*t});
   const s=surfaceAt(P.x,P.y),S=SURF[s],rm=rollMult();let roll=0,back=false;
-  if(S.land!==undefined){if(rm<0&&(s==='green'||s==='fringe')){roll=d*.06*-rm*c.bs*sf*(perk==='spinback'?1.5:1);back=true}else roll=d*c.roll*S.land*Math.max(0,rm)*(perk==='roll'?1.25:1)}
+  if(S.land!==undefined){if(rm<0&&(s==='green'||s==='fringe')){roll=d*.06*-rm*c.bs*sf*(perk==='spinback'?1.5:perk==='phoenix'?2:1);back=true}else roll=d*c.roll*S.land*Math.max(0,rm)*(perk==='roll'?1.25:1)}
   const q=at(.92),m=Math.hypot(P.x-q.x,P.y-q.y)||1,k=back?-1:1,ux=(P.x-q.x)/m*k,uy=(P.y-q.y)/m*k;
   return{P,at,roll,back,rollEnd:{x:P.x+ux*roll,y:P.y+uy*roll}};
 }
@@ -1989,7 +2175,7 @@ function draw(){
     ctx.strokeStyle='#5d9a52';ctx.lineWidth=.35;ctx.beginPath();ctx.arc(t.x,t.y,t.r*.55,0,7);ctx.stroke();ctx.fillStyle='#f6d2e0';ctx.beginPath();ctx.arc(t.x+t.r*.2,t.y+t.r*.25,.35,0,7);ctx.fill()}
   for(const t of H.treesList){ctx.fillStyle=H.theme==='ice'?'rgba(40,60,90,.3)':'rgba(10,30,15,.35)';ctx.beginPath();ctx.arc(t.x+1.2,t.y-1.5,t.r,0,7);ctx.fill()}
   for(const t of H.treesList)drawTree(t,H.theme);
-  if(onDrill('chip'))for(const [k,g] of drill.ghosts.entries()){ctx.fillStyle=`rgba(255,255,255,${.25+.5*(k+1)/drill.ghosts.length})`;ctx.beginPath();ctx.arc(g.x,g.y,Math.max(.25,2.5*px),0,7);ctx.fill()}
+  if(onDrill('chip')||(onDrill('daily')&&drill.fmt!=='putts'))for(const [k,g] of drill.ghosts.entries()){ctx.fillStyle=`rgba(255,255,255,${.25+.5*(k+1)/drill.ghosts.length})`;ctx.beginPath();ctx.arc(g.x,g.y,Math.max(.25,2.5*px),0,7);ctx.fill()}
   if(H.range){ctx.save();ctx.setTransform(d,0,0,d,0,0);ctx.font='800 11px "Nunito Sans",system-ui,sans-serif';ctx.textAlign='left';
     for(let y=50;y<=400;y+=50){const sx=W/2+(-H.hw+2-cam.x)*s,sy=H2/2-(y-cam.y)*s;if(sy<-10||sy>H2+10)continue;const t=`${y}`;const tw=ctx.measureText(t).width+8;ctx.fillStyle='rgba(14,29,21,.75)';ctx.beginPath();ctx.roundRect(sx,sy-8,tw,16,5);ctx.fill();ctx.fillStyle='#eef3e4';ctx.fillText(t,sx+4,sy+4)}
     ctx.restore()}
@@ -3008,7 +3194,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.12.1';
+const GAME_VERSION='0.13';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3482,7 +3668,7 @@ function openMenu(screen){
         ${!e.mine&&!myName()?`<div class="prow"><input id="chName" maxlength="20" placeholder="Your name for the leaderboard" autocomplete="off"></div>`:''}
         <div class="acts">${e.mine?'<button id="chPlay" class="sbtn">Play again (won\'t count)</button>':'<button id="chPlay" class="sbtn pri">Play my round</button>'}<button id="chShare" class="sbtn">Invite friends</button>${e.mine?'<button id="chMine" class="sbtn">Send my result</button>':''}</div><div id="chMsg" class="blurb"></div></div>
       <div class="group-h">Leaderboard</div>
-      ${rows.length?rows.map((r,k)=>`<div class="lb${r.me?' me':''}"><span class="lb-n">${k+1}</span><span class="lb-name">${esc(r.n)}${r.me?' (you)':''}<small>${DIFF[r.lv].n} swing${r.g==='club'?'':''}</small></span><span class="lb-t">${r.tot} <i>${toPar(r.tot-par)}</i></span>
+      ${rows.length?rows.map((r,k)=>`<div class="lb${r.me?' me':''}"><span class="lb-n">${k+1}</span><span class="lb-name">${esc(r.n)}${r.me?' (you)':''}<small>${DIFF[r.lv].n} swing${r.t?` · ${esc(r.t)}`:''}</small></span><span class="lb-t">${r.tot} <i>${toPar(r.tot-par)}</i></span>
         <div class="lb-card">${r.s.map((v,h)=>{const d=v-C.holes[h].par;return `<span class="${d<=-2?'uu':d===-1?'u':d===1?'o':d>=2?'oo':''}">${v}</span>`}).join('')}</div></div>`).join(''):'<div class="blurb">No scores yet. Play your round, and paste friends\' results below as they come in.</div>'}
       <div class="cc"><div class="cc-name">Add a friend's result</div><textarea id="chIn" class="bk" placeholder="Paste their result here" aria-label="Result code"></textarea>
         <div class="acts"><button id="chAdd" class="sbtn pri">Add result</button><button id="chDel" class="sbtn">Delete challenge</button></div><div id="chAddMsg" class="blurb"></div></div>`;
@@ -3493,6 +3679,47 @@ function openMenu(screen){
     if($('#chMine'))$('#chMine').onclick=()=>shareText(resultShareText(chOpen),'#chMsg');
     $('#chAdd').onclick=()=>{try{const r=addCode($('#chIn').value);chFlash=r.msg;chOpen=r.id;openMenu('chview')}catch(err){$('#chAddMsg').textContent=err.message}};
     let arm=false;$('#chDel').onclick=()=>{if(!arm){arm=true;$('#chDel').textContent='Tap again to delete';return}delete chStore()[chOpen];persist();openMenu('challenges')};
+    return;
+  }
+  if(screen==='daily'){
+    const T=dailyToday(),F=DFMT[T.fmt],D=dsave(),dn=D.hist[T.k],toNext=7-(D.days%7);
+    const where=T.fmt==='ctp'?`${T.hole.name} · par 3 · ${T.hole.len} yds`:T.fmt==='putts'?`${PUTT_SURF[T.surf].n} greens · ${PUTT_SURF[T.surf].d.toLowerCase()}`:T.fmt==='long'?'Driver on a 26 yard wide fairway':'Fairway, rough and sand round the green';
+    const thr=F.med.map((x,i)=>`<span>${MEDAL[i].ic} ${F.low?'':''}${fmtScore(T.fmt,x)}${F.low?' or less':' or more'}</span>`).join('');
+    const past=Object.entries(D.hist).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,7).map(([k,h])=>`<div class="swap-row"><span>${k} · ${DFMT[h.f].n}</span><span>${fmtScore(h.f,h.s)} ${h.m>=0?MEDAL[h.m].ic:''}</span></div>`).join('');
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Daily challenge</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="cc pg"><div class="cc-top"><div class="cc-name">${F.n}</div><span class="chip">${T.k}</span></div>
+        <div class="blurb">${F.d}</div><div class="blurb"><b>${esc(where)}</b>. Same conditions for every player today.</div>
+        <div class="dthr">${thr}</div>
+        <div class="blurb">Gold ${MEDAL[0].coins} coins and a chance at a fitting · silver ${MEDAL[1].coins} · bronze ${MEDAL[2].coins} · just playing 25. Your first go each day is the one that counts.</div>
+        <div class="acts">${dn?`<button class="sbtn" disabled>Done: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''}</button><button id="dShareM" class="sbtn">Share</button>`:'<button id="dPlay" class="sbtn pri">Play for real</button>'}<button id="dPrac" class="sbtn">Practise</button></div><div id="dMsgM" class="blurb"></div></div>
+      <div class="cc"><div class="cc-top"><div class="cc-name">Streak</div><span class="chip">${D.days} played</span></div>
+        <div class="streak">${Array.from({length:7},(_,i)=>`<i class="${i<D.days%7||(D.days&&D.days%7===0)?'on':''}"></i>`).join('')}</div>
+        <div class="blurb">Every 7 dailies you finish earns a reward: ${save.owned.hawkeye?'300 coins':'the <b>Hawkeye</b> putter, then 300 coins after that'}. Miss a day and your streak just waits for you. ${D.days%7===0&&D.days?'Reward claimed!':`${toNext} to go.`}</div></div>
+      ${past?`<div class="group-h">Recent</div><div class="cc">${past}</div>`:''}
+      <div class="blurb">A new format every day: closest to the pin, long drive, up and in, and putting.</div>`;
+    $('#mBack').onclick=()=>openMenu('home');
+    if($('#dPlay'))$('#dPlay').onclick=()=>startDaily(true);
+    if($('#dShareM'))$('#dShareM').onclick=()=>shareText(dailyShareText(T.k,dn.f,dn.s,dn.m),'#dMsgM');
+    $('#dPrac').onclick=()=>startDaily(false);
+    return;
+  }
+  if(screen==='trophies'){
+    const done=ACH.filter(a=>achDone(a.id)).length,titles=ACH.filter(a=>a.title&&achDone(a.id));
+    const leg=LEGENDS.map(id=>{const d=DEF[id],o=!!save.owned[id];
+      const pr=id==='moonshadow'?` · ${Math.min(3,st().chipins||0)} of 3`:id==='oracle'?` · ${Math.min(3,st().putt30||0)} of 3`:'';
+      return `<div class="legrow${o?' done':''}"><div class="lg">${o?'★':'?'}</div><b>${d.n} · ${TYPE_NAME[d.t]}</b><small>${o?esc(d.perkText):esc(d.srcText)+pr}</small></div>`}).join('');
+    const grp=ACH_GROUPS.map(g=>{const rows=ACH.filter(a=>a.g===g).map(a=>{const dn=achDone(a.id),hid=a.hidden&&!dn;let pr=[0,1];try{pr=a.p()}catch(e){}
+      const bar=!dn&&pr[1]>1&&!hid?`<div class="bar"><i style="width:${Math.min(100,pr[0]/pr[1]*100)}%"></i></div><small>${Math.min(pr[0],pr[1])} of ${pr[1]}</small>`:'';
+      return `<div class="trow${dn?' done':''}"><div class="ti">${dn?'🏆':hid?'❔':'🔒'}</div><b>${hid?'???':esc(a.n)}</b><small>${hid?'A hidden achievement. Keep playing.':esc(a.d)}${a.title&&!hid?` · Title: ${esc(a.title)}`:''}</small>${bar}<div class="tr">${hid?'':rewardText(a.r)}</div></div>`}).join('');
+      return `<div class="group-h">${g} · ${ACH.filter(a=>a.g===g&&achDone(a.id)).length} of ${ACH.filter(a=>a.g===g).length}</div><div class="tlist">${rows}</div>`}).join('');
+    b.innerHTML=`<div class="screen-h"><div class="sheet-title">Trophies</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="cc"><div class="cc-top"><div class="cc-name">${done} of ${ACH.length} achievements</div></div><div class="bar" style="height:6px;margin:8px 0 12px"><i style="width:${done/ACH.length*100}%"></i></div>
+      <label class="blurb" for="tTitle">Your title, shown on challenge leaderboards</label><select id="tTitle" class="sel"><option value="">No title</option>${titles.map(a=>`<option value="${a.id}"${save.title===a.id?' selected':''}>${esc(a.title)}</option>`).join('')}</select>
+      ${titles.length?'':'<div class="blurb">Some achievements unlock a title. Earn one to pick it here.</div>'}</div>
+      <div class="group-h">Legendary clubs</div><div class="blurb">These can't be bought or found. Complete a club's trial in a solo round or story match and it's yours.</div><div class="tlist">${leg}</div>
+      ${grp}`;
+    $('#mBack').onclick=()=>openMenu('home');
+    $('#tTitle').onchange=()=>{save.title=$('#tTitle').value||null;persist()};
     return;
   }
   if(screen==='ground'){
@@ -3528,26 +3755,29 @@ function openMenu(screen){
     return;
   }
   const resume=gameOn&&state!=='done';
-  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:onRange()?'Driving range':onDrill()?`${H.drill==='chip'?'Chipping green':'Putting green'} · ${drillStat()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`${CH?`Challenge · ${COURSES[CH.c].name}`:'Solo round'} · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
+  const where=isCustom()&&lastCfg.courseName?`${lastCfg.courseName} · hole ${holeIdx+1} of ${COURSE.length}`:lastCfg.test?'Test playing your hole':mode==='rival'&&rival?`${rival.title||rival.name+' match'} · hole ${holeIdx-rival.s+1} of ${rival.holes} · ${rivalLine()}`:onRange()?'Driving range':onDrill()?`${H.drill==='daily'?H.name:H.drill==='chip'?'Chipping green':'Putting green'} · ${drillStat()}`:mode==='practice'?`Practice · hole ${holeIdx+1}`:mode==='pnp'?`Pass & play · hole ${holeIdx+1} · ${players.length} players`:`${CH?`Challenge · ${COURSES[CH.c].name}`:'Solo round'} · hole ${holeIdx+1} · ${toPar(playedStrokes()-playedPar())}`;
   const IC=(d)=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`,CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
   const ICONS={resume:'<path d="M8 5l11 7-11 7z" fill="currentColor"/>',story:'<path d="M4 19V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM8 7h6M8 11h6"/>',solo:'<path d="M6 21V3l11 4-11 4"/><circle cx="17" cy="19" r="2"/>',
     pnp:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',chal:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>',ground:'<path d="M4 20h16M7 20V9l5-5 5 5v11M10 20v-5h4v5"/>',practice:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
-    create:'<path d="M3 21l3.5-1 11-11-2.5-2.5-11 11zM14 6l2.5 2.5M17 3l4 4"/>',bag:'<path d="M7 8h10l-1 13H8zM9 8V5a3 3 0 0 1 6 0v3"/>'};
+    create:'<path d="M3 21l3.5-1 11-11-2.5-2.5-11 11zM14 6l2.5 2.5M17 3l4 4"/>',daily:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M10 15l1.5 1.5L15 13"/>',trophy:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',bag:'<path d="M7 8h10l-1 13H8zM9 8V5a3 3 0 0 1 6 0v3"/>'};
   const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CHEV}</button>`;
   b.innerHTML=`<div class="hero-card"><canvas id="heroCv" aria-label="A golfer teeing off" role="img"></canvas><div class="hero-tag">${esc(heroTheme().tag)}</div></div>
     <div class="hero-row"><div><div class="k">A golf RPG</div><div class="menu-title">Fairway <span>Tales</span></div></div><div class="hero-stats"><span class="chip">HCP ${hcp()==null?'36':fmtH(hcp())}</span><span class="chip">${DIFF[swingLv()].n} swing</span>${best?`<span class="chip">Best ${best}</span>`:''}</div></div>
-    ${seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: swing difficulty</div></div>
-      <div class="blurb">Swings are now harder to hit straight, and they get tougher as your handicap drops. A wobbly swipe, drifting on the way down or rushing the top will bend the ball. Better players earn more XP, coins and fittings.</div>
-      <div class="blurb">You're on <b>${DIFF[swingLv()].n}</b>. You can lock your level in Settings.</div>
-      <div class="acts"><button id="wnOk" class="sbtn pri">Got it</button><button id="wnSet" class="sbtn">Settings</button></div></div>`}
+    ${seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: dailies, trophies and legends</div></div>
+      <div class="blurb"><b>Daily challenge</b>: one quick mini-game a day, the same for everyone. Win a medal for coins and a shot at a fitting.</div>
+      <div class="blurb"><b>Trophies</b>: ${ACH.length} achievements with rewards and titles. Your progress so far already counts.</div>
+      <div class="blurb"><b>Legendary clubs</b>: seven clubs you can't buy. Complete a club's trial to earn it.</div>
+      <div class="acts"><button id="wnOk" class="sbtn pri">Got it</button><button id="wnSet" class="sbtn">See trophies</button></div></div>`}
     ${resume?MB('mResume','resume','Resume',esc(where),' pri'):''}
     <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CHEV}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
+    ${(()=>{const T=dailyToday(),dn=dsave().hist[T.k];return MB('mDaily','daily','Daily challenge',dn?`Done today: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''} · new one tomorrow`:`Today: ${DFMT[T.fmt].n}. Win a medal and coins.`,dn?'':' fresh')})()}
     ${MB('mChal','chal','Challenges','Same course, same pins, same wind. Play your friends on your own phones.')}
     ${MB('mGround','ground','Practice ground','Driving range, chipping green and putting green.')}
     ${MB('mPractice','practice','Play a hole','Pick any hole. Unlimited undo, no rewards.')}
     ${MB('mCreate','create','Course creator',CUST.holes.length?`${CUST.holes.length} hole${CUST.holes.length>1?'s':''} · ${CUST.courses.length} course${CUST.courses.length===1?'':'s'}`:'Build your own holes, make courses, share codes')}
+    ${MB('mTrophy','trophy','Trophies',`${ACH.filter(a=>achDone(a.id)).length} of ${ACH.length} achievements · ${LEGENDS.filter(id=>save.owned[id]).length} of 7 legendary clubs`)}
     ${MB('mBag','bag','Bag, fittings &amp; shop',`${save.coins} coins · ${save.kits} kits · ${DEFS.filter(d=>save.owned[d.id]).length} of ${DEFS.length} clubs${save.fits.length?` · ${save.fits.length} part${save.fits.length>1?'s':''}`:''}`)}
     <div class="mgrid">
       <button id="mHelp" class="mbtn small${seenHelp()?'':' pri'}"><b>How to play</b><span>${seenHelp()?'Controls and tips':'New? Start here'}</span></button>
@@ -3564,6 +3794,7 @@ function openMenu(screen){
   $('#mPractice').onclick=()=>openMenu('practice');
   $('#mGround').onclick=()=>openMenu('ground');
   $('#mChal').onclick=()=>openMenu('challenges');
+  $('#mDaily').onclick=()=>openMenu('daily');$('#mTrophy').onclick=()=>openMenu('trophies');
   $('#mCreate').onclick=()=>openMenu('courses');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
@@ -3571,7 +3802,7 @@ function openMenu(screen){
   $('#mReview').onclick=()=>openMenu('review');
   $('#mHelp').onclick=()=>openMenu('help');
   $('#mSettings').onclick=()=>openMenu('settings');
-  if($('#wnOk')){$('#wnOk').onclick=()=>{markNew();openMenu('home')};$('#wnSet').onclick=()=>{markNew();openMenu('settings')}}
+  if($('#wnOk')){$('#wnOk').onclick=()=>{markNew();openMenu('home')};$('#wnSet').onclick=()=>{markNew();openMenu('trophies')}}
   startHero();
 }
 // ---------- Main menu hero: a golfer teeing off, set wherever you are in the story ----------
@@ -3691,8 +3922,83 @@ function drawHeroGolfer(c,x,y,s,a,cock,turn,th){
   c.restore();
 }
 const KOFI='https://ko-fi.com/kralnu90';
-const seenNew=()=>{try{return localStorage.getItem('fsl-seen-diff')==='1'}catch(e){return true}};
-const markNew=()=>{try{localStorage.setItem('fsl-seen-diff','1')}catch(e){}};
+const ownedN=()=>DEFS.filter(d=>save.owned[d.id]).length;
+const chWins=()=>Object.values(save.chal||{}).filter(e=>{if(!e.mine)return false;const {rows}=chBoard(e);return rows.length>=3&&rows[0].me}).length;
+const F_=()=>SF();
+const ACH=[
+ {id:'champ',g:'Story',n:'Club Champion',d:'Win the Ashby Green Club Championship',p:()=>[+!!F_().champion,1],r:{coins:200}},
+ {id:'qual',g:'Story',n:'Qualified',d:'Win the County Qualifier at Gullhaven',p:()=>[+!!F_().ch2champ,1],r:{coins:300}},
+ {id:'county',g:'Story',n:'County Champion',d:'Win the County Championship at Sun Mesa',p:()=>[+!!F_().ch3champ,1],r:{coins:400}},
+ {id:'tourcard',g:'Story',n:'Tour Card',d:'Win the Winter Open at Frostpeak',p:()=>[+!!F_().ch4champ,1],r:{kits:2},title:'Winter Open Champ'},
+ {id:'giant',g:'Story',n:'Giant Killer',d:'Beat all 16 story rivals',p:()=>[['beatToby','beatDot','beatMarcus','champion','beatCallum','beatFiona','beatTam','ch2champ','beatRicky','beatPriya','beatWes','ch3champ','beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>F_()[k]).length,16],r:{fit:1},title:'Giant Killer'},
+ {id:'roadtrip',g:'Story',n:'Road Trip',d:'Visit all four courses in Story mode',p:()=>[1+['visitedLinks','visitedMesa','visitedFrost'].filter(k=>F_()[k]).length,4],r:{coins:150}},
+ {id:'animals',g:'Story',n:'Animal Friend',d:'Find what all four animal friends are hiding',hidden:true,p:()=>[['pipTee','gullCoin','ziggyCoin','bjornCoin'].filter(k=>F_()[k]).length,4],r:{coins:150}},
+ {id:'birdie1',g:'Skill',n:'First Birdie',d:'Make a birdie',p:()=>[st().birdies||0,1],r:{coins:50}},
+ {id:'birdie50',g:'Skill',n:'Birdie Hunter',d:'Make 50 birdies',p:()=>[st().birdies||0,50],r:{kits:1}},
+ {id:'eagle',g:'Skill',n:'Eagle Eye',d:'Make an eagle',p:()=>[st().eagles||0,1],r:{coins:200}},
+ {id:'ace',g:'Skill',n:'Ace!',d:'Make a hole-in-one',p:()=>[st().aces||0,1],r:{fit:1},title:'Ace'},
+ {id:'albatross',g:'Skill',n:'Rare Bird',d:'Make an albatross',hidden:true,p:()=>[st().albatross||0,1],r:{fit:2},title:'Rare Bird'},
+ {id:'chipin',g:'Skill',n:'Chip In',d:'Hole a shot from off the green',p:()=>[st().chipins||0,1],r:{coins:100}},
+ {id:'bomb',g:'Skill',n:'Long Bomb',d:'Hole a putt from 50 ft or more',p:()=>[st().putt50||0,1],r:{coins:150}},
+ {id:'under',g:'Skill',n:'Under Par',d:'Finish a 9-hole round under par',p:()=>[st().under||0,1],r:{coins:150}},
+ {id:'clean',g:'Skill',n:'Clean Card',d:'Finish a 9-hole round without a bogey',p:()=>[st().bogeyFree||0,1],r:{kits:1}},
+ {id:'hot',g:'Skill',n:'Hot Streak',d:'Make 3 birdies in a row in one round',p:()=>[st().hotStreak||0,1],r:{coins:200},title:'Hot Hand'},
+ {id:'clubs10',g:'Collection',n:'Getting a Grip',d:'Own 10 clubs',p:()=>[ownedN(),10],r:{coins:100}},
+ {id:'clubs25',g:'Collection',n:'Full Locker',d:'Own 25 clubs',p:()=>[ownedN(),25],r:{kits:1}},
+ {id:'clubsall',g:'Collection',n:'Collector',d:'Own every club in the game',p:()=>[ownedN(),DEFS.length],r:{fit:2},title:'Collector'},
+ {id:'forge',g:'Collection',n:'Forged in Fire',d:'Forge an Epic from shards',p:()=>[st().forged||0,1],r:{coins:150}},
+ {id:'maxlv',g:'Collection',n:'Maxed Out',d:'Get a club to level 10',p:()=>[Math.max(1,...Object.values(save.owned).map(o=>o.lvl)),MAX_LV],r:{kits:2}},
+ {id:'tinker',g:'Collection',n:'Tinkerer',d:'Fit a part to one of your clubs',p:()=>[+Object.values(save.fitOn||{}).some(m=>Object.keys(m).length),1],r:{coins:50}},
+ {id:'legpart',g:'Collection',n:'Legendary Part',d:'Own a Legendary fitting',p:()=>[+(save.fits||[]).some(f=>f.t===4),1],r:{coins:300}},
+ {id:'legend',g:'Collection',n:'Legend',d:'Earn a legendary club by completing its trial',p:()=>[LEGENDS.filter(id=>save.owned[id]).length,1],r:{kits:2},title:'Legend'},
+ {id:'legend7',g:'Collection',n:'Hall of Legends',d:'Earn all seven legendary clubs',hidden:true,p:()=>[LEGENDS.filter(id=>save.owned[id]).length,7],r:{fit:3},title:'Immortal'},
+ {id:'lv1',g:'Swing',n:'Finding Form',d:'Reach the Standard swing level',p:()=>[naturalLv(),1],r:{coins:100}},
+ {id:'lv2',g:'Swing',n:'Getting Serious',d:'Reach the Hard swing level',p:()=>[naturalLv(),2],r:{coins:200}},
+ {id:'lv3',g:'Swing',n:'Scratch Golfer',d:'Reach the Very hard swing level',p:()=>[naturalLv(),3],r:{kits:1}},
+ {id:'lv4',g:'Swing',n:'Pro Swing',d:'Reach the Pro swing level',p:()=>[naturalLv(),4],r:{kits:2},title:'Pro'},
+ {id:'prounder',g:'Swing',n:'Tour Ready',d:'Finish a round under par on the Pro swing',p:()=>[st().proUnder||0,1],r:{fit:1},title:'Tour Ready'},
+ {id:'chhost',g:'Social',n:'Host',d:'Create a challenge',p:()=>[st().chCreated||0,1],r:{coins:50}},
+ {id:'chplay',g:'Social',n:'Challenger',d:'Finish a challenge round',p:()=>[st().chPlayed||0,1],r:{coins:100}},
+ {id:'chwin',g:'Social',n:'Top of the Table',d:'Top a challenge leaderboard of 3 or more players',p:()=>[chWins(),1],r:{kits:1},title:'Table Topper'},
+ {id:'pnp',g:'Social',n:'Pass the Phone',d:'Finish a pass & play round',p:()=>[st().pnp||0,1],r:{coins:50}},
+ {id:'range',g:'Practice',n:'Range Rat',d:'Hit 100 balls on the driving range',p:()=>[st().range||0,100],r:{coins:100}},
+ {id:'chipprac',g:'Practice',n:'Short Game Wizard',d:'Chip in on the chipping green',p:()=>[st().chipPrac||0,1],r:{coins:75}},
+ {id:'oneputt',g:'Practice',n:'Putting Machine',d:'One-putt 10 times on the putting green',p:()=>[st().onePutt||0,10],r:{coins:100}},
+ {id:'daily1',g:'Daily',n:'Daily Habit',d:'Finish a daily challenge',p:()=>[st().daily||0,1],r:{coins:50}},
+ {id:'dailygold',g:'Daily',n:'Gold Standard',d:'Win a gold medal in a daily challenge',p:()=>[st().dailyGold||0,1],r:{coins:150}},
+ {id:'daily7',g:'Daily',n:'Regular',d:'Finish 7 daily challenges',p:()=>[st().daily||0,7],r:{coins:200},title:'Regular'},
+ {id:'gold10',g:'Daily',n:'Golden Touch',d:'Win 10 gold medals',p:()=>[st().dailyGold||0,10],r:{fit:1},title:'Golden Touch'}
+];
+window.ACH_ON=true;
+setTimeout(()=>{try{const got=checkAch(true);if(got.length)achPop({plain:true,n:`${got.length} trophy${got.length>1?' wins':''} unlocked`.replace('trophy wins','trophies'),d:`Your progress so far counts. ${got.length>1?'Rewards':'Reward'} added. See Trophies on the menu.`})}catch(e){console.error(e)}},600);
+const ACH_GROUPS=['Story','Skill','Collection','Swing','Social','Practice','Daily'];
+const achDone=id=>!!(save.ach||{})[id];
+const rewardText=r=>[r.coins?`${r.coins} coins`:'',r.kits?`${r.kits} tuning kit${r.kits>1?'s':''}`:'',r.fit?`${r.fit} fitting${r.fit>1?'s':''}`:''].filter(Boolean).join(' + ');
+let achBusy=false;
+function checkAch(silent){
+  if(achBusy||!save)return [];achBusy=true;const got=[];
+  try{save.ach=save.ach||{};
+    for(const a of ACH){if(save.ach[a.id])continue;let pr;try{pr=a.p()}catch(e){continue}
+      if(pr[0]>=pr[1]){save.ach[a.id]=Date.now();got.push(a);
+        if(a.r.coins)save.coins+=a.r.coins;if(a.r.kits)save.kits+=a.r.kits;
+        for(let k=0;k<(a.r.fit||0);k++)makeFit(rollFitTier(1));
+        if(!silent)achPop({n:a.n,d:`${a.d} · +${rewardText(a.r)}${a.title?` · Title: ${a.title}`:''}`})}}
+    if(got.length){try{localStorage.setItem('fsl-save',JSON.stringify(save))}catch(e){}if(typeof updateCoins==='function'&&worldOn)updateCoins()}
+  }finally{achBusy=false}
+  return got;
+}
+const titleText=()=>{const a=ACH.find(x=>x.id===save.title);return a&&achDone(a.id)?a.title:''};
+let achQ=[],achShowing=false;
+function achPop(a){achQ.push(a);if(!achShowing)achNext()}
+function achNext(){
+  const a=achQ.shift(),el=$('#achPop');if(!a){achShowing=false;el.hidden=true;return}
+  achShowing=true;el.className='achpop'+(a.legend?' legend':'');
+  el.innerHTML=`<span class="ach-ic">${a.legend?'★':'🏆'}</span><span><b>${a.legend||a.plain?'':'Achievement · '}${esc(a.n)}</b><small>${esc(a.d)}</small></span>`;
+  el.hidden=false;try{a.legend?0:SFX.loot()}catch(e){}
+  setTimeout(()=>{el.hidden=true;setTimeout(achNext,250)},a.legend?4200:3200);
+}
+const seenNew=()=>{try{return localStorage.getItem('fsl-seen-v13')==='1'}catch(e){return true}};
+const markNew=()=>{try{localStorage.setItem('fsl-seen-v13','1')}catch(e){}};
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};
 function makeBackup(){
   const ls={};try{for(const k of ['fsl-preview','fsl-names','fsl-pcount','fsl-settings','fsl-seen-help','fsl-custom']){const v=localStorage.getItem(k);if(v!=null)ls[k]=v}}catch(e){}
@@ -3739,7 +4045,7 @@ const encObj=o=>b64u.enc(new TextEncoder().encode(JSON.stringify(o)));
 const decObj=str=>JSON.parse(new TextDecoder().decode(b64u.dec(str)));
 const chCode=c=>`FTC1:${encObj({v:1,id:c.id,c:c.c,seed:c.seed,g:c.g,h:c.host})}:FT`;
 const chLink=(k,code)=>{const base=location.protocol.startsWith('http')&&!location.host.includes('claude')?location.origin+location.pathname:'https://kralnu90.github.io/Fairway-Tales/';return `${base}#${k}=${code.slice(5,-3)}`};
-function resCode(id,r){const body={id,n:r.n,s:r.s,lv:r.lv,g:r.g};body.k=chHash(id+JSON.stringify(r.s)+r.n);return `FTR1:${encObj(body)}:FT`}
+function resCode(id,r){const body={id,n:r.n,s:r.s,lv:r.lv,g:r.g,t:r.t||''};body.k=chHash(id+JSON.stringify(r.s)+r.n);return `FTR1:${encObj(body)}:FT`}
 function readCode(text){
   const t=String(text).replace(/\s+/g,''),m=t.match(/FT([CR])1:([A-Za-z0-9_-]+):FT/)||t.match(/#(ch|r)=([A-Za-z0-9_-]+)/);
   if(!m)throw new Error('No challenge or result code found. They start with FTC1: or FTR1:.');
@@ -3747,7 +4053,7 @@ function readCode(text){
   if(kind==='C'){if(!o.id||!COURSES[o.c]||typeof o.seed!=='number')throw new Error('That challenge code is broken.');return{kind,ch:{id:String(o.id).slice(0,12),c:o.c,seed:o.seed>>>0,g:o.g==='club'?'club':'own',host:String(o.h||'A friend').slice(0,20)}}}
   if(!o.id||!Array.isArray(o.s)||o.s.length!==9||!o.s.every(v=>Number.isInteger(v)&&v>0&&v<20))throw new Error('That result code is broken.');
   if(o.k!==chHash(o.id+JSON.stringify(o.s)+o.n))throw new Error('That result code has been changed, so it can\'t be added.');
-  return{kind,r:{id:String(o.id),n:String(o.n||'Player').slice(0,20),s:o.s,lv:Math.max(0,Math.min(4,o.lv|0)),g:o.g==='club'?'club':'own'}};
+  return{kind,r:{id:String(o.id),n:String(o.n||'Player').slice(0,20),s:o.s,lv:Math.max(0,Math.min(4,o.lv|0)),g:o.g==='club'?'club':'own',t:String(o.t||'').slice(0,24)}};
 }
 function addCode(text){
   const x=readCode(text),st=chStore();
@@ -3756,11 +4062,11 @@ function addCode(text){
   if(e.mine&&e.mine.n===x.r.n&&JSON.stringify(e.mine.s)===JSON.stringify(x.r.s))return{msg:'That\'s your own result.',id:x.r.id};
   const i=e.res.findIndex(q=>q.n===x.r.n);if(i>=0)e.res[i]=x.r;else e.res.push(x.r);persist();return{msg:`Added ${x.r.n}'s score.`,id:x.r.id};
 }
-function newChallenge(c,g){const id=Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),ch={id,c,seed:Math.floor(Math.random()*2**31),g,host:myName()||'Me'};chStore()[id]={ch,mine:null,res:[],t:Date.now()};persist();return id}
+function newChallenge(c,g){inc('chCreated');const id=Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),ch={id,c,seed:Math.floor(Math.random()*2**31),g,host:myName()||'Me'};chStore()[id]={ch,mine:null,res:[],t:Date.now()};persist();return id}
 function chRecord(tot,rel){
   const e=chStore()[CH.id];if(!e)return '';
   const s=COURSE.map((_,k)=>scores[k]||0),first=!e.mine;
-  if(first){e.mine={n:myName()||'Me',s,lv:swingLv(),g:CH.g};persist()}
+  if(first){e.mine={n:myName()||'Me',s,lv:swingLv(),g:CH.g,t:titleText()};inc('chPlayed');persist()}
   return `<div class="cc chend"><div class="cc-name">Challenge: ${esc(COURSES[CH.c].name)}</div>
     <div class="blurb">${first?'Your score is in. Send your result to the others, and paste theirs into the challenge to see the leaderboard.':`Replay: your first round (${e.mine.s.reduce((a,b)=>a+b,0)}) is the one that counts.`}</div>
     <div class="acts"><button id="chShareRes" class="sbtn pri">Send my result</button><button id="chBoard" class="sbtn">Leaderboard</button></div><div id="chMsg" class="blurb"></div></div>`;

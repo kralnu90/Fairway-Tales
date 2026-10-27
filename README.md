@@ -6,8 +6,6 @@ Open the link on your phone, then tap **Install app** in Chrome (or **Share → 
 
 A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and level up clubs, and take on the members of Ashby Green Golf Club.
 
-(Formerly Stroke of Luck. Old links forward here automatically.)
-
 ☕ Enjoying it? [Support it on Ko-fi](https://ko-fi.com/kralnu90).
 
 ## What's in it
@@ -15,13 +13,16 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
 - **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
 - **Challenges:** send friends a link, everyone plays the same pins and wind on their own phone, then compare on a leaderboard.
+- **Daily challenge:** one quick mini-game a day, the same for everyone. Closest to the pin, long drive, up and in, or putting. Win gold, silver or bronze.
+- **Trophies:** 42 achievements with rewards, and titles to show off on challenge leaderboards.
+- **Legendary clubs:** seven clubs you can't buy or find. Complete each club's trial to earn it.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
 - **Play a hole:** any hole, unlimited undo.
 - **Course creator:** build holes, make courses and share them with codes.
 - **Swing difficulty** that follows your handicap, with bigger rewards for better players.
 - **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
-- **Bag & pro shop:** 44 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
+- **Bag & pro shop:** 49 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
 ## How to play
@@ -36,6 +37,21 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.13 · 27 October 2026
+- **Daily challenge.** A new mini-game every day, seeded so everyone gets the same pin, wind and balls. Four formats rotate: **closest to the pin** (3 balls at a par 3), **long drive** (3 drives down a narrow fairway), **up and in** (5 chips, every foot adds up) and **putting** (6 holes on a mystery green).
+- **Medals and rewards.** Gold 220 coins plus a 35% chance at a fitting, silver 120, bronze 60. Your first scored go each day counts, then practise it as often as you like. Share your score with friends.
+- **Daily streak.** Every 7 dailies you finish earns a reward, starting with the **Hawkeye** putter. Miss a day and the streak just waits for you.
+- **Trophies.** 42 achievements across story, skill, collection, swing, social, practice and daily play, each with a reward of coins, tuning kits or fittings. A few are hidden. Your past progress counts the first time you load the update.
+- **Titles.** Some achievements unlock a title (Giant Killer, Ace, Rare Bird, Tour Ready and more). Pick one in Trophies and it shows next to your name on challenge leaderboards.
+- **Legendary clubs.** Seven clubs you can't buy or find. Each has a trial, completed in a solo round or story match:
+  - **Sunforged** driver · carry a drive 300 yards · no overswing penalty
+  - **Tempest** 3 wood · par or better at Gullhaven in 18 mph wind · ignores wind
+  - **Starfall** 5 iron · an albatross or a hole-in-one on a par 4 · rough and waste play like fairway
+  - **Heartwood** 7 iron · every green in regulation in a 9-hole round · near-straight swipes fly dead straight
+  - **Moonshadow** 9 iron · hole out from off the green 3 times · no distance lost from sand or snow
+  - **Phoenix** pitching wedge · win a 9-hole final under par without your Mulligan · double spin-back
+  - **Oracle** putter · hole 3 putts from 30 ft or more · unlimited green reads and a bigger cup
 
 ### 0.12.1 · 27 October 2026
 - **Clearer fitting bench.** Each slot now shows what's **fitted now**, and your spare parts are listed separately as "tap one to see the difference, then fit it", marked *Not fitted* or *Fitted to your Driver*. You get a confirmation when a part goes on, and a reminder that each part fits one club at a time.
