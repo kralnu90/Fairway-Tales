@@ -88,6 +88,8 @@ table.card tr.now td.cur{outline:1px solid var(--flag);outline-offset:-3px;borde
 .pad{position:relative;height:clamp(170px,30vh,230px);flex:none;border-radius:16px;background:var(--panel2);border:1px solid var(--line);touch-action:none;overflow:hidden}
 .pad.cancel{border-color:var(--hazard);background:#3a231f}
 #padcv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mcancel{position:absolute;right:10px;top:10px;z-index:2;border:1px solid var(--hazard);background:rgba(58,35,31,.85);color:var(--chalk);border-radius:10px;padding:6px 10px;font:800 12px 'Nunito Sans',system-ui,sans-serif}
+body.lefty .mcancel{right:auto;left:10px}
 .hint{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.4px;pointer-events:none}
 .read{position:absolute;left:14px;top:10px;font-family:var(--display);font-size:30px;pointer-events:none;font-variant-numeric:tabular-nums}
 .log{font-size:12px;color:var(--muted);font-weight:700;min-height:16px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -411,6 +413,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
     <canvas id="padcv"></canvas>
     <div id="padHint" class="hint">Swipe down · pause · swipe up</div>
     <div id="padRead" class="read"></div>
+    <button id="mCancel" class="mcancel" hidden>✕ Cancel</button>
   </div>
   <div id="log" class="log">Drag anywhere on the course to nudge your aim, or tap to jump it.</div>
   <div id="edPanel" class="ed-panel" hidden></div>
@@ -485,8 +488,10 @@ const cv=$('#course'), ctx=cv.getContext('2d');
 const pad=$('#pad'), pcv=$('#padcv'), pctx=pcv.getContext('2d');
 
 /* ---------- Settings ---------- */
-let SET={sound:true,lefty:false,flyover:true};
+let SET={sound:true,lefty:false,flyover:true,ctl:'pad'};
 try{Object.assign(SET,JSON.parse(localStorage.getItem('fsl-settings'))||{})}catch(e){}
+// swing control for the round in play: picked from Settings when a round starts, never changed mid-round
+let CTL=SET.ctl==='3'?'3':'pad';
 function saveSettings(){try{localStorage.setItem('fsl-settings',JSON.stringify(SET))}catch(e){}applySettings()}
 function applySettings(){
   document.body.classList.toggle('lefty',SET.lefty);
@@ -1086,6 +1091,7 @@ let lastCfg={mode:'solo'};
 function startGame(cfg){
   if(!cfg.drill)drill=null;
   newRS();
+  CTL=SET.ctl==='3'?'3':'pad';mtr=null;lastMeter=null;
   CH=cfg.challenge||null;
   lastCfg=cfg; mode=cfg.mode; mulls=(mode==='solo'||mode==='rival')?1:0;
   COURSE=cfg.course||HOLES; exitEditorUI();
@@ -1100,7 +1106,7 @@ function startGame(cfg){
 const newRound=()=>startGame(lastCfg);
 function storeTurn(){const p=players[pi];p.ball={...ball};p.strokes=strokes}
 function useTurn(k){
-  pi=k;const p=players[k];ball={...p.ball};strokes=p.strokes;scores=p.scores;
+  mtr=null;pi=k;const p=players[k];ball={...p.ball};strokes=p.strokes;scores=p.scores;
   trace=[];frozen=null;setSpin(0,0);ci=autoClub();aim=defaultAim();hud();
   if(W)updateCam(0,true);
 }
@@ -1163,7 +1169,7 @@ function hud(){
   $('#topin').textContent=`${fmtDist(dist(ball,PIN),c.putter)} to pin`;
   $('#preview').hidden=!c.putter; previewBtn(); guideBtn(); undoBtn();
   $('#spin').hidden=c.putter; $('.stage').classList.toggle('has-spin',!c.putter);
-  $('#padHint').textContent=c.putter?'Pull down and let go':'Swipe down · pause · swipe up';
+  $('#padHint').textContent=clickOn()?'':c.putter?'Pull down and let go':'Swipe down · pause · swipe up';if(clickOn()&&!mtr)drawPad();
 }
 const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':'Rough'):SURF[s].name;
 const fricOf=s=>s==='green'&&H.greenFric?H.greenFric:SURF[s].fric;
@@ -1403,18 +1409,21 @@ const MEDAL=[{n:'Gold',ic:'🥇',coins:220},{n:'Silver',ic:'🥈',coins:120},{n:
 const dayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const dayNum=k=>Math.round(Date.UTC(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10))/864e5);
 const hashStr=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
-function dailyToday(){
-  const k=dayKey(),seed=hashStr('ftd'+k),R=seeded(seed),fmt=DORDER[dayNum(k)%4],T={k,fmt,seed};
+function dailyToday(c=SET.ctl){
+  const k=dayKey(),seed=hashStr((c==='3'?'ftd3':'ftd')+k),R=seeded(seed),fmt=DORDER[dayNum(k)%4],T={k,fmt,seed};
   if(fmt==='ctp'){const pool=[...HOLES,...LINKS,...MESA,...FROST].filter(h=>h.par===3);T.hole=pool[Math.floor(R()*pool.length)]}
   if(fmt==='putts'){const ks=Object.keys(PUTT_SURF);T.surf=ks[Math.floor(R()*ks.length)]}
   return T;
 }
 const dsave=()=>(save.daily=save.daily||{days:0,gold:0,hist:{}});
+// swing pad and 3-click each have their own daily (own seed, medals and first go). The streak is shared: one tick a day either way
+const dHist=(c=SET.ctl)=>{const D=dsave();return c==='3'?(D.hist3=D.hist3||{}):D.hist};
+const ctlName=c=>c==='3'?'3-click':'Swing pad';
 const medalOf=(fmt,v)=>{const F=DFMT[fmt];for(let i=0;i<3;i++)if(F.low?v<=F.med[i]:v>=F.med[i])return i;return -1};
 const fmtScore=(fmt,v)=>fmt==='putts'?`${v} putt${v===1?'':'s'}`:`${v} ${DFMT[fmt].unit}`;
 function startDaily(scored){
   const T=dailyToday(),F=DFMT[T.fmt],R=seeded(T.seed*7+3);
-  drill={kind:'daily',fmt:T.fmt,k:T.k,R,i:0,n:F.balls,res:[],scored,ghosts:[]};
+  drill={kind:'daily',fmt:T.fmt,k:T.k,R,i:0,n:F.balls,res:[],scored,ghosts:[],ctl:SET.ctl==='3'?'3':'pad'};
   let h=T.fmt==='long'?LONGD:T.fmt==='chip'?DCHIP:DPUTT;
   if(T.fmt==='ctp')h={...T.hole,drill:'daily',name:`Daily · ${F.n}`};
   if(T.fmt==='putts'){const S=PUTT_SURF[T.surf];DPUTT.theme=S.theme;DPUTT.greenFric=S.fric;DPUTT.name=`Daily · Putting · ${S.n}`;drill.surf=S}
@@ -1477,23 +1486,25 @@ function dailyEnd(){
   const m=medalOf(drill.fmt,v);state='done';$('#toast').hidden=true;
   let rw='';
   const D=dsave();
-  if(drill.scored&&!D.hist[drill.k]){
-    D.hist[drill.k]={f:drill.fmt,s:v,m};D.days++;inc('daily');if(m===0){D.gold++;inc('dailyGold')}
+  const HI=dHist(drill.ctl),other=drill.ctl==='3'?D.hist:(D.hist3||{});
+  if(drill.scored&&!HI[drill.k]){
+    const newDay=!other[drill.k];
+    HI[drill.k]={f:drill.fmt,s:v,m};if(newDay){D.days++;inc('daily')}if(m===0){D.gold++;inc('dailyGold')}
     const coins=Math.round((m>=0?MEDAL[m].coins:25)*rewardMul());save.coins+=coins;const bits=[`${coins} coins`];
     if(m===0&&Math.random()<.35){const f=makeFit(rollFitTier(1));bits.push(`a ${FIT_TIER[f.t].n} ${esc(fitName(f))}`)}
-    if(D.days%7===0){if(!save.owned.hawkeye){save.owned.hawkeye=newOwned();bits.push('the <b>Hawkeye</b> putter')}else{save.coins+=300;bits.push('a 300 coin streak bonus')}}
+    if(newDay&&D.days%7===0){if(!save.owned.hawkeye){save.owned.hawkeye=newOwned();bits.push('the <b>Hawkeye</b> putter')}else{save.coins+=300;bits.push('a 300 coin streak bonus')}}
     rw=`<div class="cc"><div class="blurb"><b>Rewards:</b> ${bits.join(' + ')}</div></div>`;
     persist();
   }else if(!drill.scored)rw='<div class="blurb">Practice run. Rewards only come from your first scored go each day.</div>';
   const list=r.map((x,k)=>`<span>${drill.fmt==='putts'?'Hole':'Ball'} ${k+1}: ${fmtScore(drill.fmt,x)}</span>`).join('');
-  showEnd(`<div class="k">Daily challenge · ${drill.k}</div><div class="medal">${m>=0?MEDAL[m].ic:'⛳'}</div><div class="big">${fmtScore(drill.fmt,v)}</div>
+  showEnd(`<div class="k">Daily challenge · ${drill.k}${drill.ctl==='3'?' · 3-click':''}</div><div class="medal">${m>=0?MEDAL[m].ic:'⛳'}</div><div class="big">${fmtScore(drill.fmt,v)}</div>
     <div class="sub">${F.n} · ${m>=0?`${MEDAL[m].n} medal`:'No medal this time'}</div><div class="dthr" style="justify-content:center;margin:8px 0">${list}</div>${rw}
     <div class="btns"><button id="dShare" class="btn">Share</button><button id="dAgain" class="btn alt">Practise it</button><button id="dMenu" class="btn alt">Daily</button></div><div id="dMsg" class="blurb"></div>`);
-  $('#dShare').onclick=()=>shareText(dailyShareText(drill.k,drill.fmt,v,m),'#dMsg');
+  $('#dShare').onclick=()=>shareText(dailyShareText(drill.k,drill.fmt,v,m,drill.ctl),'#dMsg');
   $('#dAgain').onclick=()=>startDaily(false);
   $('#dMenu').onclick=()=>{$('#end').hidden=true;gameOn=false;openMenu('daily')};
 }
-const dailyShareText=(k,fmt,v,m)=>`Fairway Tales daily · ${k}\n${DFMT[fmt].n}: ${fmtScore(fmt,v)} ${m>=0?MEDAL[m].ic:'⛳'}\nSame shot for everyone today. Can you beat it?\nhttps://kralnu90.github.io/Fairway-Tales/`;
+const dailyShareText=(k,fmt,v,m,c)=>`Fairway Tales ${c==='3'?'3-click ':''}daily · ${k}\n${DFMT[fmt].n}: ${fmtScore(fmt,v)} ${m>=0?MEDAL[m].ic:'⛳'}\nSame shot for everyone today. Can you beat it?\nhttps://kralnu90.github.io/Fairway-Tales/`;
 function setWind(a,m){wind={x:Math.sin(a)*m,y:Math.cos(a)*m,mph:m};holeMaxWind=Math.max(holeMaxWind,m);$('#windMph').textContent=m;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
 // On the links the wind shifts between shots
 function gust(){if(!H.gusty||!windBase)return'';const old=wind.mph,a=windBase.a+(gustR()-.5)*70*RAD,m=Math.max(2,Math.round(windBase.m*(.55+gustR()*.9)));setWind(a,m);
@@ -1752,6 +1763,7 @@ const maxBack=()=>PH*.62;
 const cancelGap=s=>Math.max(60,PW*(s.phase==='through'?.4:.26));
 pad.addEventListener('pointerdown',e=>{
   if(fly){endFly();return}
+  if(clickOn()){meterTap(e);return}
   if(state!=='ready'||!$('#end').hidden)return; pad.setPointerCapture(e.pointerId);
   const p=padPt(e); sw={phase:'back',s:p,low:p,pts:[p],putt:club().putter};
   $('#padHint').hidden=true; drawPad();
@@ -1801,6 +1813,7 @@ function readout(){
 }
 let lastSw=null;
 function drawPad(){
+  if(clickOn())return drawMeter();
   const s=sw||lastSw; if(sw)lastSw=sw;
   pctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); pctx.clearRect(0,0,PW,PH);
   // meter on the right edge
@@ -1830,6 +1843,83 @@ function drawPad(){
   line(thruPts,s.done?'rgba(242,193,78,.55)':'#f2c14e');
   pctx.fillStyle='#eef3e4'; pctx.beginPath(); pctx.arc(s.s.x,s.s.y,6,0,7); pctx.fill();
 }
+
+/* ---------- 3-click swing: tap to start, tap for power, tap on the line for accuracy ---------- */
+const clickOn=()=>CTL==='3';
+let mtr=null,lastMeter=null;
+const MTOP=1.15,MLOW=-.25;
+const MSPD=[.85,1.05,1.25,1.45,1.7];   // meter speed (full swings per second) by swing level
+const MWIN=[.075,.055,.045,.037,.03];  // half-width of the sweet spot by swing level
+// Control widens the sweet spot a touch. Shaping a draw or fade with the strike ball shrinks it, up to 45% for a full shape
+function sweetHalf(putt){const w=MWIN[swingLv()]*(1+eqStats().C*.01);return putt?w*1.6:w*(1-.45*Math.min(1,Math.abs(SP.x)))}
+const meterBlocked=()=>state!=='ready'||!$('#end').hidden||!$('#menu').hidden||!$('#sheet').hidden;
+function meterTap(e){
+  e.preventDefault();
+  if(meterBlocked())return;
+  const now=performance.now(),c=club();
+  if(!mtr){mtr={ph:'up',t0:now,v:0,putt:!!c.putter,half:sweetHalf(!!c.putter),spd:MSPD[swingLv()]*(c.putter?.7:1)};lastMeter=null;$('#mCancel').hidden=false;drawPad();return}
+  if(mtr.ph==='up')return lockPower(now);
+  meterHit(mtr.v);
+}
+function lockPower(now){mtr.p=Math.max(.02,mtr.v);mtr.ph='down';mtr.t1=now;mtr.half=sweetHalf(mtr.putt);$('#mCancel').hidden=true;meterRead()}
+function meterReset(){mtr=null;$('#mCancel').hidden=true;$('#padRead').textContent='';drawPad()}
+function tickMeter(now){
+  if(meterBlocked())return meterReset();
+  if(mtr.ph==='up'){const top=mtr.putt?1:MTOP;mtr.v=Math.min(top,(now-mtr.t0)/1000*mtr.spd);if(mtr.v>=top)lockPower(now)}
+  else{mtr.v=mtr.p-(now-mtr.t1)/1000*mtr.spd*1.1;if(mtr.v<=MLOW)return meterHit(MLOW)}
+  meterRead();drawPad();
+}
+function meterRead(){
+  const r=$('#padRead');if(!mtr){r.textContent='';return}
+  const p=mtr.ph==='up'?mtr.v:mtr.p;
+  r.textContent=mtr.putt?`${Math.round(Math.pow(Math.min(1,p),1.3)*90)} ft`:`${Math.round(p*100)}%`+(guideLive()&&p>.05?` · ${Math.round(guideCarry(Math.min(MTOP,p)))} yds`:'');
+  r.style.color=p>1?'var(--hazard)':'var(--chalk)';
+}
+function meterHit(v){
+  const m=mtr;meterReset();if(!m)return;
+  const c=club();if(!!c.putter!==m.putt){$('#log').textContent='Club changed mid-swing. Shot cancelled, no stroke taken.';return}
+  // v>0: tapped before the line (early), v<0: after it (late). Inside the sweet spot is dead on
+  const off=Math.abs(v)<=m.half?0:(Math.abs(v)-m.half)*Math.sign(v);
+  const side=SET.lefty?1:-1;   // early pulls it left for right-handers, right for left-handers
+  const how=off===0?'sweet spot':v<=MLOW?'missed the line':`${Math.max(1,Math.round(Math.abs(off)*100))}% ${off>0?'early':'late'}`;
+  lastMeter={p:m.p,v,half:m.half,putt:m.putt,done:true};
+  if(m.putt){
+    startPutt({yd:Math.pow(Math.min(1,m.p),1.3)*30,tilt:Math.max(-10,Math.min(10,off*side*30))});
+    $('#log').innerHTML+=` · Timing <b>${how}</b>`;drawPad();return;
+  }
+  const shaped=Math.abs(SP.x)>.25?spinLabel():'',charge=guideLive()&&!guideFree();
+  strike({p:Math.min(MTOP,m.p),path:Math.max(-14,Math.min(14,off*side*70)),pause:300,speed:1,follow:1,drift:0,wob:0});
+  if(charge){save.guides--;const u=undoStack[undoStack.length-1];if(u&&u.strokes===strokes-1)u.g=1;persist();guideBtn()}
+  if(flight&&flight.notes&&off!==0)flight.notes.push(off>0?'early tap':'late tap');
+  $('#log').innerHTML=`Power <b>${Math.round(m.p*100)}%</b> · Timing <b>${how}</b>${shaped?` · <b>${shaped}</b>`:''}`;
+  drawPad();
+}
+function drawMeter(){
+  pctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);pctx.clearRect(0,0,PW,PH);
+  if(!PW)return;
+  const m=mtr||lastMeter,putt=m?m.putt:!!(club()&&club().putter),top=putt?1:MTOP;
+  const x0=22,x1=PW-22,y=Math.round(PH*.58),h=22,X=v=>x0+(v-MLOW)/(top-MLOW)*(x1-x0);
+  const half=m?m.half:(state==='ready'?sweetHalf(putt):.05);
+  pctx.fillStyle='rgba(255,255,255,.08)';pctx.fillRect(x0,y-h/2,x1-x0,h);
+  if(!putt){pctx.fillStyle='rgba(236,122,85,.22)';pctx.fillRect(X(1),y-h/2,X(top)-X(1),h)}
+  pctx.globalAlpha=mtr?1:.45;
+  if(m){const p=m.ph==='up'?m.v:m.p;pctx.fillStyle=p>1?'#ec7a55':'#8fd88a';pctx.fillRect(X(0),y-h/2+4,Math.max(0,X(p)-X(0)),h-8)}
+  pctx.globalAlpha=1;
+  // sweet spot and the impact line
+  pctx.fillStyle='rgba(242,193,78,.38)';pctx.fillRect(X(-half),y-h/2-7,X(half)-X(-half),h+14);
+  pctx.fillStyle='#eef3e4';pctx.fillRect(X(0)-1,y-h/2-9,2,h+18);
+  pctx.font='800 11px "Nunito Sans",system-ui,sans-serif';pctx.textAlign='center';
+  if(!putt){pctx.fillStyle='#f2c14e';pctx.fillRect(X(1)-1,y-h/2-5,2,h+10);pctx.fillText('100%',X(1),y-h/2-10)}
+  pctx.fillStyle='rgba(238,243,228,.55)';pctx.fillText('late',(x0+X(-half))/2,y+h/2+14);pctx.fillText('early',X(half)+22,y+h/2+14);
+  // needle
+  if(m&&(mtr||m.done)){const nx=X(Math.max(MLOW,Math.min(top,m.v)));pctx.globalAlpha=mtr?1:.6;pctx.fillStyle='#ffffff';
+    pctx.fillRect(nx-1.5,y-h/2-12,3,h+24);pctx.beginPath();pctx.moveTo(nx-6,y-h/2-14);pctx.lineTo(nx+6,y-h/2-14);pctx.lineTo(nx,y-h/2-6);pctx.fill();pctx.globalAlpha=1}
+  // what to do next
+  const step=!mtr?(putt?'Tap to start your stroke':'Tap to start your swing'):mtr.ph==='up'?'Tap to set power':'Tap on the line!';
+  pctx.font='800 14px "Nunito Sans",system-ui,sans-serif';pctx.fillStyle=mtr&&mtr.ph==='down'?'#f2c14e':'rgba(238,243,228,.75)';
+  pctx.fillText(step,PW/2,PH-14);pctx.textAlign='left';
+}
+$('#mCancel').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();if(!mtr||mtr.ph!=='up')return;meterReset();$('#log').textContent='Swing cancelled. No stroke taken.'});
 
 /* ---------- Aim by dragging the course ---------- */
 function toWorld(e){const r=cv.getBoundingClientRect();const sx=e.clientX-r.left,sy=e.clientY-r.top;return{x:cam.x+(sx-W/2)/cam.s,y:cam.y-(sy-H2/2)/cam.s}}
@@ -2064,7 +2154,7 @@ function setSpin(x,y){const m=Math.hypot(x,y);if(m>1){x/=m;y/=m}if(m<.08){x=0;y=
   $('#spDot').setAttribute('cx',(x*34).toFixed(1));$('#spDot').setAttribute('cy',(-y*34).toFixed(1));$('#spinLabel').textContent=spinLabel()}
 let spDrag=null,lastTap=0;
 // relative drag: put your thumb anywhere on the ball and slide, so you can see the dot while you move it
-spSvg.addEventListener('pointerdown',e=>{if(state!=='ready')return;const now=performance.now();
+spSvg.addEventListener('pointerdown',e=>{if(state!=='ready'||mtr)return;const now=performance.now();
   if(now-lastTap<300){setSpin(0,0);lastTap=0;return}lastTap=now;
   spSvg.setPointerCapture(e.pointerId);spDrag={x:e.clientX,y:e.clientY,s:{...SP}}});
 spSvg.addEventListener('pointermove',e=>{if(!spDrag)return;const R=spSvg.getBoundingClientRect().width*.42;
@@ -2257,8 +2347,9 @@ function draw(){
     ctx.fillStyle='#f2c14e';ctx.beginPath();ctx.arc(aim.x,aim.y,2.5*px,0,7);ctx.fill();
     // guide line: where a clean strike at the current swing length lands, wind included
     guideEnd=null;
-    if(!c.putter&&sw&&!sw.putt&&!sw.cancel&&guideLive()){
-      const p=Math.min(1.15,Math.max(0,(sw.low.y-sw.s.y)/maxBack()));
+    const gp=sw&&!sw.putt&&!sw.cancel?Math.min(1.15,Math.max(0,(sw.low.y-sw.s.y)/maxBack())):mtr&&!mtr.putt?Math.min(MTOP,Math.max(0,mtr.ph==='up'?mtr.v:mtr.p)):null;
+    if(!c.putter&&gp!=null&&guideLive()){
+      const p=gp;
       if(p>.05){
         const g=guideShot(p),col=p>1?'rgba(236,122,85,.95)':'rgba(143,216,138,.95)';
         ctx.strokeStyle=col;ctx.lineWidth=2.4*px;ctx.setLineDash([2*px,4*px]);ctx.lineCap='round';
@@ -3269,7 +3360,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.14';
+const GAME_VERSION='0.15';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3593,6 +3684,10 @@ function openMenu(screen){
       ${row('sound','Sound effects','Swings, landings, the cup and rewards')}
       ${row('lefty','Left-handed','Moves the power meter and strike ball to the left, and names draws and fades the left-handed way')}
       ${row('flyover','Hole flyovers','A quick look down each hole before you tee off')}
+      <div class="cc"><div class="cc-top"><div class="cc-name">Swing control</div><span class="chip">${ctlName(SET.ctl)}</span></div>
+        <div class="blurb">Swipe on the swing pad, or tap a meter three times instead: start, power, then accuracy on the line. Shaping a draw or fade with the strike ball makes the sweet spot smaller.</div>
+        <div class="seg small pg-seg"><button data-ctl="pad" aria-pressed="${SET.ctl!=='3'}">Swing pad</button><button data-ctl="3" aria-pressed="${SET.ctl==='3'}">3-click</button></div>
+        <div class="blurb">${gameOn&&state!=='done'&&(SET.ctl==='3'?'3':'pad')!==CTL?'<b>Starts from your next round.</b> Control can\'t change mid-round.':'Set for the whole round once you tee off. Each control has its own daily challenge, and challenge results played with 3-click show 🎯.'}</div></div>
       <div class="cc"><div class="cc-top"><div class="cc-name">Swing difficulty</div><span class="chip">${DIFF[swingLv()].n}</span></div>
         <div class="blurb">The better your handicap, the harder it is to hit it straight. Your level moves up or down one step at most after each counting round, and harder levels earn more XP, coins and fittings. Pass &amp; play is always Relaxed.</div>
         <div class="seg small pg-seg"><button data-lock="" aria-pressed="${SET.swingLock==null||SET.swingLock===''}">Auto</button>${DIFF.map((d,i)=>`<button data-lock="${i}" aria-pressed="${SET.swingLock!=null&&SET.swingLock!==''&&+SET.swingLock===i}">${d.n}</button>`).join('')}</div>
@@ -3600,6 +3695,7 @@ function openMenu(screen){
         <div class="blurb">${SET.swingLock!=null&&SET.swingLock!==''?`Locked to ${DIFF[+SET.swingLock].n}. Your handicap would put you on ${DIFF[naturalLv()].n}.`:`Auto: following your handicap (${hcp()==null?'provisional':fmtH(hcp())}).`}</div></div>
       <div class="acts"><button id="sTest" class="sbtn">Test sound</button></div>`;
     $('#mBack').onclick=()=>openMenu('home');
+    b.querySelectorAll('[data-ctl]').forEach(x=>x.onclick=()=>{SET.ctl=x.dataset.ctl;saveSettings();openMenu('settings')});
     b.querySelectorAll('[data-lock]').forEach(x=>x.onclick=()=>{SET.swingLock=x.dataset.lock===''?null:+x.dataset.lock;saveSettings();openMenu('settings')});
     b.querySelectorAll('.setrow').forEach(x=>x.onclick=()=>{const k=x.dataset.k;SET[k]=!SET[k];x.setAttribute('aria-pressed',SET[k]);saveSettings();if(k==='sound'&&SET.sound)SFX.cup()});
     $('#sTest').onclick=()=>{if(!SET.sound){$('#sTest').textContent='Sound is off';return}SFX.swing(1);SFX.strike(1,true);SFX.land('fairway');setTimeout(()=>{SFX.cup();SFX.chime()},700)};
@@ -3613,6 +3709,9 @@ function openMenu(screen){
         <p><b>Swipe down</b> on the pad for your backswing. The meter shows power. The gold line is 100%, and past it you'll overswing and spray it.</p>
         <p><b>Pause</b> for a beat at the top, then <b>swipe up</b> smoothly. Rushing, stopping short or slowing down all cost you.</p>
         <p><b>Swipe straight up</b> to hit it straight. Angle the swipe right or left to curve the ball that way. Drifting sideways on the way down, or a bendy upswing, curves it too.</p>`)}
+      ${sec('3-click swing (optional)',`<p>Rather tap than swipe? Set <b>Swing control</b> to 3-click in Settings. <b>Tap</b> to start the meter, <b>tap</b> again to set power (past the gold 100% line overswings), then <b>tap as the needle crosses the white line</b>. Early pulls it, late pushes it.</p>
+        <p>Shape a draw or fade with the strike ball as usual, but the gold sweet spot shrinks the more you shape it. Harder swing levels run the meter faster with a smaller sweet spot. Putting works the same way with a gentler meter.</p>
+        <p>Your choice is locked for the whole round. 3-click has its own daily challenge, and its challenge results show 🎯.</p>`)}
       ${sec('Swing difficulty',`<p>As your <b>handicap</b> drops, your swing gets harder to hit straight, from <b>Relaxed</b> through Standard, Hard and Very hard to <b>Pro</b>. Small swipe errors bend the ball more, timing is stricter and there's more random scatter. Control and Forgiveness on your clubs, and fittings like Tacky grips and Cavity heads, win some of it back.</p>
         <p>Your level moves one step at most after each solo round or championship, never mid-round. Harder levels pay <b>+10% XP and coins per level</b> above Standard, plus better odds of finding fittings.</p>
         <p>You can <b>lock</b> your level in Settings. Pass &amp; play is always Relaxed, so anyone can join in. The shot report tells you what went wrong, for example <i>outside-in</i>, <i>wobbly upswing</i> or <i>rushed transition</i>.</p>`)}
@@ -3743,7 +3842,7 @@ function openMenu(screen){
         ${!e.mine&&!myName()?`<div class="prow"><input id="chName" maxlength="20" placeholder="Your name for the leaderboard" autocomplete="off"></div>`:''}
         <div class="acts">${e.mine?'<button id="chPlay" class="sbtn">Play again (won\'t count)</button>':'<button id="chPlay" class="sbtn pri">Play my round</button>'}<button id="chShare" class="sbtn">Invite friends</button>${e.mine?'<button id="chMine" class="sbtn">Send my result</button>':''}</div><div id="chMsg" class="blurb"></div></div>
       <div class="group-h">Leaderboard</div>
-      ${rows.length?rows.map((r,k)=>`<div class="lb${r.me?' me':''}"><span class="lb-n">${k+1}</span><span class="lb-name">${esc(r.n)}${r.me?' (you)':''}<small>${DIFF[r.lv].n} swing${r.t?` · ${esc(r.t)}`:''}</small></span><span class="lb-t">${r.tot} <i>${toPar(r.tot-par)}</i></span>
+      ${rows.length?rows.map((r,k)=>`<div class="lb${r.me?' me':''}"><span class="lb-n">${k+1}</span><span class="lb-name">${esc(r.n)}${r.me?' (you)':''}<small>${DIFF[r.lv].n} swing${r.m?' · 🎯 3-click':''}${r.t?` · ${esc(r.t)}`:''}</small></span><span class="lb-t">${r.tot} <i>${toPar(r.tot-par)}</i></span>
         <div class="lb-card">${r.s.map((v,h)=>{const d=v-C.holes[h].par;return `<span class="${d<=-2?'uu':d===-1?'u':d===1?'o':d>=2?'oo':''}">${v}</span>`}).join('')}</div></div>`).join(''):'<div class="blurb">No scores yet. Play your round, and paste friends\' results below as they come in.</div>'}
       <div class="cc"><div class="cc-name">Add a friend's result</div><textarea id="chIn" class="bk" placeholder="Paste their result here" aria-label="Result code"></textarea>
         <div class="acts"><button id="chAdd" class="sbtn pri">Add result</button><button id="chDel" class="sbtn">Delete challenge</button></div><div id="chAddMsg" class="blurb"></div></div>`;
@@ -3757,24 +3856,25 @@ function openMenu(screen){
     return;
   }
   if(screen==='daily'){
-    const T=dailyToday(),F=DFMT[T.fmt],D=dsave(),dn=D.hist[T.k],toNext=7-(D.days%7);
+    const T=dailyToday(),F=DFMT[T.fmt],D=dsave(),dn=dHist()[T.k],toNext=7-(D.days%7);
     const where=T.fmt==='ctp'?`${T.hole.name} · par 3 · ${T.hole.len} yds`:T.fmt==='putts'?`${PUTT_SURF[T.surf].n} greens · ${PUTT_SURF[T.surf].d.toLowerCase()}`:T.fmt==='long'?'Driver on a 26 yard wide fairway':'Fairway, rough and sand round the green';
     const thr=F.med.map((x,i)=>`<span>${MEDAL[i].ic} ${F.low?'':''}${fmtScore(T.fmt,x)}${F.low?' or less':' or more'}</span>`).join('');
-    const past=Object.entries(D.hist).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,7).map(([k,h])=>`<div class="swap-row"><span>${k} · ${DFMT[h.f].n}</span><span>${fmtScore(h.f,h.s)} ${h.m>=0?MEDAL[h.m].ic:''}</span></div>`).join('');
+    const past=Object.entries(dHist()).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,7).map(([k,h])=>`<div class="swap-row"><span>${k} · ${DFMT[h.f].n}</span><span>${fmtScore(h.f,h.s)} ${h.m>=0?MEDAL[h.m].ic:''}</span></div>`).join('');
     b.innerHTML=`<div class="screen-h"><div class="sheet-title">Daily challenge</div><button id="mBack" class="ghost">Back</button></div>
-      <div class="cc pg"><div class="cc-top"><div class="cc-name">${F.n}</div><span class="chip">${T.k}</span></div>
+      <div class="cc pg"><div class="cc-top"><div class="cc-name">${F.n}</div><span class="chip">${ctlName(SET.ctl)} · ${T.k}</span></div>
+        <div class="blurb">This is the <b>${ctlName(SET.ctl).toLowerCase()}</b> daily. Each swing control has its own daily, so scores only line up with players using the same control. Switch control in Settings.</div>
         <div class="blurb">${F.d}</div><div class="blurb"><b>${esc(where)}</b>. Same conditions for every player today.</div>
         <div class="dthr">${thr}</div>
         <div class="blurb">Gold ${MEDAL[0].coins} coins and a chance at a fitting · silver ${MEDAL[1].coins} · bronze ${MEDAL[2].coins} · just playing 25. Your first go each day is the one that counts.</div>
         <div class="acts">${dn?`<button class="sbtn" disabled>Done: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''}</button><button id="dShareM" class="sbtn">Share</button>`:'<button id="dPlay" class="sbtn pri">Play for real</button>'}<button id="dPrac" class="sbtn">Practise</button></div><div id="dMsgM" class="blurb"></div></div>
       <div class="cc"><div class="cc-top"><div class="cc-name">Streak</div><span class="chip">${D.days} played</span></div>
         <div class="streak">${Array.from({length:7},(_,i)=>`<i class="${i<D.days%7||(D.days&&D.days%7===0)?'on':''}"></i>`).join('')}</div>
-        <div class="blurb">Every 7 dailies you finish earns a reward: ${save.owned.hawkeye?'300 coins':'the <b>Hawkeye</b> putter, then 300 coins after that'}. Miss a day and your streak just waits for you. ${D.days%7===0&&D.days?'Reward claimed!':`${toNext} to go.`}</div></div>
+        <div class="blurb">Every 7 dailies you finish earns a reward: ${save.owned.hawkeye?'300 coins':'the <b>Hawkeye</b> putter, then 300 coins after that'}. Miss a day and your streak just waits for you. Playing both dailies on one day still counts as one. ${D.days%7===0&&D.days?'Reward claimed!':`${toNext} to go.`}</div></div>
       ${past?`<div class="group-h">Recent</div><div class="cc">${past}</div>`:''}
       <div class="blurb">A new format every day: closest to the pin, long drive, up and in, and putting.</div>`;
     $('#mBack').onclick=()=>openMenu('home');
     if($('#dPlay'))$('#dPlay').onclick=()=>startDaily(true);
-    if($('#dShareM'))$('#dShareM').onclick=()=>shareText(dailyShareText(T.k,dn.f,dn.s,dn.m),'#dMsgM');
+    if($('#dShareM'))$('#dShareM').onclick=()=>shareText(dailyShareText(T.k,dn.f,dn.s,dn.m,SET.ctl),'#dMsgM');
     $('#dPrac').onclick=()=>startDaily(false);
     return;
   }
@@ -3847,7 +3947,7 @@ function openMenu(screen){
     <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CHEV}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
-    ${(()=>{const T=dailyToday(),dn=dsave().hist[T.k];return MB('mDaily','daily','Daily challenge',dn?`Done today: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''} · new one tomorrow`:`Today: ${DFMT[T.fmt].n}. Win a medal and coins.`,dn?'':' fresh')})()}
+    ${(()=>{const T=dailyToday(),dn=dHist()[T.k];return MB('mDaily','daily','Daily challenge',dn?`Done today: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''} · new one tomorrow`:`Today: ${DFMT[T.fmt].n}. Win a medal and coins.`,dn?'':' fresh')})()}
     ${MB('mChal','chal','Challenges','Same course, same pins, same wind. Play your friends on your own phones.')}
     ${MB('mGround','ground','Practice ground','Driving range, chipping green and putting green.')}
     ${MB('mPractice','practice','Play a hole','Pick any hole. Unlimited undo, no rewards.')}
@@ -4120,15 +4220,15 @@ const encObj=o=>b64u.enc(new TextEncoder().encode(JSON.stringify(o)));
 const decObj=str=>JSON.parse(new TextDecoder().decode(b64u.dec(str)));
 const chCode=c=>`FTC1:${encObj({v:1,id:c.id,c:c.c,seed:c.seed,g:c.g,h:c.host})}:FT`;
 const chLink=(k,code)=>{const base=location.protocol.startsWith('http')&&!location.host.includes('claude')?location.origin+location.pathname:'https://kralnu90.github.io/Fairway-Tales/';return `${base}#${k}=${code.slice(5,-3)}`};
-function resCode(id,r){const body={id,n:r.n,s:r.s,lv:r.lv,g:r.g,t:r.t||''};body.k=chHash(id+JSON.stringify(r.s)+r.n);return `FTR1:${encObj(body)}:FT`}
+function resCode(id,r){const body={id,n:r.n,s:r.s,lv:r.lv,g:r.g,t:r.t||''};if(r.m)body.m=1;body.k=chHash(id+JSON.stringify(r.s)+r.n+(r.m?'3':''));return `FTR1:${encObj(body)}:FT`}
 function readCode(text){
   const t=String(text).replace(/\s+/g,''),m=t.match(/FT([CR])1:([A-Za-z0-9_-]+):FT/)||t.match(/#(ch|r)=([A-Za-z0-9_-]+)/);
   if(!m)throw new Error('No challenge or result code found. They start with FTC1: or FTR1:.');
   const kind=m[1]==='C'||m[1]==='ch'?'C':'R';let o;try{o=decObj(m[2])}catch(e){throw new Error('That code is broken. Make sure you copied all of it.')}
   if(kind==='C'){if(!o.id||!COURSES[o.c]||typeof o.seed!=='number')throw new Error('That challenge code is broken.');return{kind,ch:{id:String(o.id).slice(0,12),c:o.c,seed:o.seed>>>0,g:o.g==='club'?'club':'own',host:String(o.h||'A friend').slice(0,20)}}}
   if(!o.id||!Array.isArray(o.s)||o.s.length!==9||!o.s.every(v=>Number.isInteger(v)&&v>0&&v<20))throw new Error('That result code is broken.');
-  if(o.k!==chHash(o.id+JSON.stringify(o.s)+o.n))throw new Error('That result code has been changed, so it can\'t be added.');
-  return{kind,r:{id:String(o.id),n:String(o.n||'Player').slice(0,20),s:o.s,lv:Math.max(0,Math.min(4,o.lv|0)),g:o.g==='club'?'club':'own',t:String(o.t||'').slice(0,24)}};
+  if(o.k!==chHash(o.id+JSON.stringify(o.s)+o.n+(o.m?'3':'')))throw new Error('That result code has been changed, so it can\'t be added.');
+  return{kind,r:{id:String(o.id),n:String(o.n||'Player').slice(0,20),s:o.s,lv:Math.max(0,Math.min(4,o.lv|0)),g:o.g==='club'?'club':'own',t:String(o.t||'').slice(0,24),m:o.m?1:0}};
 }
 function addCode(text){
   const x=readCode(text),st=chStore();
@@ -4141,7 +4241,7 @@ function newChallenge(c,g){inc('chCreated');const id=Math.random().toString(36).
 function chRecord(tot,rel){
   const e=chStore()[CH.id];if(!e)return '';
   const s=COURSE.map((_,k)=>scores[k]||0),first=!e.mine;
-  if(first){e.mine={n:myName()||'Me',s,lv:swingLv(),g:CH.g,t:titleText()};inc('chPlayed');persist()}
+  if(first){e.mine={n:myName()||'Me',s,lv:swingLv(),g:CH.g,t:titleText(),m:CTL==='3'?1:0};inc('chPlayed');persist()}
   return `<div class="cc chend"><div class="cc-name">Challenge: ${esc(COURSES[CH.c].name)}</div>
     <div class="blurb">${first?'Your score is in. Send your result to the others, and paste theirs into the challenge to see the leaderboard.':`Replay: your first round (${e.mine.s.reduce((a,b)=>a+b,0)}) is the one that counts.`}</div>
     <div class="acts"><button id="chShareRes" class="sbtn pri">Send my result</button><button id="chBoard" class="sbtn">Leaderboard</button></div><div id="chMsg" class="blurb"></div></div>`;
@@ -4174,6 +4274,7 @@ $('#menuBtn').onclick=()=>openMenu('home');
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(mtr)tickMeter(now);
   if(state==='flight'){flight.t+=dt/flight.dur;if(flight.t>=1){flight.t=1;land()}else trace.push(flightPos(flight.t))}
   else if(state==='roll'){stepBounce(dt);if(!(flight&&flight.bounce&&flight.bounce.hold))for(let i=0;i<6&&state==='roll';i++)stepRoll(dt*1.4/6)}
   if(fly){fly.t+=dt;if(fly.t>=fly.dur)endFly()}

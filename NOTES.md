@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 28 October 2026 · game version **0.14**
+Last updated: 28 October 2026 · game version **0.15**
 
 ---
 
@@ -97,6 +97,15 @@ Last updated: 28 October 2026 · game version **0.14**
   - The 📏 button next to the club shows a green line and the carry while you swipe. It uses `cleanCarry()` and `guideShot()`, with wind included.
   - Charges are stored in `save.guides`. Everyone starts with 5, and the pro shop sells 10 for 150 coins (`GUIDE_PRICE`, `GUIDE_PACK`).
   - Each shot uses 1 charge, and a Mulligan refunds it. It's free in practice and blocked in challenges (`CH`), the daily and pass & play. The button hides at 0.
+- **3-click swing (0.15):**
+  - Optional, set in Settings → Swing control (`SET.ctl` = 'pad' or '3'). `CTL` locks it in `startGame()`, so it can't change mid-round. `clickOn()` checks it.
+  - Section `3-click swing` (after Swing pad): `meterTap()`, `lockPower()`, `tickMeter()` (called from `frame()`), `meterHit()`, `drawMeter()`. State lives in `mtr` (`ph` up/down, `v`, `p`, `half`, `putt`).
+  - Tap 1 starts, tap 2 sets power (up to 115%, auto-locks at the top), tap 3 on the white line. The meter auto-misses at `MLOW` (-0.25). A ✕ Cancel button (`#mCancel`) shows until power is set.
+  - Speed `MSPD` and sweet spot half-width `MWIN` scale by swing level. Control widens it 1% per point. Strike-ball shaping (`SP.x`) shrinks it by up to 45%, and the strike ball is frozen while the meter runs.
+  - Error outside the sweet spot × 70 = swipe path degrees (cap 14). Early pulls, late pushes (flipped for lefties). Fixed tempo values go into `strike()`, so Sunforged, Heartwood and the guide line all work unchanged.
+  - Putts use the same 3 taps with a 0.7× speed meter and 1.6× sweet spot, into `startPutt()`.
+- **Two dailies (0.15):** `dailyToday(c)` seeds with `ftd3` for 3-click. `dHist(c)` gives `save.daily.hist` (pad) or `hist3` (3-click). The streak (`days`) and Hawkeye only tick if neither track has today yet.
+- **Challenge results (0.15):** FTR1 carries `m:1` for 3-click, included in the hash. Older codes still validate. Leaderboard shows 🎯 3-click.
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
 - **Reviews:** the "Leave a review" button posts to Kris's Google Form.
 
@@ -126,3 +135,4 @@ Last updated: 28 October 2026 · game version **0.14**
   - Created these notes.
 - **28 Oct 2026:**
   - Shipped 0.14: approach shots release on the green, plus the guide line consumable.
+  - Shipped 0.15: optional 3-click swing, shaping shrinks the sweet spot, a separate 3-click daily with a shared streak, and 🎯 on challenge results.

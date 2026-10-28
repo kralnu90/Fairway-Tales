@@ -23,6 +23,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Swing difficulty** that follows your handicap, with bigger rewards for better players.
 - **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
 - **Bag & pro shop:** 49 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
+- **3-click swing:** an optional tap-tap-tap meter for players who'd rather not swipe, with its own daily challenge.
 - **Guide line:** a rangefinder from the pro shop that shows where a clean strike will land while you swipe.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
@@ -31,6 +32,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 There's a full guide on the main menu too.
 
 - **Swing:** swipe down for your backswing, pause, then swipe up. How straight you swipe shapes the shot.
+- **3-click swing:** switch to it in Settings. Tap to start, tap for power, then tap on the line.
 - **Aim:** drag anywhere on the course to nudge your aim, or tap to jump it.
 - **Strike ball:** drag the dot for topspin, backspin, draw or fade.
 - **Putt:** pull down on the pad and let go. Chevrons on the green show the slope.
@@ -38,6 +40,13 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.15 · 28 October 2026
+- **3-click swing (optional).** Rather tap than swipe? Set **Swing control** to 3-click in Settings. Tap to start the meter, tap again to set power (past the gold 100% line overswings), then tap as the needle crosses the white line. Early pulls the ball, late pushes it. Putting works the same way with a gentler meter, and there's a cancel button until you set power.
+- **Shaping costs accuracy.** In 3-click, a draw or fade from the strike ball shrinks the gold sweet spot, up to almost half for a full shape. Harder swing levels run the meter faster with a smaller sweet spot, and Control widens it a touch.
+- **Locked for the round.** Your swing control is set when you tee off and can't change mid-round.
+- **Two dailies.** Swing pad and 3-click each get their own daily challenge with their own conditions and medals. The streak is shared: finishing either counts for the day, and playing both still only counts once.
+- **🎯 on leaderboards.** Challenge results played with 3-click show a 🎯 so you know who used which control. Older result codes still work.
 
 ### 0.14 · 28 October 2026
 - **Approach shots release on the green.** Balls used to stop dead on the green unless you added backspin. Greens now let the ball run out more: a full 9 iron releases about 7 yards and a wedge about 3. The ball also keeps its pace through its landing hops, then rolls, instead of losing it in the air.
