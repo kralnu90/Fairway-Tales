@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 27 October 2026 · game version **0.13.1**
+Last updated: 28 October 2026 · game version **0.14**
 
 ---
 
@@ -40,6 +40,7 @@ Last updated: 27 October 2026 · game version **0.13.1**
    - Add a changelog entry at the top of the README's `## Changelog` in the same style.
    - Update "What's in it" if features changed.
    - Publish the preview artifact, then send index.html and README.md.
+   - The preview artifact is index.html with a different wrapper: drop everything before the Google Fonts `<link>` and put `<title>Fairway Tales</title>` and `<meta name="claude:viewport-fit-sides" content="cover">` there instead. Remove `</head><body>` and the service-worker `<script>` at the end, along with `</body></html>`.
 6. **Service worker:** `sw.js` fetches the game page from the network first, so updates show without changes. Only bump its `VERSION` if icons or the manifest change.
 
 ## How the game is built (key systems)
@@ -88,6 +89,14 @@ Last updated: 27 October 2026 · game version **0.13.1**
   - **Moonshadow** 9 iron: 3 hole-outs from off the green. No distance lost from sand or snow.
   - **Phoenix** wedge: win a 9-hole final under par with the Mulligan unused. Double spin-back.
   - **Oracle** putter: hole 3 putts from 30 ft or more. Unlimited green reads and a 1.2× cup.
+- **Rollout (0.14):**
+  - `rollOut()` is the single source of how far the ball runs or spins back. `land()` and `predictShot()` both use it.
+  - Green `land` is 0.85, up from 0.5. Partial swings run out more (`pw` is stored on the flight), and there's a minimum of 0.8 yd on greens.
+  - The ball keeps its pace through its landing hops. Spin-back waits for the hops to finish (`bounce.hold`).
+- **Guide line (0.14):**
+  - The 📏 button next to the club shows a green line and the carry while you swipe. It uses `cleanCarry()` and `guideShot()`, with wind included.
+  - Charges are stored in `save.guides`. Everyone starts with 5, and the pro shop sells 10 for 150 coins (`GUIDE_PRICE`, `GUIDE_PACK`).
+  - Each shot uses 1 charge, and a Mulligan refunds it. It's free in practice and blocked in challenges (`CH`), the daily and pass & play. The button hides at 0.
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
 - **Reviews:** the "Leave a review" button posts to Kris's Google Form.
 
@@ -115,3 +124,5 @@ Last updated: 27 October 2026 · game version **0.13.1**
   - Shipped 0.13: daily challenge, trophies, legendary clubs.
   - Shipped 0.13.1: closable shot summary.
   - Created these notes.
+- **28 Oct 2026:**
+  - Shipped 0.14: approach shots release on the green, plus the guide line consumable.

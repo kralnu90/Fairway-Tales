@@ -23,6 +23,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Swing difficulty** that follows your handicap, with bigger rewards for better players.
 - **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
 - **Bag & pro shop:** 49 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
+- **Guide line:** a rangefinder from the pro shop that shows where a clean strike will land while you swipe.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
 ## How to play
@@ -37,6 +38,12 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.14 · 28 October 2026
+- **Approach shots release on the green.** Balls used to stop dead on the green unless you added backspin. Greens now let the ball run out more: a full 9 iron releases about 7 yards and a wedge about 3. The ball also keeps its pace through its landing hops, then rolls, instead of losing it in the air.
+- **Partial swings run out more.** Shorter swings fly lower, so chips and pitches roll further than full shots, and even a soft wedge trickles out a touch. Backspin, topspin and hold clubs work as before.
+- **Guide line.** Tap the **📏** button next to your club. While you swipe, a green line shows where a clean strike would land at that swing length, with wind and rollout included, and the pad shows the carry in yards. It turns red when you overswing. It can't predict a rushed or off-line swing. Buy charges in the pro shop (10 for 150 coins). Each shot uses 1, a Mulligan gives it back, and everyone starts with 5. The button hides when you run out. It's free on the practice ground and switched off in challenges, the daily and pass & play.
+- **Aim preview matches the shot.** The rollout arrow on the aim line now uses the same maths as the real shot, including fittings, firm links ground and hard desert greens.
 
 ### 0.13.1 · 27 October 2026
 - **Shot summary gets out of the way.** The card after each shot now has an **×**. Tap anywhere on it to close it, or it clears itself after 10 seconds, so it no longer hides the pin when you're at the back of the green.

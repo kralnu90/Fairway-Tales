@@ -403,6 +403,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
     <button id="clubBtn" class="club" aria-label="Open your bag"><span id="clubName">Driver</span><span id="clubCarry">250 yds</span></button>
     <button id="next" class="cbtn" aria-label="Next club">›</button>
     <button id="preview" class="ghost" aria-pressed="true" hidden>Preview</button>
+    <button id="guide" class="ghost" aria-pressed="false" aria-label="Guide line" title="Guide line" hidden>📏</button>
     <button id="undo" class="ghost" disabled>Undo</button>
   </div>
 
@@ -548,7 +549,7 @@ const SURF={
   tee:{name:'Tee',fric:9,pow:1,vari:1,land:1},
   fairway:{name:'Fairway',fric:9,pow:1,vari:1,land:1},
   fringe:{name:'Fringe',fric:5,pow:.96,vari:1.1,land:.7},
-  green:{name:'Green',fric:2.2,pow:1,vari:1,land:.5},
+  green:{name:'Green',fric:2.2,pow:1,vari:1,land:.85},
   rough:{name:'Rough',fric:20,pow:.86,vari:1.5,land:.35},
   trees:{name:'Under the trees',fric:30,pow:.6,vari:2.2,land:0},
   sand:{name:'Bunker',fric:70,pow:.7,vari:1.7,land:0},
@@ -675,11 +676,11 @@ function awardLegend(id){
 function freshSave(){
   const owned={},bag={};
   for(const d of DEFS)if(d.src==='starter'){owned[d.id]={lvl:1,xp:0,tuned:[]};bag[d.t]=d.id}
-  return{coins:150,kits:0,owned,bag,shards:{},pity:0,rounds:[],fits:[],fitOn:{}};
+  return{coins:150,kits:0,guides:5,owned,bag,shards:{},pity:0,rounds:[],fits:[],fitOn:{}};
 }
 let save; try{save=JSON.parse(localStorage.getItem('fsl-save'))}catch(e){}
 if(!save||!save.owned)save=freshSave();
-function ensureSave(){save.shards=save.shards||{};save.pity=save.pity||0;save.rounds=save.rounds||[];save.fits=save.fits||[];save.fitOn=save.fitOn||{}}
+function ensureSave(){if(save.guides==null)save.guides=5;save.shards=save.shards||{};save.pity=save.pity||0;save.rounds=save.rounds||[];save.fits=save.fits||[];save.fitOn=save.fitOn||{}}
 ensureSave();
 function persist(){try{localStorage.setItem('fsl-save',JSON.stringify(save))}catch(e){}if(window.ACH_ON)checkAch()}
 
@@ -1160,7 +1161,7 @@ function hud(){
   const onG=s==='green'||s==='fringe'; $('#slope').hidden=!onG;
   if(onG)$('#slope').textContent=`${slopeWord(ball.x,ball.y)} slope`;
   $('#topin').textContent=`${fmtDist(dist(ball,PIN),c.putter)} to pin`;
-  $('#preview').hidden=!c.putter; previewBtn(); undoBtn();
+  $('#preview').hidden=!c.putter; previewBtn(); guideBtn(); undoBtn();
   $('#spin').hidden=c.putter; $('.stage').classList.toggle('has-spin',!c.putter);
   $('#padHint').textContent=c.putter?'Pull down and let go':'Swipe down · pause · swipe up';
 }
@@ -1175,14 +1176,38 @@ $('#toast').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefa
 const dirOf=a=>({x:Math.sin(a),y:Math.cos(a)});
 const angTo=(a,b)=>Math.atan2(b.x-a.x,b.y-a.y);
 
+// how much of a full carry the current lie allows (forgiveness claws back lie penalties)
+function liePow(){
+  const c=club(), lie=surfaceAt(ball.x,ball.y), S=eqStats(), perk=eqPerk();
+  let lie2=lie==='pot'&&perk==='pot'?'sand':lie==='waste'&&perk==='waste'?'fairway':lie==='snow'&&perk==='snow'?'sand':lie;
+  if(perk==='lies'&&(lie==='rough'||lie==='waste'))lie2='fairway';
+  if(perk==='anylie'&&(lie==='sand'||lie==='pot'||lie==='snow'))lie2='fairway';
+  const L2=SURF[lie2]; if(!L2||L2.pow==null)return 1; let pow=lie2==='sand'?(perk==='sand'?1:c.sand?.92:L2.pow):L2.pow;
+  return pow+(1-pow)*S.F*.035;
+}
+// where a clean strike with swing length p carries to (no tempo or path mistakes, no wind)
+function cleanCarry(p){
+  const c=club(), S=eqStats(), perk=eqPerk();
+  let m=p<=1?p:1+(p-1)*(perk==='noover'?1:.4); m*=1-.04*Math.abs(SP.y);
+  return c.c*(1+S.P*.008)*m*liePow()*(H.air||1)*(perk==='air'?1.06:1);
+}
+// how far the ball runs (or spins back) after landing. Used by the real shot and both preview lines.
+// pw is the swing length: partial swings fly lower and run out more
+function rollOut(o){
+  const s=o.s, S=SURF[s], pk=o.perk;
+  if(o.rm<0&&(s==='green'||s==='fringe'))return{d:o.carry*.06*-o.rm*o.bs*(pk==='spinback'?1.5:pk==='phoenix'?2:1),back:true};
+  const low=1+(1-Math.min(1,Math.max(.2,o.pw??1)))*2.5;
+  let d=o.carry*o.c.roll*low*((S&&S.land)||0)*Math.max(0,o.rm)*(o.fitRoll||1)*(pk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1)*(s==='green'&&H.hardGreens?2:1)*(s==='green'&&pk==='hold'?.5:1);
+  if(s==='green'&&o.rm>.3)d=Math.max(d,pk==='hold'?.4:.8);   // even a soft wedge trickles out a touch
+  return{d,back:false};
+}
 function strike(r){
   const c=club(), lie=surfaceAt(ball.x,ball.y), L=SURF[lie], S=eqStats(), perk=eqPerk(), sf=spinF();
   let lie2=lie==='pot'&&perk==='pot'?'sand':lie==='waste'&&perk==='waste'?'fairway':lie==='snow'&&perk==='snow'?'sand':lie;
   if(perk==='lies'&&(lie==='rough'||lie==='waste'))lie2='fairway';
   if(perk==='anylie'&&(lie==='sand'||lie==='pot'||lie==='snow'))lie2='fairway';
   const L2=SURF[lie2];
-  let pow=lie2==='sand'?(perk==='sand'?1:c.sand?.92:L2.pow):L2.pow;
-  pow+=(1-pow)*S.F*.035;                       // forgiveness claws back lie penalties
+  let pow=liePow();
   const notes=[], fg=1-S.F*.03, DP=DIFF[swingLv()];   // forgiveness softens tempo/overswing scatter
   let p=r.p, mult=p<=1?p:1+(p-1)*(perk==='noover'?1:.4), noise=.8*L2.vari*(1-S.F*.02);
   if(p>1&&perk!=='noover'){noise+=(p-1)*25*fg;notes.push('overswing')}
@@ -1218,7 +1243,7 @@ function strike(r){
   SFX.swing(p);SFX.strike(p,clean);
   saveUndo();
   shotStart={...ball}; shotClub=c; strokes++;
-  flight={from:{...ball},P0,L:Land,t:0,dur:.8+carry/140,apex:c.apex*Math.min(1,mult)*(1-.35*SP.y)*FX.launch,fitRoll:FX.roll,aimA:a,carry,shape,rm:rollMult(),perk,bs:c.bs*sf,xpMsg:gainXp(xpAmt)};
+  flight={from:{...ball},P0,L:Land,t:0,dur:.8+carry/140,apex:c.apex*Math.min(1,mult)*(1-.35*SP.y)*FX.launch,fitRoll:FX.roll,aimA:a,carry,shape,rm:rollMult(),pw:Math.min(1,p),perk,bs:c.bs*sf,xpMsg:gainXp(xpAmt)};
   frozen=[{...ball},{...aim},Land];
   trace=[{...ball}]; state='flight'; $('#toast').hidden=true;
   $('#log').innerHTML=`Power <b>${Math.round(p*100)}%</b> · Path <b>${Math.abs(r.path).toFixed(1)}° ${r.path>=0?'R':'L'}</b> · Pause <b>${Math.round(r.pause)}ms</b> · Speed <b>${r.speed.toFixed(2)}</b>`;
@@ -1243,14 +1268,21 @@ function land(){
   if(cac){const a=Math.random()*Math.PI*2,k=6+Math.random()*8;ball={x:cac.x+Math.sin(a)*(cac.r+1),y:cac.y+Math.cos(a)*(cac.r+1)};SFX.land('trees');
     const s2=surfaceAt(ball.x,ball.y);if(s2==='water'||s2==='ob'||s2==='gorse'){ball={...L}}
     else{vel={x:Math.sin(a)*Math.sqrt(2*fricOf(s2)*k),y:Math.cos(a)*Math.sqrt(2*fricOf(s2)*k)};flight.head=head+' · <b>off a cactus!</b>';state='roll';flight.bounce=null;return}}
-  let d=f.carry*shotClub.roll*SURF[s].land*Math.max(0,f.rm)*(f.fitRoll||1)*(f.perk==='roll'?1.25:1)*(H.firm&&s!=='green'?H.firm:H.firm?1.2:1)*(s==='green'&&H.hardGreens?2:1)*(s==='green'&&f.perk==='hold'?.5:1), sgn=1, hd=head;
-  if(f.rm<0&&(s==='green'||s==='fringe')){d=f.carry*.06*-f.rm*f.bs*(f.perk==='spinback'?1.5:f.perk==='phoenix'?2:1);sgn=-1;hd+=' · <b>spun back</b>'}
-  const v=Math.sqrt(2*fricOf(s)*d)*sgn;
-  vel={x:dx/m*v,y:dy/m*v}; flight.head=hd; state='roll';
+  const ro=rollOut({carry:f.carry,c:shotClub,s,rm:f.rm,fitRoll:f.fitRoll,perk:f.perk,bs:f.bs,pw:f.pw}), d=ro.d, sgn=ro.back?-1:1;
+  let hd=head; if(ro.back)hd+=' · <b>spun back</b>';
   // a couple of hops before it settles into a roll: higher on firm ground, none in sand, softer with backspin
   const firm=({tee:1,fairway:1,fringe:.8,green:H.hardGreens?.95:.65,rough:.35,sand:0,pot:0,snow:0,waste:.6,ice:1.1}[s]??.5)*(H.firm?1.3:1);
-  const bh=Math.min(5,f.apex*.12)*firm*(f.rm<0?.55:1);
-  flight.bounce=bh>.3?{t:0,h:bh,d1:.32,d2:.2,hit:0}:null;
+  const bh=Math.min(5,f.apex*.12)*firm*(ro.back?.55:1);
+  const B=bh>.3?{t:0,h:bh,d1:.32,d2:.2,hit:0}:null;
+  // the ball carries its pace through the hops (no grass to slow it in the air), then rolls out.
+  // Solve for the speed that still gives the same total run: d = v*T + v^2/(2f).
+  // Spin-back waits for the hops to finish, then grips and comes back.
+  const fr=fricOf(s), T=B?(B.d1+B.d2)*1.4:0;
+  let v=B&&!ro.back?-fr*T+Math.sqrt(fr*fr*T*T+2*fr*d):Math.sqrt(2*fr*d);
+  v*=sgn;
+  vel={x:dx/m*v,y:dy/m*v}; flight.head=hd; state='roll';
+  if(B&&ro.back){B.hold={...vel};vel={x:0,y:0}}
+  flight.bounce=B;
 }
 // height of the ball during its landing hops
 function bounceH(){const b=flight&&flight.bounce;if(!b)return 0;const t=b.t;
@@ -1259,7 +1291,7 @@ function bounceH(){const b=flight&&flight.bounce;if(!b)return 0;const t=b.t;
 function stepBounce(dt){const b=flight&&flight.bounce;if(!b)return;b.t+=dt;
   const s=surfaceAt(ball.x,ball.y);
   if(b.hit<1&&b.t>=b.d1){b.hit=1;SFX.land(s,.55)}
-  if(b.hit<2&&b.t>=b.d1+b.d2){b.hit=2;SFX.land(s,.3);flight.bounce=null}}
+  if(b.hit<2&&b.t>=b.d1+b.d2){b.hit=2;SFX.land(s,.3);if(b.hold)vel={...b.hold};flight.bounce=null}}
 function startPutt(r){
   const lie=surfaceAt(ball.x,ball.y);
   const a=angTo(ball,aim)+r.tilt*tiltK()*RAD;
@@ -1279,8 +1311,8 @@ function stepRoll(dt){
   if(s==='ob'){penalty(flight.head);return}
   lastDry={...ball};
   if(s==='green'||s==='fringe'){const sl=slope(ball.x,ball.y);vel.x+=sl.x*dt;vel.y+=sl.y*dt}
-  const sp=Math.hypot(vel.x,vel.y), ns=sp-fricOf(s)*dt;
-  if(ns<=.03){vel={x:0,y:0};stopBall(flight.head);return}
+  const air=flight&&flight.bounce, sp=Math.hypot(vel.x,vel.y), ns=sp-(air?0:fricOf(s))*dt;
+  if(ns<=.03&&!air){vel={x:0,y:0};stopBall(flight.head);return}
   vel.x*=ns/sp; vel.y*=ns/sp;
   ball.x+=vel.x*dt; ball.y+=vel.y*dt;
   if(H.cactiList)for(const t of H.cactiList){const dx=ball.x-t.x,dy=ball.y-t.y,dd=Math.hypot(dx,dy);if(dd<t.r+.4){const nx=dx/dd,ny=dy/dd,dot=vel.x*nx+vel.y*ny;if(dot<0){vel.x=(vel.x-2*dot*nx)*.5;vel.y=(vel.y-2*dot*ny)*.5;SFX.land('trees',.5)}ball.x=t.x+nx*(t.r+.45);ball.y=t.y+ny*(t.r+.45)}}
@@ -1754,7 +1786,9 @@ function endSwing(e){
   const upPts=s.pts.filter(q=>q.t>=s.low.t),L=Math.hypot(dx,up)||1;let dev=0;
   for(const q of upPts){const ex=q.x-s.low.x,ey=s.low.y-q.y;dev+=(ex*up-ey*dx)/L}
   const wob=upPts.length?Math.atan2(2*dev/upPts.length,Math.max(1,up))/RAD:0;
+  const charge=guideLive()&&!guideFree();
   strike({p:Math.min(1.15,back/maxBack()),path:Math.atan2(dx,Math.max(1,up))/RAD,pause:s.pause,speed:up/Math.max(1,p.t-s.tStart),follow:up/back,drift,wob});
+  if(charge){save.guides--;const u=undoStack[undoStack.length-1];if(u&&u.strokes===strokes-1)u.g=1;persist();guideBtn()}
 }
 pad.addEventListener('pointerup',endSwing);
 pad.addEventListener('pointercancel',()=>{sw=null;pad.classList.remove('cancel');$('#padRead').textContent='';$('#padHint').hidden=false;drawPad()});
@@ -1762,7 +1796,7 @@ function readout(){
   const r=$('#padRead'); if(!sw){r.textContent='';return}
   const back=Math.max(0,sw.low.y-sw.s.y);
   if(sw.putt){const k=Math.min(1,back/(PH*.7));r.textContent=`${Math.round(Math.pow(k,1.3)*90)} ft`;r.style.color='var(--chalk)';return}
-  const p=back/maxBack(); r.textContent=`${Math.round(Math.min(1.15,p)*100)}%`;
+  const p=back/maxBack(); r.textContent=`${Math.round(Math.min(1.15,p)*100)}%`+(guideLive()&&p>.05?` · ${Math.round(guideCarry(Math.min(1.15,p)))} yds`:'');
   r.style.color=p>1?'var(--hazard)':'var(--chalk)';
 }
 let lastSw=null;
@@ -1837,6 +1871,20 @@ let undoStack=[];
 let mulls=0;
 const undoLimit=()=>onDrill('daily')?(drill.scored?0:99):mode==='practice'?99:(mode==='solo'||mode==='rival')&&mulls>0?1:0;
 function undoBtn(){const b=$('#undo');b.hidden=mode==='pnp';b.textContent=mode==='practice'?'Undo':`Mulligan · ${mulls}`}
+// Guide line (rangefinder): while you swipe, shows where a clean strike would land. One charge per shot,
+// free on the practice ground, not allowed in challenges, the daily or pass and play
+const GUIDE_PRICE=150, GUIDE_PACK=10;
+const guideShot=p=>predictShot(club(),{d:cleanCarry(p),wind:true,p});
+const guideCarry=p=>dist(ball,guideShot(p).P);   // carry as the wind will play it
+let guideOn=false; try{guideOn=localStorage.getItem('fsl-guide')==='1'}catch(e){}
+const guideFree=()=>mode==='practice'&&!onDrill('daily');
+const guideAllowed=()=>!club().putter&&mode!=='pnp'&&!CH&&!onDrill('daily');
+const guideLive=()=>guideOn&&guideAllowed()&&(guideFree()||save.guides>0);
+function guideBtn(){const b=$('#guide');b.hidden=!guideAllowed()||(!guideFree()&&save.guides<=0);b.setAttribute('aria-pressed',guideOn&&(guideFree()||save.guides>0));
+  if(guideFree()){b.textContent='📏';b.disabled=false;return}
+  b.disabled=save.guides<=0;b.textContent=`📏 ${save.guides}`}
+$('#guide').onclick=()=>{guideOn=!guideOn;try{localStorage.setItem('fsl-guide',guideOn?'1':'0')}catch(e){}guideBtn();
+  if(guideOn&&!guideFree())$('#log').innerHTML=`Guide line on. It shows while you swipe and uses <b>1 charge</b> per shot. ${save.guides} left.`}
 // One putt preview per hole for each player, except in practice
 const readsPerHole=()=>{const pk=DEF[bagOf('putter')].perk;return pk==='oracle'?99:pk==='read2'?2:1};
 const previewAvail=()=>previewOn&&(mode==='practice'||(players[pi].pvUsed||0)<readsPerHole());
@@ -1852,7 +1900,7 @@ function saveUndo(){
 $('#undo').onclick=()=>{
   if(state!=='ready'||!undoStack.length)return;
   const u=undoStack.pop();
-  ({ball,strokes,ci}=u);ball={...ball};aim={...u.aim};players[pi].pvUsed=u.pv;
+  ({ball,strokes,ci}=u);ball={...ball};aim={...u.aim};players[pi].pvUsed=u.pv;if(u.g){save.guides+=u.g;persist()}
   if(mode!=='practice'){mulls--;undoStack=[]}
   if(u.co!=='null'){save.owned[u.cid]=JSON.parse(u.co);persist()} // XP from the undone shot goes too
   trace=[];frozen=null;$('#undo').disabled=!undoStack.length;$('#toast').hidden=true;
@@ -1958,6 +2006,7 @@ function renderSheet(){
   else if(sheetTab==='fit')h=fitTabHTML();
   else if(sheetTab==='shop'){
     h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. They also drop from reward bags and rival rematches.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
+    h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Rangefinder · guide line</div><span class="chip">You have ${save.guides}</span></div><div class="blurb">Tap <b>📏</b> next to your club. While you swipe, a green line shows where a clean strike would land, wind and rollout included, and the pad shows the carry. It can't account for a rushed or off-line swing. Uses 1 charge per shot, and a Mulligan gives it back. Free on the practice ground. Not allowed in challenges, the daily or pass and play.</div><div class="acts"><button class="sbtn pri" data-act="guides" ${save.coins>=GUIDE_PRICE?'':'disabled'}>Buy ${GUIDE_PACK} · ${GUIDE_PRICE} coins</button></div></div>`;
     h=`<div class="cc hcp-card"><div class="cc-top"><div class="cc-name">Your handicap: ${hcpLabel()}</div></div><div class="blurb">Lower your handicap to unlock better stock. It's worked out from your best 3 of your last 5 solo rounds or Club Championships.</div><div class="blurb"><b>${swingTag()}</b></div></div>`+h;
     const forSale=DEFS.filter(d=>inStock(d)&&!save.owned[d.id]),coming=DEFS.filter(d=>d.src==='shop'&&!inStock(d)).length;
     if(!forSale.length)h+=`<div class="blurb">You own everything in stock.</div>`;
@@ -1999,6 +2048,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='equip'){save.bag[DEF[id].t]=id;swapOpen=null}
   else if(act==='buy'){const d=DEF[id];if(save.coins<d.price||!tierOk(d)||!inStock(d))return;save.coins-=d.price;save.owned[id]={lvl:1,xp:0,tuned:[]};save.bag[d.t]=id;clearUndo()}
   else if(act==='kit'){if(save.coins<KIT_PRICE)return;save.coins-=KIT_PRICE;save.kits++;clearUndo()}
+  else if(act==='guides'){if(save.coins<GUIDE_PRICE)return;save.coins-=GUIDE_PRICE;save.guides+=GUIDE_PACK;clearUndo()}
   else if(act==='tune'){
     const o=save.owned[id],c=CAPS[o.lvl];if(!c||save.kits<c.kits||save.coins<c.coins)return;
     save.kits-=c.kits;save.coins-=c.coins;o.tuned.push(o.lvl);clearUndo();
@@ -2021,12 +2071,15 @@ spSvg.addEventListener('pointermove',e=>{if(!spDrag)return;const R=spSvg.getBoun
   setSpin(spDrag.s.x+(e.clientX-spDrag.x)/R,spDrag.s.y-(e.clientY-spDrag.y)/R)});
 spSvg.addEventListener('pointerup',()=>spDrag=null);spSvg.addEventListener('pointercancel',()=>spDrag=null);
 // What the shot does with a perfectly straight swipe at the aim distance
-function predictShot(c){
-  const sf=spinF(),perk=eqPerk(),a=angTo(ball,aim),d=dist(ball,aim),D0=dirOf(a),D1=dirOf(a+SP.x*5*sf*RAD);
-  const P0={x:ball.x+D0.x*d,y:ball.y+D0.y*d},P={x:ball.x+D1.x*d,y:ball.y+D1.y*d};
+// o.d: carry to show (defaults to the aim distance). o.wind: drift with the wind. o.p: swing length
+function predictShot(c,o={}){
+  const sf=spinF(),perk=eqPerk(),a=angTo(ball,aim),guide=o.d!=null,d=guide?o.d:dist(ball,aim),FX=fitFx(eqId());
+  const bias=guide?(SET.lefty?-FX.bias:FX.bias):0,D0=dirOf(a),D1=dirOf(a+(SP.x*5*sf+bias)*RAD);
+  let wx=0,wy=0;if(o.wind){const wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1);wx=wind.x*d*.0045*wm;wy=wind.y*d*.0045*wm}
+  const P0={x:ball.x+D0.x*d,y:ball.y+D0.y*d},P={x:ball.x+D1.x*d+wx,y:ball.y+D1.y*d+wy};
   const at=t=>({x:ball.x+(P0.x-ball.x)*t+(P.x-P0.x)*t*t,y:ball.y+(P0.y-ball.y)*t+(P.y-P0.y)*t*t});
-  const s=surfaceAt(P.x,P.y),S=SURF[s],rm=rollMult();let roll=0,back=false;
-  if(S.land!==undefined){if(rm<0&&(s==='green'||s==='fringe')){roll=d*.06*-rm*c.bs*sf*(perk==='spinback'?1.5:perk==='phoenix'?2:1);back=true}else roll=d*c.roll*S.land*Math.max(0,rm)*(perk==='roll'?1.25:1)}
+  const s=surfaceAt(P.x,P.y),rm=rollMult();
+  const ro=rollOut({carry:d,c,s,rm,fitRoll:FX.roll,perk,bs:c.bs*sf,pw:o.p??Math.min(1,d/Math.max(1,cleanCarry(1)))}),roll=ro.d,back=ro.back;
   const q=at(.92),m=Math.hypot(P.x-q.x,P.y-q.y)||1,k=back?-1:1,ux=(P.x-q.x)/m*k,uy=(P.y-q.y)/m*k;
   return{P,at,roll,back,rollEnd:{x:P.x+ux*roll,y:P.y+uy*roll}};
 }
@@ -2104,6 +2157,7 @@ const PAL={
   desert:{bg:'#7a4a2c',s1:'#d8b07a',s2:'#dcb680',fwE:'#5c8a3c',fw:'#6fa64a',tee:'#7bb556',fr:'#64a046',gr:'#80c562',grS:'#8bcd6c',sandE:'#b8905c',sand:'#f2e2b8',sandL:'#d2b884',waterE:'#4f8a3f'},
   ice:{bg:'#2c3e52',s1:'#e6eef5',s2:'#edf3f8',fwE:'#9db8a8',fw:'#7fa889',tee:'#8ab595',fr:'#76a283',gr:'#86ba8f',grS:'#91c39a',sandE:'#c8d6e2',sand:'#e8e4d6',sandL:'#c9c2a8',waterE:'#bccbd8'}
 };
+let guideEnd=null;
 function draw(){
   const d=devicePixelRatio||1,s=cam.s,px=1/s,G=H.green,P=PAL[H.theme]||PAL.parkland;
   ctx.setTransform(d,0,0,d,0,0); ctx.fillStyle=P.bg; ctx.fillRect(0,0,W,H2);
@@ -2201,6 +2255,20 @@ function draw(){
       const r=Math.max(2,c.c*.06*(1.25-eqStats().C*.03));ctx.strokeStyle='rgba(242,193,78,.9)';ctx.lineWidth=2*px;ctx.beginPath();ctx.arc(pr.P.x,pr.P.y,r,0,7);ctx.stroke();
     }
     ctx.fillStyle='#f2c14e';ctx.beginPath();ctx.arc(aim.x,aim.y,2.5*px,0,7);ctx.fill();
+    // guide line: where a clean strike at the current swing length lands, wind included
+    guideEnd=null;
+    if(!c.putter&&sw&&!sw.putt&&!sw.cancel&&guideLive()){
+      const p=Math.min(1.15,Math.max(0,(sw.low.y-sw.s.y)/maxBack()));
+      if(p>.05){
+        const g=guideShot(p),col=p>1?'rgba(236,122,85,.95)':'rgba(143,216,138,.95)';
+        ctx.strokeStyle=col;ctx.lineWidth=2.4*px;ctx.setLineDash([2*px,4*px]);ctx.lineCap='round';
+        ctx.beginPath();for(let i=0;i<=24;i++){const q=g.at(i/24);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)}ctx.lineTo(g.P.x,g.P.y);ctx.stroke();ctx.setLineDash([]);
+        if(g.roll>.4){const e=g.rollEnd;ctx.lineWidth=3*px;ctx.beginPath();ctx.moveTo(g.P.x,g.P.y);ctx.lineTo(e.x,e.y);ctx.stroke()}
+        ctx.fillStyle=p>1?'rgba(236,122,85,.25)':'rgba(143,216,138,.25)';ctx.beginPath();ctx.arc(g.P.x,g.P.y,Math.max(1.5,8*px),0,7);ctx.fill();
+        ctx.lineWidth=2*px;ctx.beginPath();ctx.arc(g.P.x,g.P.y,Math.max(1.5,8*px),0,7);ctx.stroke();ctx.lineCap='butt';
+        guideEnd={P:g.P,carry:dist(ball,g.P),over:p>1};
+      }
+    }
   }
   // putt preview: live while pulling back, otherwise a putt struck the aim distance
   previewEnd=null;
@@ -2238,6 +2306,9 @@ function draw(){
   const b=S(bp),rad=4+Math.min(4,h/10);ctx.fillStyle=players[pi].col;ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=1;
   ctx.beginPath();ctx.arc(b.x,b.y-h*s*.45,rad,0,7);ctx.fill();ctx.stroke();
   if(previewEnd&&previewEnd.holed){const e=S(previewEnd.end);ctx.font='800 13px "Nunito Sans",system-ui,sans-serif';ctx.fillStyle='#8fd88a';ctx.fillText('In!',e.x+10,e.y+18)}
+  if(guideEnd){const q=S(guideEnd.P),txt=`${Math.round(guideEnd.carry)} yds`;ctx.font='800 12px "Nunito Sans",system-ui,sans-serif';
+    const w=ctx.measureText(txt).width+12,lx=Math.min(W-w-6,Math.max(6,q.x-w-12)),ly=Math.min(H2-8,Math.max(18,q.y+22));
+    ctx.fillStyle='rgba(14,29,21,.82)';ctx.beginPath();ctx.roundRect(lx,ly-14,w,20,6);ctx.fill();ctx.fillStyle=guideEnd.over?'#ec7a55':'#8fd88a';ctx.fillText(txt,lx+6,ly)}
   // aim label
   if(state==='ready'){
     const a=S(aim),txt=fmtDist(dist(ball,aim),c.putter);ctx.font='800 12px "Nunito Sans",system-ui,sans-serif';
@@ -3198,7 +3269,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.13.1';
+const GAME_VERSION='0.14';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4104,7 +4175,7 @@ let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   if(state==='flight'){flight.t+=dt/flight.dur;if(flight.t>=1){flight.t=1;land()}else trace.push(flightPos(flight.t))}
-  else if(state==='roll'){stepBounce(dt);for(let i=0;i<6&&state==='roll';i++)stepRoll(dt*1.4/6)}
+  else if(state==='roll'){stepBounce(dt);if(!(flight&&flight.bounce&&flight.bounce.hold))for(let i=0;i<6&&state==='roll';i++)stepRoll(dt*1.4/6)}
   if(fly){fly.t+=dt;if(fly.t>=fly.dur)endFly()}
   if(worldOn)worldFrame(dt);else if(editMode){draw();drawEd()}else{updateCam(dt);draw()}
   requestAnimationFrame(frame);
