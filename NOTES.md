@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 28 October 2026 · game version **0.15**
+Last updated: 28 October 2026 · game version **0.15.2**
 
 ---
 
@@ -101,9 +101,9 @@ Last updated: 28 October 2026 · game version **0.15**
   - Optional, set in Settings → Swing control (`SET.ctl` = 'pad' or '3'). `CTL` locks it in `startGame()`, so it can't change mid-round. `clickOn()` checks it.
   - Section `3-click swing` (after Swing pad): `meterTap()`, `lockPower()`, `tickMeter()` (called from `frame()`), `meterHit()`, `drawMeter()`. State lives in `mtr` (`ph` up/down, `v`, `p`, `half`, `putt`).
   - Tap 1 starts, tap 2 sets power (up to 115%, auto-locks at the top), tap 3 on the white line. The meter auto-misses at `MLOW` (-0.25). A ✕ Cancel button (`#mCancel`) shows until power is set.
-  - Speed `MSPD` and sweet spot half-width `MWIN` scale by swing level. Control widens it 1% per point. Strike-ball shaping (`SP.x`) shrinks it by up to 45%, and the strike ball is frozen while the meter runs.
+  - Speed `MSPD` is [.8,.9,1,1.1,1.2] (0.15.2). Kris's spec for Hard: 1 second up to 100%, 1 second back to the line, so the return runs at the same speed as the rise. Putter meter is 0.85×. Sweet half-width `MWIN` scales by swing level. Control widens it 1% per point. Strike-ball shaping (`SP.x`) shrinks it by up to 45%, and the strike ball is frozen while the meter runs.
   - Error outside the sweet spot × 70 = swipe path degrees (cap 14). Early pulls, late pushes (flipped for lefties). Fixed tempo values go into `strike()`, so Sunforged, Heartwood and the guide line all work unchanged.
-  - Putts use the same 3 taps with a 0.7× speed meter and 1.6× sweet spot, into `startPutt()`.
+  - Putts use the same 3 taps with a slower meter and 1.6× sweet spot, into `startPutt()`.
 - **Two dailies (0.15):** `dailyToday(c)` seeds with `ftd3` for 3-click. `dHist(c)` gives `save.daily.hist` (pad) or `hist3` (3-click). The streak (`days`) and Hawkeye only tick if neither track has today yet.
 - **Challenge results (0.15):** FTR1 carries `m:1` for 3-click, included in the hash. Older codes still validate. Leaderboard shows 🎯 3-click.
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
@@ -136,3 +136,4 @@ Last updated: 28 October 2026 · game version **0.15**
 - **28 Oct 2026:**
   - Shipped 0.14: approach shots release on the green, plus the guide line consumable.
   - Shipped 0.15: optional 3-click swing, shaping shrinks the sweet spot, a separate 3-click daily with a shared streak, and 🎯 on challenge results.
+  - Shipped 0.15.1 and 0.15.2: retimed the 3-click meter (Hard is 1 s up and 1 s back).

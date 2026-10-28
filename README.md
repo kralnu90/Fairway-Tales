@@ -41,6 +41,12 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 0.15.2 · 28 October 2026
+- **3-click meter retimed.** On Hard the meter now takes 1 second to reach 100% and 1 second to come back to the line. Relaxed is a little slower and Pro a little quicker.
+
+### 0.15.1 · 28 October 2026
+- **Slower 3-click meter.** The meter now takes about 2 seconds to reach 100% on Hard, from about 2.5 seconds on Relaxed to about 1.7 on Pro. It was far too quick on the harder levels.
+
 ### 0.15 · 28 October 2026
 - **3-click swing (optional).** Rather tap than swipe? Set **Swing control** to 3-click in Settings. Tap to start the meter, tap again to set power (past the gold 100% line overswings), then tap as the needle crosses the white line. Early pulls the ball, late pushes it. Putting works the same way with a gentler meter, and there's a cancel button until you set power.
 - **Shaping costs accuracy.** In 3-click, a draw or fade from the strike ball shrinks the gold sweet spot, up to almost half for a full shape. Harder swing levels run the meter faster with a smaller sweet spot, and Control widens it a touch.
