@@ -1927,14 +1927,24 @@ function toWorld(e){const r=cv.getBoundingClientRect();const sx=e.clientX-r.left
 // so your thumb never has to sit on the lines. Putting uses fine control (about a third of the movement).
 // A quick tap on a full shot still jumps the aim straight to that spot.
 let aimDrag=null;
-cv.addEventListener('pointerdown',e=>{if(editMode){edDown(e);return}if(fly){endFly();return}if(state!=='ready')return;cv.setPointerCapture(e.pointerId);aimDrag={x:e.clientX,y:e.clientY,a:{...aim},moved:false}});
+// keep the aim on the hole and within reach, so a stray drag can't throw it off the course
+function clampAim(a){
+  const B=H.bounds;let x=a.x,y=a.y;
+  if(B){x=Math.max(B.x0+1,Math.min(B.x1-1,x));y=Math.max(B.y0+1,Math.min(B.y1-1,y))}
+  const c=club(),max=c.putter?Math.max(40,dist(ball,PIN)+10):Math.max(carryOf(ci)*1.3,dist(ball,PIN)+15),d=dist(ball,{x,y});
+  if(d>max){x=ball.x+(x-ball.x)*max/d;y=ball.y+(y-ball.y)*max/d}
+  return{x,y};
+}
+cv.addEventListener('pointerdown',e=>{if(editMode){edDown(e);return}if(fly){endFly();return}if(state!=='ready')return;cv.setPointerCapture(e.pointerId);aimDrag={x:e.clientX,y:e.clientY,a:{...aim},s:cam.s,moved:false}});
 cv.addEventListener('pointermove',e=>{
   if(!aimDrag)return;const dx=e.clientX-aimDrag.x,dy=e.clientY-aimDrag.y;
   if(!aimDrag.moved&&Math.hypot(dx,dy)<6)return;aimDrag.moved=true;
-  const k=(club().putter?.33:1)/cam.s;
-  aim={x:aimDrag.a.x+dx*k,y:aimDrag.a.y-dy*k};
+  // use the zoom from when the finger went down: the camera zooms out to follow the aim, and using the live zoom
+  // made every bit of drag move the aim further, until it ran off the course
+  const k=(club().putter?.33:1)/aimDrag.s;
+  aim=clampAim({x:aimDrag.a.x+dx*k,y:aimDrag.a.y-dy*k});
 });
-cv.addEventListener('pointerup',e=>{if(aimDrag&&!aimDrag.moved&&!club().putter)aim=toWorld(e);aimDrag=null});
+cv.addEventListener('pointerup',e=>{if(aimDrag&&!aimDrag.moved&&!club().putter)aim=clampAim(toWorld(e));aimDrag=null});
 cv.addEventListener('pointercancel',()=>aimDrag=null);
 
 $('#prev').onclick=()=>{if(state!=='ready')return;ci=Math.max(0,ci-1);aim=defaultAim();hud()};
@@ -3360,7 +3370,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.15.2';
+const GAME_VERSION='0.15.3';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}

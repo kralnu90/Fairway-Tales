@@ -41,6 +41,9 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 0.15.3 · 30 October 2026
+- **Aiming can't run off the course any more.** Dragging the course to aim could fling the aim point off the hole, sometimes behind the tee, and the view then zoomed right out to follow it. The drag now moves at a steady speed, and the aim stays on the hole and within reach of your club.
+
 ### 0.15.2 · 28 October 2026
 - **3-click meter retimed.** On Hard the meter now takes 1 second to reach 100% and 1 second to come back to the line. Relaxed is a little slower and Pro a little quicker.
 
