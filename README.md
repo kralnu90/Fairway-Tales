@@ -14,7 +14,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
 - **Challenges:** send friends a link, everyone plays the same pins and wind on their own phone, then compare on a leaderboard.
 - **Daily challenge:** one quick mini-game a day, the same for everyone. Closest to the pin, long drive, up and in, or putting. Win gold, silver or bronze.
-- **Trophies:** 42 achievements with rewards, and titles to show off on challenge leaderboards.
+- **Online leaderboards:** see how you stack up against players everywhere on today's daily, the best round on each course, and a wall of every hole in one. No account needed.
+- **Trophies:** 42 achievements with rewards, and titles to show off on challenge and online leaderboards.
 - **Legendary clubs:** seven clubs you can't buy or find. Complete each club's trial to earn it.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
@@ -26,6 +27,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **3-click swing:** an optional tap-tap-tap meter for players who'd rather not swipe, with its own daily challenge.
 - **Guide line:** a rangefinder from the pro shop that shows where a clean strike will land while you swipe.
 - **Leave a review:** tell the developer what you think, right from the menu.
+
+The online leaderboards are the only part of the game that needs the internet. They share your name, title and scores, nothing else. Everything else works offline.
 
 ## How to play
 
@@ -40,6 +43,14 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 0.16 · 1 November 2026
+- **Online leaderboards.** A new **Leaderboards** button on the main menu with three boards, shared with players everywhere:
+  - **Today's daily:** your first scored go of the day, ranked against everyone else's. Swing pad and 3-click each have their own board.
+  - **Best rounds:** each player's lowest 9-hole round on Ashby Green, Gullhaven Links, Sun Mesa and Frostpeak. Solo rounds and challenges count; pass & play and custom courses don't.
+  - **Holes in one:** every ace from solo rounds and story matches, newest first.
+- **No account needed.** Pick a name in Leaderboards (it's the same name you use for challenges) and your title from Trophies shows next to it.
+- **Works offline.** Results wait on your phone and post the next time you're online. Turn posting off any time in Leaderboards.
 
 ### 0.15.3 · 30 October 2026
 - **Aiming can't run off the course any more.** Dragging the course to aim could fling the aim point off the hole, sometimes behind the tee, and the view then zoomed right out to follow it. The drag now moves at a steady speed, and the aim stays on the hole and within reach of your club.

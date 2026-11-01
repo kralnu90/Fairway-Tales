@@ -1,23 +1,6 @@
-<!doctype html>
-<html lang="en-GB">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Fairway Tales</title>
-<meta name="description" content="A top-down golf RPG. Swipe to swing, collect clubs, beat rivals.">
-<meta name="theme-color" content="#0e1d15">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>
-/* page frame (what the artifact viewer normally supplies) */
-*,*::before,*::after{box-sizing:border-box}
-html{height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
-img{max-width:100%}
-</style>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap">
 <style>
 /* Layout: one-screen game column - HUD strip, course canvas, club row, swing pad, swing log */
@@ -360,9 +343,16 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
 .wind.gusted{animation:gusted .6s ease-out}
 @media (max-width:420px){.stats{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.wind svg{transition:none}}
+/* Online leaderboards */
+.gblist{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.gbrow{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-variant-numeric:tabular-nums}
+.gbrow.me{border-color:var(--flag)}
+.gbn{font-weight:900;text-align:center;color:var(--muted)}
+.gbw{min-width:0}.gbw b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gbw small{display:block;color:var(--muted);font-size:12px}
+.gbs{font-weight:900;white-space:nowrap}
+#gbName{width:100%;margin:6px 0}
 </style>
-</head>
-<body>
+
 <div class="app">
   <header class="hud">
     <div class="hole">
@@ -1489,11 +1479,11 @@ function dailyEnd(){
   const HI=dHist(drill.ctl),other=drill.ctl==='3'?D.hist:(D.hist3||{});
   if(drill.scored&&!HI[drill.k]){
     const newDay=!other[drill.k];
-    HI[drill.k]={f:drill.fmt,s:v,m};if(newDay){D.days++;inc('daily')}if(m===0){D.gold++;inc('dailyGold')}
+    HI[drill.k]={f:drill.fmt,s:v,m};drill.posted=gbDaily(drill.k,drill.fmt,v,drill.ctl);if(newDay){D.days++;inc('daily')}if(m===0){D.gold++;inc('dailyGold')}
     const coins=Math.round((m>=0?MEDAL[m].coins:25)*rewardMul());save.coins+=coins;const bits=[`${coins} coins`];
     if(m===0&&Math.random()<.35){const f=makeFit(rollFitTier(1));bits.push(`a ${FIT_TIER[f.t].n} ${esc(fitName(f))}`)}
     if(newDay&&D.days%7===0){if(!save.owned.hawkeye){save.owned.hawkeye=newOwned();bits.push('the <b>Hawkeye</b> putter')}else{save.coins+=300;bits.push('a 300 coin streak bonus')}}
-    rw=`<div class="cc"><div class="blurb"><b>Rewards:</b> ${bits.join(' + ')}</div></div>`;
+    rw=`<div class="cc"><div class="blurb"><b>Rewards:</b> ${bits.join(' + ')}</div>${drill.posted?`<div class="blurb">${myName()?'Posted to today\'s leaderboard.':'Add a name in Leaderboards to post this score.'}</div>`:''}</div>`;
     persist();
   }else if(!drill.scored)rw='<div class="blurb">Practice run. Rewards only come from your first scored go each day.</div>';
   const list=r.map((x,k)=>`<span>${drill.fmt==='putts'?'Hole':'Ball'} ${k+1}: ${fmtScore(drill.fmt,x)}</span>`).join('');
@@ -1598,6 +1588,7 @@ function holeOut(){
   ball={...PIN}; vel={x:0,y:0}; scores[holeIdx]=strokes; players[pi].holed=true;
   if(flight)flight.bounce=null;
   if(realPlay())holeStats();
+  if(realPlay()&&strokes===1&&players.length===1)gbAce(mode==='rival'&&rival?(rival.title||'Story match'):COURSES[courseKey()].name,holeIdx+1,H.name);
   if(flight&&flight.putt)gainXp(20);
   const diff=strokes-H.par;
   SFX.cup();if(diff<=-1||strokes===1)SFX.chime(diff<=-2||strokes===1);
@@ -1632,11 +1623,12 @@ function endHole(){
       const bk=COURSES[courseKey()].best;let cb=null;try{cb=+localStorage.getItem(bk)||null}catch(e){}
       const tot=playedStrokes(),rel=tot-coursePar(),isBest=!cb||tot<cb;
       if(isBest){cb=tot;try{localStorage.setItem(bk,cb)}catch(e){}if(courseKey()==='ashby')best=cb}
+      const gbPosted=isBest&&gbCourse(courseKey(),tot,rel);
       const hc=CH&&CH.g==='club'?null:recordRound(rel,CH?'challenge':'solo'),bags=rel<0?2:rel===0?1:0;
       roundStats(rel);
       const chx=CH?chRecord(tot,rel):'';
       const bagBtn=bags?`<button id="openLoot" class="btn">Open reward bag${bags>1?` ×${bags}`:''}</button>`:'';
-      showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${cb}`}</div>${rw}${hc?hcpChangeHTML(hc):''}${chx}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
+      showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${cb}`}${gbPosted?(myName()?' Posted to the leaderboard.':' Add a name in Leaderboards to post it.'):''}</div>${rw}${hc?hcpChangeHTML(hc):''}${chx}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
       if(CH){const id=CH.id;$('#chShareRes').onclick=()=>shareText(resultShareText(id),'#chMsg');$('#chBoard').onclick=()=>{$('#end').hidden=true;gameOn=false;chOpen=id;openMenu('chview')}}
       if(bags)$('#openLoot').onclick=()=>{$('#openLoot').remove();$('#again').classList.remove('alt');showLoot(bags>1?'Under par · 2 reward bags':'Level par · reward bag',openBag('clubhouse',bags))};
       $('#endBag').onclick=()=>openSheet('shop');
@@ -3370,7 +3362,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.15.3';
+const GAME_VERSION='0.16.0';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3865,6 +3857,7 @@ function openMenu(screen){
     let arm=false;$('#chDel').onclick=()=>{if(!arm){arm=true;$('#chDel').textContent='Tap again to delete';return}delete chStore()[chOpen];persist();openMenu('challenges')};
     return;
   }
+  if(screen==='boards'){openBoards(b);return}
   if(screen==='daily'){
     const T=dailyToday(),F=DFMT[T.fmt],D=dsave(),dn=dHist()[T.k],toNext=7-(D.days%7);
     const where=T.fmt==='ctp'?`${T.hole.name} · par 3 · ${T.hole.len} yds`:T.fmt==='putts'?`${PUTT_SURF[T.surf].n} greens · ${PUTT_SURF[T.surf].d.toLowerCase()}`:T.fmt==='long'?'Driver on a 26 yard wide fairway':'Fairway, rough and sand round the green';
@@ -3958,6 +3951,7 @@ function openMenu(screen){
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
     ${(()=>{const T=dailyToday(),dn=dHist()[T.k];return MB('mDaily','daily','Daily challenge',dn?`Done today: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''} · new one tomorrow`:`Today: ${DFMT[T.fmt].n}. Win a medal and coins.`,dn?'':' fresh')})()}
+    ${MB('mBoards','trophy','Leaderboards','Today\'s daily, best rounds and holes in one, from players everywhere.')}
     ${MB('mChal','chal','Challenges','Same course, same pins, same wind. Play your friends on your own phones.')}
     ${MB('mGround','ground','Practice ground','Driving range, chipping green and putting green.')}
     ${MB('mPractice','practice','Play a hole','Pick any hole. Unlimited undo, no rewards.')}
@@ -3979,7 +3973,7 @@ function openMenu(screen){
   $('#mPractice').onclick=()=>openMenu('practice');
   $('#mGround').onclick=()=>openMenu('ground');
   $('#mChal').onclick=()=>openMenu('challenges');
-  $('#mDaily').onclick=()=>openMenu('daily');$('#mTrophy').onclick=()=>openMenu('trophies');
+  $('#mDaily').onclick=()=>openMenu('daily');$('#mBoards').onclick=()=>openMenu('boards');$('#mTrophy').onclick=()=>openMenu('trophies');
   $('#mCreate').onclick=()=>openMenu('courses');
   $('#mBag').onclick=()=>openSheet('bag',true);
   $('#mBackup').onclick=()=>openMenu('backup');
@@ -4225,6 +4219,100 @@ let chOpen=null;
 const chStore=()=>(save.chal=save.chal||{});
 const myName=()=>{try{return localStorage.getItem('fsl-ch-name')||''}catch(e){return ''}};
 const setMyName=n=>{try{localStorage.setItem('fsl-ch-name',n)}catch(e){}};
+/* ---------- Online leaderboards (Firebase over REST, no library) ----------
+   Daily: first scored go of the day, one board per day and swing control.
+   Courses: each player's best round on each built-in course.
+   Aces: a wall of fame for holes in one in solo rounds and story matches. */
+const FIREBASE={apiKey:'AIzaSyArqfFahTLVpKvy24Mel-6G4DxXgvUFjzk',projectId:'fairway-tales'}; // paste from Firebase project settings
+const GBK='ft-lb-v1';
+let gb={uid:null,refresh:null,share:true,queue:{},cache:{},tab:'daily',course:'ashby'};
+try{const raw=localStorage.getItem(GBK);if(raw)gb=Object.assign(gb,JSON.parse(raw))}catch(e){}
+gb.token=null;gb.exp=0;
+function gbSave(){try{const {token,exp,...rest}=gb;localStorage.setItem(GBK,JSON.stringify(rest))}catch(e){}}
+const gbOn=()=>!!(FIREBASE.apiKey&&FIREBASE.projectId);
+async function gbJSON(url,opt){const r=await fetch(url,opt);let j=null;try{j=await r.json()}catch(e){}
+  if(!r.ok){const err=new Error((j&&j.error&&(j.error.message||j.error.status))||('HTTP '+r.status));err.status=r.status;throw err}return j}
+async function gbAuth(){
+  if(gb.token&&Date.now()<gb.exp-60000)return gb.token;
+  if(gb.refresh){try{
+    const j=await gbJSON(`https://securetoken.googleapis.com/v1/token?key=${FIREBASE.apiKey}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(gb.refresh)});
+    gb.token=j.id_token;gb.refresh=j.refresh_token;gb.uid=j.user_id;gb.exp=Date.now()+(+j.expires_in)*1000;gbSave();return gb.token;
+  }catch(e){if(e.status!==400)throw e;gb.refresh=null}}
+  const j=await gbJSON(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnSecureToken:true})});
+  gb.token=j.idToken;gb.refresh=j.refreshToken;gb.uid=j.localId;gb.exp=Date.now()+(+j.expiresIn)*1000;gbSave();return gb.token}
+const gbBase=()=>`https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents`;
+const gbVal=x=>x?(x.stringValue??(x.integerValue!=null?+x.integerValue:x.doubleValue!=null?+x.doubleValue:x.booleanValue??x.timestampValue)):undefined;
+function gbFields(o){const f={};for(const [k,v] of Object.entries(o)){
+  f[k]=k==='at'?{timestampValue:v}:typeof v==='number'?{integerValue:String(Math.round(v))}:typeof v==='boolean'?{booleanValue:v}:{stringValue:String(v)}}return f}
+// Queue an entry; '{uid}' in the id is filled in when it's sent. mode 'create' only ever writes once.
+function gbQueue(key,coll,id,data,mode){
+  if(!gbOn()||!gb.share)return false;
+  gb.queue[key]={coll,id,data:{...data,at:new Date().toISOString()},mode};gbSave();gbFlush();return true}
+let gbBusy=false;
+async function gbFlush(){
+  if(!gbOn()||!gb.share||gbBusy||!Object.keys(gb.queue).length||navigator.onLine===false)return;
+  const name=myName().trim();if(!name)return; // posts wait until there's a name
+  gbBusy=true;
+  try{const tok=await gbAuth();
+    for(const k of Object.keys(gb.queue)){const q=gb.queue[k];
+      const id=q.id.replace('{uid}',gb.uid),data={...q.data,name:name.slice(0,20),title:titleText().slice(0,30)};
+      const url=`${gbBase()}/${q.coll}/${encodeURIComponent(id)}${q.mode==='create'?'?currentDocument.exists=false':''}`;
+      try{await gbJSON(url,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({fields:gbFields(data)})});delete gb.queue[k]}
+      catch(err){if([400,403,409].includes(err.status))delete gb.queue[k];else throw err}
+      gbSave()}
+  }catch(e){/* offline or blocked: try again later */}
+  gbBusy=false}
+async function gbQuery(coll,field,dir,limit){
+  const tok=await gbAuth();
+  const j=await gbJSON(`${gbBase()}:runQuery`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+    body:JSON.stringify({structuredQuery:{from:[{collectionId:coll}],orderBy:[{field:{fieldPath:field},direction:dir}],limit}})});
+  return (j||[]).filter(r=>r.document).map(r=>{const o={},F=r.document.fields;for(const k in F)o[k]=gbVal(F[k]);o.me=r.document.name.split('/').pop().startsWith(gb.uid||'~');return o})}
+// Hooks called from the game
+function gbDaily(k,fmt,v,ctl){return gbQueue('d'+k+ctl,`fd_${k}_${ctl}`,'{uid}',{fmt,s:v},'create')}
+function gbCourse(key,tot,rel){if(!COURSES[key])return false;const qk='c'+key,old=gb.queue[qk];
+  if(old&&old.data.s<=tot)return true;return gbQueue(qk,'fc_'+key,'{uid}',{s:tot,rel},'best')}
+function gbAce(courseName,holeNo,holeName){return gbQueue('a'+courseName+holeNo,'fa',`{uid}_${hashStr(courseName+'|'+holeNo).toString(36)}`,{course:String(courseName).slice(0,30),hole:holeNo,holeName:String(holeName).slice(0,30)},'create')}
+const gbRow=(i,r,main,sub)=>{const bits=[r.me?'You':'',r.title?esc(r.title):'',sub||''].filter(Boolean).join(' · ');
+  return `<div class="gbrow${r.me?' me':''}"><span class="gbn">${i+1}</span><span class="gbw"><b>${esc(r.name||'Golfer')}</b>${bits?`<small>${bits}</small>`:''}</span><span class="gbs">${main}</span></div>`};
+async function gbFill(coll,field,dir,limit,rowFn,empty){
+  const box=$('#gbList');if(!box)return;const c=gb.cache[coll];
+  const paint=rows=>rows.map(rowFn).join('')||`<div class="blurb">${empty}</div>`;
+  box.innerHTML=!gbOn()?'<div class="blurb">Online leaderboards aren\'t switched on in this build yet.</div>':c?paint(c.rows):'<div class="blurb">Fetching the board…</div>';
+  if(!gbOn())return;
+  await gbFlush();
+  const live=()=>$('#gbList')&&$('#gbList').dataset.c===coll;
+  try{const rows=await gbQuery(coll,field,dir,limit);gb.cache[coll]={rows,t:Date.now()};gbSave();if(live())$('#gbList').innerHTML=paint(rows)}
+  catch(e){if(live()){$('#gbMsg').textContent=c?`Can't reach the leaderboard, so this is the board from ${new Date(c.t).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}.`:'Can\'t reach the leaderboard right now. Check your connection and try again.';if(!c)$('#gbList').innerHTML=''}}}
+function openBoards(b){
+  const tab=gb.tab,T=dailyToday(),ctl=SET.ctl==='3'?'3':'pad',pending=Object.keys(gb.queue).length;
+  const tabs=[['daily','Today\'s daily'],['course','Best rounds'],['ace','Holes in one']].map(([k,n])=>`<button data-gbt="${k}" aria-pressed="${tab===k}">${n}</button>`).join('');
+  let head='',coll='',field='',dir='',limit=20,rowFn,empty='';
+  if(tab==='daily'){const F=DFMT[T.fmt];coll=`fd_${T.k}_${ctl}`;field='s';dir=F.low?'ASCENDING':'DESCENDING';
+    head=`<div class="blurb"><b>${F.n}</b> · ${T.k} · ${ctlName(ctl)}. Your first scored go of the day is posted. Switch control in Settings to see the other daily.</div>`;
+    rowFn=(r,i)=>{const m=medalOf(T.fmt,r.s);return gbRow(i,r,`${fmtScore(T.fmt,r.s)}${m>=0?' '+MEDAL[m].ic:''}`,'')};empty='No one has played today\'s daily yet. Be the first.'}
+  if(tab==='course'){const ck=COURSES[gb.course]&&courseOpen(gb.course)?gb.course:'ashby';coll='fc_'+ck;field='s';dir='ASCENDING';
+    head=`<select id="gbCourse" class="sel" aria-label="Course">${Object.entries(COURSES).filter(([k])=>courseOpen(k)).map(([k,C])=>`<option value="${k}"${k===ck?' selected':''}>${C.name}</option>`).join('')}</select><div class="blurb">Lowest 9-hole rounds. Solo rounds and challenges count; pass &amp; play and custom courses don't.</div>`;
+    rowFn=(r,i)=>gbRow(i,r,`${r.s} (${toPar(r.rel)})`,'');empty='No rounds posted on this course yet.'}
+  if(tab==='ace'){coll='fa';field='at';dir='DESCENDING';limit=30;
+    head='<div class="blurb">Every hole in one from solo rounds and story matches, newest first.</div>';
+    rowFn=(r,i)=>gbRow(i,r,'⛳',`${esc(r.course||'')} hole ${r.hole||'?'}${r.holeName?', '+esc(r.holeName):''}`);empty='No aces yet. The first one goes up here.'}
+  b.innerHTML=`<div class="screen-h"><div class="sheet-title">Leaderboards</div><button id="mBack" class="ghost">Back</button></div>
+    <div class="seg small pg-seg">${tabs}</div>
+    <div class="cc">${head}<div id="gbList" class="gblist" data-c="${coll}"></div><div id="gbMsg" class="blurb"></div></div>
+    <div class="cc"><div class="cc-top"><div class="cc-name">Your leaderboard name</div>${pending?`<span class="chip">${pending} waiting to post</span>`:''}</div>
+      <input id="gbName" class="sel" maxlength="20" value="${esc(myName())}" placeholder="How other players will see you" autocomplete="off" aria-label="Your leaderboard name">
+      <div class="blurb">${myName()?'Also used for challenges.':'Add a name and your results will post. Until then they wait on this phone.'}</div>
+      <button class="setrow" id="gbShare" aria-pressed="${gb.share}"><span><b>Post my results online</b><small>Shares your name, title and scores. No account needed.</small></span><i class="tog"></i></button></div>`;
+  $('#mBack').onclick=()=>openMenu('home');
+  b.querySelectorAll('[data-gbt]').forEach(x=>x.onclick=()=>{gb.tab=x.dataset.gbt;gbSave();openMenu('boards')});
+  if($('#gbCourse'))$('#gbCourse').onchange=()=>{gb.course=$('#gbCourse').value;gbSave();openMenu('boards')};
+  $('#gbName').onchange=()=>{setMyName($('#gbName').value.trim().slice(0,20));gbFlush().then(()=>{if($('#gbList'))openMenu('boards')})};
+  $('#gbShare').onclick=()=>{gb.share=!gb.share;gbSave();$('#gbShare').setAttribute('aria-pressed',gb.share);if(gb.share)gbFlush()};
+  gbFill(coll,field,dir,limit,rowFn,empty);
+}
+window.addEventListener('online',()=>gbFlush());
+setTimeout(()=>gbFlush(),2000);
+
 const chHash=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36).slice(0,5)};
 const encObj=o=>b64u.enc(new TextEncoder().encode(JSON.stringify(o)));
 const decObj=str=>JSON.parse(new TextDecoder().decode(b64u.dec(str)));
@@ -4294,8 +4382,5 @@ function frame(now){
 applySettings();startGame({mode:'solo'});gameOn=false;endFly();resize();updateCam(0,true);if(!handleLinkHash())openMenu('home');addEventListener('hashchange',()=>{if(!gameOn||state==='done')handleLinkHash()});requestAnimationFrame(frame);
 })();
 </script>
-<script>
-if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
-</script>
-</body>
-</html>
+
+</body></html>
