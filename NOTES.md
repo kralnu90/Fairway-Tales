@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 28 October 2026 · game version **0.15.2**
+Last updated: 3 November 2026 · game version **0.17.0**
 
 ---
 
@@ -109,6 +109,12 @@ Last updated: 28 October 2026 · game version **0.15.2**
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
 - **Reviews:** the "Leave a review" button posts to Kris's Google Form.
 
+- **Graphics (0.17):**
+  - Section `Effects & atmosphere` (just before `draw()`): `pBurst(x,y,kind,n,pow)` spawns particles in world yards, drawn by `drawFX()` inside `draw()`. Kinds match surface names plus `cup`. Hooked into `strike()`, `land()`, `stepBounce()`, `stepRoll()` (water) and `holeOut()`.
+  - `drawClouds()` drifts cloud shadows with the wind. `terrain()` caches light and dark patches in the rough per hole as Path2D. `atmos()` adds the per-course colour grade, vignette and floating seeds or snow to both the course and the overworld canvas.
+  - Fairway mowing stripes are one clip of 12-yard bands and a second fairway stroke. Bunkers clip to their ellipse for the shaded lip and rake lines. `drawTree()` draws clumped canopies with radial gradients.
+  - Reduced motion: particles are cut to a third, and ambient drift, foam movement and flag flapping are off.
+
 ## Agreed but not built yet (don't re-decide)
 
 1. **Club rework:**
@@ -137,3 +143,7 @@ Last updated: 28 October 2026 · game version **0.15.2**
   - Shipped 0.14: approach shots release on the green, plus the guide line consumable.
   - Shipped 0.15: optional 3-click swing, shaping shrinks the sweet spot, a separate 3-click daily with a shared streak, and 🎯 on challenge results.
   - Shipped 0.15.1 and 0.15.2: retimed the 3-click meter (Hard is 1 s up and 1 s back).
+- **1 Nov 2026:**
+  - Shipped 0.15.3 (aim drag fix) and 0.16 (online leaderboards on Firebase's free plan).
+- **3 Nov 2026:**
+  - Shipped 0.17: graphics update (course detail, hazards, trees, lighting, cloud shadows, waving flag, particles) and the same light in story mode. Pushed straight to GitHub from Claude.

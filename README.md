@@ -44,6 +44,16 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 0.17 · 3 November 2026
+- **Graphics update.** Every course has had a fresh coat of paint:
+  - **Course:** mowing stripes on the fairways, a raised and striped tee box, gentle light and shade across the rough, and greens that catch the light.
+  - **Hazards:** bunkers have a shaded lip and raked sand, pot bunkers sit deeper, and ponds have depth, ripples that drift with the wind, glints of light and foam at the bank. Ashby Green's ponds have lily pads.
+  - **Trees:** fuller, rounder oaks lit from one side, palms with swaying fronds and snow-dusted pines.
+  - **Weather and light:** cloud shadows drift across the course with the wind. Each course has its own light: warm at Ashby, cool and grey at Gullhaven, hot at Sun Mesa and icy at Frostpeak, where snow falls. Grass seeds float by on the breeze.
+  - **Flag and ball:** the flag streams downwind and flaps harder in strong wind, the cup has a white liner, and the ball is shaded.
+  - **Effects:** sand sprays out of bunkers, water splashes, divots fly off the turf, leaves fall when you clip a tree, and the cup sparkles when you hole out (a lot more for an ace).
+  - **Story mode:** fuller trees and the same light and drifting seeds around the club.
+
 ### 0.16 · 1 November 2026
 - **Online leaderboards.** A new **Leaderboards** button on the main menu with three boards, shared with players everywhere:
   - **Today's daily:** your first scored go of the day, ranked against everyone else's. Swing pad and 3-click each have their own board.
