@@ -10,10 +10,10 @@ Last updated: 3 November 2026 · game version **0.17.0**
 
 - **Fairway Tales:** a top-down golf RPG for phones, designed by Kris (kralnu90) and built with Claude.
 - **Code:** a single HTML file with canvas and plain JS, no build step and no libraries.
-- **Live game:** https://kralnu90.github.io/Fairway-Tales/
+- **Live game:** https://kralnugames.com/Fairway-Tales/
 - **Repo:** github.com/kralnu90/Fairway-Tales. It holds `index.html`, `README.md`, `sw.js`, `manifest.webmanifest` and `icons/`.
 - **Claude preview artifact:** https://claude.ai/artifact/2iNHmP6aADJCUizUAAueyG. Publish to this URL to update it.
-- **Other games:** Solaris Gambit (kralnu90.github.io/Solaris-Gambit/). The studio site is kralnu90.github.io ("Kralnu Games"); its videos use `?v=2` cache-busting.
+- **Other games:** Solaris Gambit (kralnugames.com/Solaris-Gambit/). The studio site is kralnugames.com ("Kralnu Games"); its videos use `?v=2` cache-busting.
 - **Ko-fi:** ko-fi.com/kralnu90. The `KOFI` const in the game holds this link, and the menu has a ☕ button.
 
 ## Kris's house rules

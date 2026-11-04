@@ -1495,7 +1495,7 @@ function dailyEnd(){
   $('#dAgain').onclick=()=>startDaily(false);
   $('#dMenu').onclick=()=>{$('#end').hidden=true;gameOn=false;openMenu('daily')};
 }
-const dailyShareText=(k,fmt,v,m,c)=>`Fairway Tales ${c==='3'?'3-click ':''}daily · ${k}\n${DFMT[fmt].n}: ${fmtScore(fmt,v)} ${m>=0?MEDAL[m].ic:'⛳'}\nSame shot for everyone today. Can you beat it?\nhttps://kralnu90.github.io/Fairway-Tales/`;
+const dailyShareText=(k,fmt,v,m,c)=>`Fairway Tales ${c==='3'?'3-click ':''}daily · ${k}\n${DFMT[fmt].n}: ${fmtScore(fmt,v)} ${m>=0?MEDAL[m].ic:'⛳'}\nSame shot for everyone today. Can you beat it?\nhttps://kralnugames.com/Fairway-Tales/`;
 function setWind(a,m){wind={x:Math.sin(a)*m,y:Math.cos(a)*m,mph:m};holeMaxWind=Math.max(holeMaxWind,m);$('#windMph').textContent=m;$('#windArrow').style.transform=`rotate(${Math.atan2(wind.x,wind.y)/RAD}deg)`}
 // On the links the wind shifts between shots
 function gust(){if(!H.gusty||!windBase)return'';const old=wind.mph,a=windBase.a+(gustR()-.5)*70*RAD,m=Math.max(2,Math.round(windBase.m*(.55+gustR()*.9)));setWind(a,m);
@@ -4437,7 +4437,7 @@ const chHash=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCod
 const encObj=o=>b64u.enc(new TextEncoder().encode(JSON.stringify(o)));
 const decObj=str=>JSON.parse(new TextDecoder().decode(b64u.dec(str)));
 const chCode=c=>`FTC1:${encObj({v:1,id:c.id,c:c.c,seed:c.seed,g:c.g,h:c.host})}:FT`;
-const chLink=(k,code)=>{const base=location.protocol.startsWith('http')&&!location.host.includes('claude')?location.origin+location.pathname:'https://kralnu90.github.io/Fairway-Tales/';return `${base}#${k}=${code.slice(5,-3)}`};
+const chLink=(k,code)=>{const base=location.protocol.startsWith('http')&&!location.host.includes('claude')?location.origin+location.pathname:'https://kralnugames.com/Fairway-Tales/';return `${base}#${k}=${code.slice(5,-3)}`};
 function resCode(id,r){const body={id,n:r.n,s:r.s,lv:r.lv,g:r.g,t:r.t||''};if(r.m)body.m=1;body.k=chHash(id+JSON.stringify(r.s)+r.n+(r.m?'3':''));return `FTR1:${encObj(body)}:FT`}
 function readCode(text){
   const t=String(text).replace(/\s+/g,''),m=t.match(/FT([CR])1:([A-Za-z0-9_-]+):FT/)||t.match(/#(ch|r)=([A-Za-z0-9_-]+)/);

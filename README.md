@@ -1,6 +1,6 @@
 # Fairway Tales
 
-## [▶ Play Fairway Tales](https://kralnu90.github.io/Fairway-Tales/)
+## [▶ Play Fairway Tales](https://kralnugames.com/Fairway-Tales/)
 
 Open the link on your phone, then tap **Install app** in Chrome (or **Share → Add to Home Screen** on iPhone) to keep it on your home screen. It works offline once installed.
 
