@@ -4,26 +4,27 @@
 
 Open the link on your phone, then tap **Install app** in Chrome (or **Share → Add to Home Screen** on iPhone) to keep it on your home screen. It works offline once installed.
 
-A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and level up clubs, and take on the members of Ashby Green Golf Club.
+A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and level up clubs, and work your way from Ashby Green Golf Club to the Tour Championship.
 
 ☕ Enjoying it? [Support it on Ko-fi](https://ko-fi.com/kralnu90).
 
 ## What's in it
 
-- **Story:** four chapters. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, and Frostpeak for the Winter Open.
-- **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa or Frostpeak. Earn coins, club XP and reward bags.
+- **Story:** five chapters and 20 rivals. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, Frostpeak for the Winter Open, and Skyreach for the Tour Championship.
+- **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa, Frostpeak or Skyreach. Earn coins, club XP and reward bags.
 - **Challenges:** send friends a link, everyone plays the same pins and wind on their own phone, then compare on a leaderboard.
 - **Daily challenge:** one quick mini-game a day, the same for everyone. Closest to the pin, long drive, up and in, or putting. Win gold, silver or bronze.
 - **Online leaderboards:** see how you stack up against players everywhere on today's daily, the best round on each course, and a wall of every hole in one. No account needed.
-- **Trophies:** 42 achievements with rewards, and titles to show off on challenge and online leaderboards.
+- **Trophies:** 43 achievements with rewards, and titles to show off on challenge and online leaderboards.
 - **Legendary clubs:** seven clubs you can't buy or find. Complete each club's trial to earn it.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
 - **Play a hole:** any hole, unlimited undo.
 - **Course creator:** build holes, make courses and share them with codes.
 - **Swing difficulty** that follows your handicap, with bigger rewards for better players.
-- **Fittings:** heads, shafts and grips in five rarities that trade one stat for another. Trade 3 in for 1 new one.
-- **Bag & pro shop:** 49 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
+- **Fittings:** every club starts at 10 in every stat. Heads, shafts and grips in five rarities trade one stat for another, boosted by your club's rarity and level. Trade 3 in for 1 new one.
+- **Your ball:** Distance, Tour, Soft or Heavy. Yours for good.
+- **Bag & pro shop:** 53 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
 - **3-click swing:** an optional tap-tap-tap meter for players who'd rather not swipe, with its own daily challenge.
 - **Guide line:** a rangefinder from the pro shop that shows where a clean strike will land while you swipe.
 - **Leave a review:** tell the developer what you think, right from the menu.
@@ -43,6 +44,16 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 1.0 · 5 November 2026
+- **Chapter 5: Skyreach.** The story's finale: the Tour Championship on a clifftop course above the clouds.
+  - **The course:** 9 new holes on rock shelves with nothing but sky between them. Chasms to carry (anything that goes in is lost: penalty drop), the thinnest air on tour, firm ground and big gusts. Includes Eagle's Nest, a tiny green ringed by chasms, and Sky Bridge, a 200-yard carry.
+  - **Four new rivals:** Jonah Flint (rookie of the year), Sofia Marchetti, Rex Holloway (the longest hitter on tour) and, in the 9-hole final, world number one Augustin Reyes.
+  - **Four new epic clubs:** the Jetstream driver, Cirrus 9 iron, Big Sky 3 wood and, for the champion, the Zenith putter.
+  - **A walkable clubhouse** on a mountaintop with a sea of cloud below, a few familiar faces from Ashby Green who've come to watch, and a gull with a coin.
+  - **A proper ending** when you win, and a new trophy: Top of the World.
+  - Skyreach is also open for solo rounds, Play a hole and challenges once you've won the Winter Open.
+- **What's new card** on the main menu for returning players.
 
 ### 0.19 · 5 November 2026
 - **Club rework.** Every club now starts at **10 in every stat**. What makes clubs different:

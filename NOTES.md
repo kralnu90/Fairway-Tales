@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 3 November 2026 · game version **0.17.0**
+Last updated: 5 November 2026 · game version **1.0.0**
 
 ---
 
@@ -20,7 +20,7 @@ Last updated: 3 November 2026 · game version **0.17.0**
 
 - **Costs:** give a heads-up before anything that would cost money (paid APIs, hosting, assets).
 - **Delivery:** send unzipped **index.html** and **README.md**, because he uploads to GitHub from his phone. He sometimes edits the README on GitHub, so ask before overwriting if he says he has.
-- **Credit line:** "© 2026 kralnu90. All rights reserved."
+- **Credit line:** "Ideas, design and testing by Kris. Built with Claude, an AI by Anthropic." plus "© 2026 kralnu90. All rights reserved." Kris wants Claude credited in every game.
 - **README:** never mention "Formerly Stroke of Luck".
 - **AI:** be open that it's AI-assisted ("designed by Kris, built with Claude"). r/golf bans AI content.
 - **Usage:** he cares about it, so keep sessions focused and avoid re-reading the whole 370 KB file.
@@ -51,7 +51,9 @@ Last updated: 3 November 2026 · game version **0.17.0**
   - Use `persist()` to save; it also runs `checkAch()`.
   - `ensureSave()` patches older saves.
 - **Clubs (`DEFS`):**
-  - 49 clubs with rarities common, rare, epic and legendary.
+  - 53 clubs with rarities common, rare, epic and legendary.
+  - **0.19 rework:** `statsOf()` starts every club at 10 (putters have no P or S). Fitted parts are boosted by `partBoost(id,lv)` = `RAR_MUL` (1, 1.15, 1.3, 1.5) × (1 + 5% per level above 1), applied to bonuses only. Clubs above Common get a virtual factory head (`facFit()`, style from the club's first focus stat, tier by rarity) unless a real head is fitted. `DEF.st` is no longer used for stats.
+  - **Ball (0.19):** `save.ball` is distance, tour, soft or heavy (`BALLS`). Stat deltas are added in `statsOf()`. Heavy also scales wind by `ballWind()`. Ignored when `clubGear()`.
   - Sources: shop, rival shards (5 forge an epic), loot (rares only), daily, legend.
   - Clubs level up to 10, with caps at Lv 4 and Lv 7 that need tuning kits plus coins.
 - **Fittings:**
@@ -61,9 +63,10 @@ Last updated: 3 November 2026 · game version **0.17.0**
 - **Swing difficulty (`DIFF`):** follows handicap, from Relaxed to Pro. Higher levels pay more (`rewardMul`). Players can lock their level in Settings.
 - **Courses:** Ashby Green (parkland), Gullhaven Links (gusty wind, gorse, pot bunkers), Sun Mesa (desert, waste areas, cacti), Frostpeak (ice, snow, quick greens).
 - **Story:**
-  - A walkable overworld, 4 chapters and 16 rivals, with flags in `SF()`.
+  - A walkable overworld, 5 chapters and 20 rivals, with flags in `SF()`.
   - The finals are 9-hole matches with 1 Mulligan.
-  - Chapter 5 is not built.
+  - Chapter 5 (1.0) is Skyreach: `SKY` course (theme `sky`, chasms are `water` drawn by `drawChasms()`, air 1.1, firm, gusty), area `AREAS.sky` with `groundSky()`, rivals jonah, sofia, rex and reyes (final, flag `ch5champ`), host okafor, shop luca, Toby cameo `tobyx`, gull `skye`. The final's `MATCH.reyes.epilogue` plays the ending.
+  - Toby's very first match uses softer odds (`makeRival`, 0.18).
 - **Modes:**
   - Solo round, Pass & play (2–4 players, Clubhouse set, no rewards), Play a hole, Course creator (share codes).
   - Practice ground: driving range, chipping green and putting green with 4 surfaces.
@@ -108,6 +111,7 @@ Last updated: 3 November 2026 · game version **0.17.0**
 - **Challenge results (0.15):** FTR1 carries `m:1` for 3-click, included in the hash. Older codes still validate. Leaderboard shows 🎯 3-click.
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
 - **Reviews:** the "Leave a review" button posts to Kris's Google Form.
+- **New-player help (0.18):** `coachTick()` (called from `hud()`) shows one-off tips on the pad (swing, aim, club, putt) with a ghost thumb. Stored in `fsl-coach`. Existing players get `{all:1}` on first load. `brandNew()` shows a welcome card on the menu instead of What's new (key `fsl-seen-v100`). How to play has a quick start, and its sections fold away.
 
 - **Graphics (0.17):**
   - Section `Effects & atmosphere` (just before `draw()`): `pBurst(x,y,kind,n,pow)` spawns particles in world yards, drawn by `drawFX()` inside `draw()`. Kinds match surface names plus `cup`. Hooked into `strike()`, `land()`, `stepBounce()`, `stepRoll()` (water) and `holeOut()`.
@@ -117,16 +121,11 @@ Last updated: 3 November 2026 · game version **0.17.0**
 
 ## Agreed but not built yet (don't re-decide)
 
-1. **Club rework:**
-   - Every club gets a neutral baseline of 10 for every stat, keeping its perks.
-   - Stats come from fittings, with all 3 slots kept.
-   - Fitted parts get a rarity multiplier of about ×1.0, 1.15, 1.3 and 1.5 by tier. 5 tiers exist, so confirm the top value.
-   - Club levels add 5% per level.
-2. **Ball slot:** one permanent ball choice (no breaking or losing it) from Distance, Tour (spin), Soft and Heavy (forgiveness/weight).
-3. **Live multiplayer rooms:**
+1. **Live multiplayer rooms** (first big update after 1.0):
    - Players join with a share code.
    - It would use Firebase on the free Spark plan. Give Kris a cost heads-up before setting it up.
-4. **Skyreach:** story chapter 5.
+
+Kris's rule: the Play Store release happens only once a game is completely finished, as the very last step. No Godot remake: Godot is a separate side project.
 
 ## Other notes
 
@@ -147,3 +146,7 @@ Last updated: 3 November 2026 · game version **0.17.0**
   - Shipped 0.15.3 (aim drag fix) and 0.16 (online leaderboards on Firebase's free plan).
 - **3 Nov 2026:**
   - Shipped 0.17: graphics update (course detail, hazards, trees, lighting, cloud shadows, waving flag, particles) and the same light in story mode. Pushed straight to GitHub from Claude.
+- **5 Nov 2026:**
+  - Shipped 0.18: new-player pass (welcome card, first-shot coach tips, quick-start How to play, gentler first Toby match) and the Claude credit line.
+  - Shipped 0.19: club rework (baseline 10, rarity and level boost parts, factory heads) and the ball slot.
+  - Shipped 1.0: Chapter 5, Skyreach, with 4 rivals, 4 epic clubs, an ending and the Top of the World trophy.

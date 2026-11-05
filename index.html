@@ -632,6 +632,10 @@ const DEFS=[
   {id:'snowplough',t:'sw',n:'Snowplough',r:'epic',st:[6,9,12,11],f:['F','S'],src:'rival',srcText:'Beat Nils Bergqvist for shards, then collect 5 to forge it',perk:'snow',perkText:'Snowdrifts play like normal bunkers.'},
   {id:'katana',t:'iron5',n:'Katana',r:'epic',st:[10,12,8,7],f:['C','S'],src:'rival',srcText:'Beat Yuki Tanaka for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
   {id:'avalanche',t:'driver',n:'Avalanche',r:'epic',st:[13,9,6,9],f:['P','F'],src:'rival',srcText:'Beat Brock Harlan for shards, then collect 5 to forge it',perk:'roll',perkText:'+25% rollout on every landing.'},
+  {id:'jetstream',t:'driver',n:'Jetstream',r:'epic',st:[12,9,6,8],f:['P','C'],src:'rival',srcText:'Beat Jonah Flint for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 30% less.'},
+  {id:'cirrus',t:'iron9',n:'Cirrus',r:'epic',st:[7,11,12,8],f:['S','C'],src:'rival',srcText:'Beat Sofia Marchetti for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
+  {id:'bigsky',t:'wood3',n:'Big Sky',r:'epic',st:[13,9,6,8],f:['P'],src:'rival',srcText:'Beat Rex Holloway for shards, then collect 5 to forge it',perk:'air',perkText:'+6% carry on every shot.'},
+  {id:'zenith',t:'putter',n:'Zenith',r:'epic',st:[0,13,0,12],f:['C','F'],src:'rival',srcText:'Win the Tour Championship in Story mode',perk:'capture',perkText:'The cup plays 40% bigger.'},
   {id:'aurora',t:'pw',n:'Aurora',r:'epic',st:[7,12,14,8],f:['S','C'],src:'rival',srcText:'Win the Winter Open in Story mode',perk:'spinback',perkText:'Spin-back is 50% stronger.'},
   {id:'scorpion',tier:'low',t:'pw',n:'Scorpion',r:'rare',st:[6,9,9,8],f:['F'],src:'shop',price:2000,unlock:'visitedMesa',blurb:'Stings it out of the waste.'},
   {id:'whiteout',tier:'tour',t:'iron7',n:'Whiteout',r:'epic',st:[8,12,10,9],f:['C','F'],src:'shop',price:4600,unlock:'visitedFrost',blurb:'Steady when the mountain isn\'t.'},
@@ -995,8 +999,31 @@ const FROST=[
   IC({name:'Fireside',par:4,fw:[[0,40],[0,260],[-15,370]],hw:15,green:{x:-16,y:408,rx:15,ry:12},water:[{x:16,y:380,rx:13,ry:10}],snow:[{x:-35,y:400,rx:4,ry:6},{x:2,y:421,rx:5,ry:4}],
     trees:[[14,-67,-28,30,425,4,6],[12,28,62,30,340,4,6]],bounds:{x0:-70,x1:60,y0:-14,y1:440},sl:{x:.35,y:-.45,a:.35,b:.35}})
 ];
+// Chapter 5: Skyreach. A clifftop course above the clouds: chasms to carry (lost ball, penalty drop), the thinnest air, firm ground and big gusts
+const SK=(o)=>({water:[],bunkers:[],trees:[],theme:'sky',air:1.1,firm:1.15,gusty:true,gustMax:16,...o});
+const SKY=[
+  SK({name:'Cloudbreak',par:4,fw:[[0,40],[0,330]],hw:15,green:{x:0,y:362,rx:14,ry:11},water:[{x:0,y:205,rx:70,ry:9}],bunkers:[{x:-18,y:356,rx:5,ry:6},{x:17,y:370,rx:5,ry:5}],
+    trees:[[5,-64,-32,40,380,3,5],[5,32,64,40,380,3,5]],bounds:{x0:-72,x1:72,y0:-14,y1:395},sl:{x:.3,y:-.45,a:.3,b:.3}}),
+  SK({name:'The Ledge',par:4,fw:[[0,40],[0,200],[28,330]],hw:14,green:{x:32,y:365,rx:14,ry:11},water:[{x:64,y:235,rx:18,ry:80},{x:60,y:372,rx:8,ry:16}],bunkers:[{x:13,y:360,rx:5,ry:5}],
+    trees:[[7,-62,-26,40,380,3,5]],bounds:{x0:-66,x1:90,y0:-14,y1:395},sl:{x:-.4,y:-.35,a:.35,b:.3}}),
+  SK({name:'Eagle\'s Nest',par:3,fw:[[0,20],[0,30]],hw:9,green:{x:2,y:165,rx:13,ry:10},water:[{x:0,y:108,rx:42,ry:28},{x:-30,y:168,rx:11,ry:16},{x:35,y:168,rx:11,ry:16},{x:2,y:192,rx:30,ry:7}],
+    bounds:{x0:-56,x1:60,y0:-14,y1:210},sl:{x:.35,y:.4,a:.3,b:.3}}),
+  SK({name:'Highwire',par:5,fw:[[0,40],[0,220],[-30,350],[-40,470]],hw:14,green:{x:-42,y:505,rx:15,ry:11},water:[{x:-15,y:285,rx:56,ry:9},{x:-4,y:420,rx:16,ry:30}],
+    bunkers:[{x:-21,y:500,rx:4,ry:6},{x:-62,y:512,rx:4,ry:5}],trees:[[7,-92,-62,40,500,3,5],[7,26,60,40,300,3,5]],bounds:{x0:-96,x1:64,y0:-14,y1:535},sl:{x:.4,y:-.4,a:.35,b:.35}}),
+  SK({name:'Windward',par:4,fw:[[0,40],[0,290]],hw:13,green:{x:0,y:322,rx:12,ry:10},water:[{x:-29,y:200,rx:12,ry:60},{x:29,y:240,rx:12,ry:60}],bunkers:[{x:-15,y:318,rx:4,ry:5},{x:15,y:327,rx:4,ry:5}],
+    bounds:{x0:-56,x1:56,y0:-14,y1:345},sl:{x:-.35,y:.4,a:.3,b:.3}}),
+  SK({name:'Sky Bridge',par:3,fw:[[0,20],[0,30]],hw:9,green:{x:4,y:205,rx:15,ry:12},water:[{x:0,y:115,rx:50,ry:52}],bunkers:[{x:-14,y:200,rx:4,ry:6},{x:22,y:210,rx:4,ry:5}],
+    bounds:{x0:-60,x1:60,y0:-14,y1:230},sl:{x:.3,y:-.4,a:.35,b:.3}}),
+  SK({name:'Thin Air',par:4,fw:[[0,40],[0,250],[20,370]],hw:15,green:{x:22,y:405,rx:14,ry:11},water:[{x:-36,y:330,rx:15,ry:40},{x:22,y:432,rx:28,ry:6}],bunkers:[{x:5,y:300,rx:7,ry:5},{x:40,y:400,rx:4,ry:6}],
+    trees:[[5,-66,-36,40,250,3,5],[5,42,70,40,300,3,5]],bounds:{x0:-70,x1:75,y0:-14,y1:450},sl:{x:-.35,y:-.45,a:.35,b:.35}}),
+  SK({name:'Summit Ridge',par:5,fw:[[0,40],[0,240],[25,380],[15,490]],hw:15,green:{x:15,y:525,rx:15,ry:11},water:[{x:-41,y:200,rx:15,ry:70},{x:56,y:330,rx:14,ry:60},{x:15,y:445,rx:40,ry:8}],
+    bunkers:[{x:-4,y:520,rx:4,ry:6},{x:34,y:530,rx:4,ry:5}],trees:[[5,-66,-42,300,520,3,5]],bounds:{x0:-70,x1:86,y0:-14,y1:550},sl:{x:.4,y:.35,a:.4,b:.35}}),
+  SK({name:'Skyreach',par:4,fw:[[0,40],[0,260],[-15,380]],hw:15,green:{x:-16,y:418,rx:16,ry:12},water:[{x:-5,y:330,rx:62,ry:8},{x:-16,y:447,rx:34,ry:7},{x:-49,y:418,rx:10,ry:18},{x:18,y:418,rx:10,ry:18}],
+    trees:[[5,-76,-46,40,300,3,5],[5,36,70,40,300,3,5]],bounds:{x0:-80,x1:75,y0:-14,y1:465},sl:{x:-.4,y:-.4,a:.35,b:.35}})
+];
 const COURSES={ashby:{name:'Ashby Green',holes:null,unlock:null,best:'fsl-best-round'},links:{name:'Gullhaven Links',holes:LINKS,unlock:'champion',best:'fsl-best-links',tag:'Gusting wind, gorse, pot bunkers'},
-  mesa:{name:'Sun Mesa',holes:MESA,unlock:'ch2champ',best:'fsl-best-mesa',tag:'Thin air, waste areas, cacti, hard greens'},frost:{name:'Frostpeak',holes:FROST,unlock:'ch3champ',best:'fsl-best-frost',tag:'Frozen ponds, snowdrifts, quick greens'}};
+  mesa:{name:'Sun Mesa',holes:MESA,unlock:'ch2champ',best:'fsl-best-mesa',tag:'Thin air, waste areas, cacti, hard greens'},frost:{name:'Frostpeak',holes:FROST,unlock:'ch3champ',best:'fsl-best-frost',tag:'Frozen ponds, snowdrifts, quick greens'},
+  sky:{name:'Skyreach',holes:SKY,unlock:'ch4champ',best:'fsl-best-sky',tag:'Chasms to carry, the thinnest air, big gusts'}};
 const COURSE_PAR=HOLES.reduce((a,h)=>a+h.par,0);
 
 let sd=11; const rnd=()=>{sd=(sd*16807)%2147483647;return (sd-1)/2147483646};
@@ -1044,7 +1071,8 @@ const PUTT_SURF={
   ashby:{n:'Ashby Green',d:'Medium pace, gentle borrow',fric:2.2,m:.35,a:.28,b:.24,theme:'parkland'},
   links:{n:'Gullhaven Links',d:'Big, bumpy and wild',fric:2.2,m:.55,a:.5,b:.45,theme:'links'},
   mesa:{n:'Sun Mesa',d:'Slow and grainy',fric:2.9,m:.4,a:.25,b:.2,theme:'desert'},
-  frost:{n:'Frostpeak',d:'Lightning quick',fric:1.6,m:.35,a:.3,b:.26,theme:'ice'}};
+  frost:{n:'Frostpeak',d:'Lightning quick',fric:1.6,m:.35,a:.3,b:.26,theme:'ice'},
+  sky:{n:'Skyreach',d:'Firm and quick, with big breaks',fric:1.9,m:.45,a:.4,b:.36,theme:'sky'}};
 const PUTT_BANDS={short:{n:'Short',d:'3 to 10 ft',lo:3,hi:10},mid:{n:'Medium',d:'10 to 25 ft',lo:10,hi:25},long:{n:'Long',d:'25 to 50 ft',lo:25,hi:50},mix:{n:'Mixed',d:'3 to 50 ft',lo:3,hi:50}};
 const CHIP_LIES={mix:{n:'Mixed',d:'A bit of everything'},fairway:{n:'Fairway',d:'Tight lies, 20 to 70 yds'},rough:{n:'Rough',d:'Round the green'},sand:{n:'Bunker',d:'Greenside sand'}};
 HOLES.forEach((h,hi)=>prepHole(h,hi));prepHole(RANGE,130);prepHole(CHIP,131);prepHole(PUTT,132);
@@ -1056,6 +1084,7 @@ const DCHIP={...CHIP,drill:'daily',name:'Daily · Up and in'},DPUTT={...PUTT,dri
 LINKS.forEach((h,hi)=>prepHole(h,hi+50));
 MESA.forEach((h,hi)=>prepHole(h,hi+70));
 FROST.forEach((h,hi)=>prepHole(h,hi+90));
+SKY.forEach((h,hi)=>prepHole(h,hi+110));
 COURSES.ashby.holes=HOLES;
 const courseOpen=k=>!COURSES[k].unlock||!!((save.story||{}).flags||{})[COURSES[k].unlock];
 const courseKey=()=>Object.keys(COURSES).find(k=>COURSES[k].holes===COURSE)||'ashby';
@@ -1212,7 +1241,7 @@ function hud(){
   $('#padHint').textContent=clickOn()?'':c.putter?'Pull down and let go':'Swipe down · pause · swipe up';if(clickOn()&&!mtr)drawPad();
   coachTick();
 }
-const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':'Rough'):SURF[s].name;
+const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':H.theme==='sky'?'Alpine rough':'Rough'):s==='water'&&H.theme==='sky'?'Chasm':SURF[s].name;
 const fricOf=s=>s==='green'&&H.greenFric?H.greenFric:SURF[s].fric;
 // Shot summaries clear themselves after 10 seconds, or tap the card (or its ×) to close it straight away
 let toastT=0;
@@ -1581,7 +1610,7 @@ function dropFromWater(from,head,kind){
   for(let i=0;i<200&&['water','gorse'].includes(surfaceAt(p.x,p.y));i++){p.x+=Math.sin(a);p.y+=Math.cos(a)}
   p.x+=Math.sin(a)*2;p.y+=Math.cos(a)*2;
   ball=p; strokes++; const xl=xpLine(); readyAgain();
-  toast(`${head}<br><b>${kind==='gorse'?'Into the gorse.</b> Unplayable, penalty drop, +1 stroke.':'Splash.</b> Penalty drop, +1 stroke.'}${xl}`);
+  toast(`${head}<br><b>${kind==='gorse'?'Into the gorse.</b> Unplayable, penalty drop, +1 stroke.':H.theme==='sky'?'Into the clouds.</b> Lost over the edge, penalty drop, +1 stroke.':'Splash.</b> Penalty drop, +1 stroke.'}${xl}`);
 }
 function penalty(head){
   if(onDrill('daily')&&drill.fmt!=='putts')return dailyShot(head,'ob');
@@ -1734,6 +1763,14 @@ const RIVALS={
     quips:{won:['AVALANCHE!','Bury it, baby.'],half:['Snowed in. Draw.'],lost:['Plugged in a drift. Again.','Rematch. Now.']}},
   elena:{name:'Elena Vasquez',col:'#1e8a8a',course:'frost',s:0,holes:9,title:'Winter Open',odds:[[-2,.06],[-1,.32],[0,.48],[1,.13],[2,.01]],
     quips:{won:['Welcome to the tour.','That one counts.'],half:['Good.'],lost:['Impressive.','You belong out here.']}},
+  jonah:{name:'Jonah Flint',col:'#e8833a',course:'sky',s:0,holes:3,odds:[[-2,.1],[-1,.3],[0,.38],[1,.18],[2,.04]],
+    quips:{won:['Rookie of the year, baby.','Did you see that?!'],half:['Fair play.'],lost:['Okay, that\'s annoying.','Nice. Really. Nice.']}},
+  sofia:{name:'Sofia Marchetti',col:'#2a8a6a',course:'sky',s:3,holes:3,odds:[[-2,.08],[-1,.32],[0,.44],[1,.14],[2,.02]],
+    quips:{won:['Elegante.','Bellissimo.'],half:['Pari. Even.'],lost:['Bravo.','Ah, the wind.']}},
+  rex:{name:'Rex Holloway',col:'#c9a227',course:'sky',s:6,holes:3,odds:[[-2,.14],[-1,.3],[0,.2],[1,.24],[2,.12]],
+    quips:{won:['Strewth, what a hit!','Too easy, mate.'],half:['Fair dinkum.'],lost:['Lost it in the clouds.','Good on ya.']}},
+  reyes:{name:'Augustin Reyes',col:'#2b2f6b',course:'sky',s:0,holes:9,title:'Tour Championship',odds:[[-2,.08],[-1,.36],[0,.44],[1,.11],[2,.01]],
+    quips:{won:['That\'s why I\'m number one.','Close. Not close enough.'],half:['Hm. Good.'],lost:['Remarkable.','Now that is golf.']}},
   duncan:{name:'Duncan Moray',col:'#7a2430',s:0,holes:9,title:'Club Championship',odds:[[-1,.22],[0,.56],[1,.19],[2,.03]],
     quips:{won:['Aye.','That\'s how it\'s done.'],half:['Hm.'],lost:['Good shot.','You\'ve been practising.']}}
 };
@@ -2343,6 +2380,7 @@ const PAL={
   parkland:{bg:'#1d3b26',s1:'#447f3c',s2:'#4a8641',fwE:'#56933f',fw:'#69a957',tee:'#74ba60',fr:'#5fae4f',gr:'#7ccb66',grS:'#86d36f',sandE:'#4f8a3f',sand:'#ead9a8',sandL:'#c9b07a',waterE:'#3a6e44'},
   links:{bg:'#2a4a52',s1:'#8a9a58',s2:'#93a35f',fwE:'#7f9a4e',fw:'#9cbc63',tee:'#a8c870',fr:'#8fb85c',gr:'#a9d27a',grS:'#b3da84',sandE:'#6f8446',sand:'#efe0b4',sandL:'#cdb987',waterE:'#6f8446'},
   desert:{bg:'#7a4a2c',s1:'#d8b07a',s2:'#dcb680',fwE:'#5c8a3c',fw:'#6fa64a',tee:'#7bb556',fr:'#64a046',gr:'#80c562',grS:'#8bcd6c',sandE:'#b8905c',sand:'#f2e2b8',sandL:'#d2b884',waterE:'#4f8a3f'},
+  sky:{bg:'#a9c6e4',s1:'#5f9a57',s2:'#66a25d',fwE:'#6aa957',fw:'#7fbe68',tee:'#88c670',fr:'#76b862',gr:'#8fd27a',grS:'#99d984',sandE:'#5d944f',sand:'#efe6cc',sandL:'#cfc29c',waterE:'#e8f1fa'},
   ice:{bg:'#2c3e52',s1:'#e6eef5',s2:'#edf3f8',fwE:'#9db8a8',fw:'#7fa889',tee:'#8ab595',fr:'#76a283',gr:'#86ba8f',grS:'#91c39a',sandE:'#c8d6e2',sand:'#e8e4d6',sandL:'#c9c2a8',waterE:'#bccbd8'}
 };
 let guideEnd=null;
@@ -2393,7 +2431,7 @@ function terrain(B){const key=[B.x0,B.y0,B.x1,B.y1].join();if(TERR&&TERR.key===k
 // screen-space atmosphere: warm or cool grade, vignette, drifting seeds, petals or snow
 const AMBS={};
 function atmos(c,w,h,th,dt,key){
-  const tint={parkland:'rgba(255,226,150,.05)',links:'rgba(140,170,190,.07)',desert:'rgba(255,160,80,.08)',ice:'rgba(150,190,255,.08)'}[th]||'rgba(0,0,0,0)';
+  const tint={parkland:'rgba(255,226,150,.05)',links:'rgba(140,170,190,.07)',desert:'rgba(255,160,80,.08)',ice:'rgba(150,190,255,.08)',sky:'rgba(200,220,255,.07)'}[th]||'rgba(0,0,0,0)';
   c.fillStyle=tint;c.fillRect(0,0,w,h);
   const g=c.createRadialGradient(w/2,h*.48,Math.min(w,h)*.45,w/2,h*.5,Math.hypot(w,h)*.6);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,th==='ice'?'rgba(10,25,50,.2)':'rgba(8,18,10,.22)');
   c.fillStyle=g;c.fillRect(0,0,w,h);
@@ -2410,6 +2448,17 @@ function atmos(c,w,h,th,dt,key){
     c.fillStyle=th==='ice'?'#ffffff':th==='desert'?'#f4dcae':th==='links'?'#efe8c8':'#f6f0c8';
     c.beginPath();if(th==='ice')c.arc(a.x,a.y,.8+a.z*1.4,0,7);else c.ellipse(a.x,a.y,1.6*a.z+.6,.7,a.ph*2,0,7);c.fill()}
   c.globalAlpha=1;
+}
+// Skyreach chasms: a rocky lip, then a long drop to a sea of cloud drifting with the wind
+function drawChasms(T,px){
+  for(const w of H.water){ell(w,1.1);ctx.fillStyle='#7a6f62';ctx.fill();ell(w,1.04);ctx.fillStyle='#5b5248';ctx.fill()}
+  for(const w of H.water){const R=Math.max(w.rx,w.ry);ctx.save();ell(w);
+    const g=ctx.createRadialGradient(w.x,w.y,0,w.x,w.y,R);g.addColorStop(0,'#eaf3fc');g.addColorStop(.6,'#bcd4ec');g.addColorStop(1,'#7f9fc4');ctx.fillStyle=g;ctx.fill();ctx.clip();
+    const wx=(wind.x||0)*.06,n=Math.max(4,Math.round(w.rx*w.ry/40));
+    for(let k=0;k<n;k++){const u=(k*.618034)%1,v=(k*.7548777)%1,ww=2*w.rx+16,x=w.x-w.rx-8+((u*ww+T*(1.2+wx)*(1+k%3))%ww+ww)%ww,y=w.y-w.ry+v*2*w.ry,r=2.4+(k%4)*1.3;
+      ctx.fillStyle=`rgba(255,255,255,${.5+.12*(k%3)})`;ctx.beginPath();ctx.ellipse(x,y,r*1.8,r,0,0,7);ctx.ellipse(x+r*1.2,y+r*.4,r*1.2,r*.8,0,0,7);ctx.fill()}
+    ctx.restore();
+    ctx.strokeStyle='rgba(60,50,40,.45)';ctx.lineWidth=Math.max(.15,1.4*px);ell(w,1.005);ctx.stroke()}
 }
 function draw(){
   const d=devicePixelRatio||1,s=cam.s,px=1/s,G=H.green,P=PAL[H.theme]||PAL.parkland,T=performance.now()/1000,now=performance.now(),dtf=Math.min(.05,Math.max(0,(now-fxLast)/1000));fxLast=now;
@@ -2446,8 +2495,9 @@ function draw(){
   if(H.range){ctx.lineWidth=1.5*px;for(let y=50;y<=400;y+=50){ctx.strokeStyle=y%100?'rgba(255,255,255,.35)':'rgba(255,255,255,.7)';ctx.setLineDash([6*px,5*px]);ctx.beginPath();ctx.moveTo(-H.hw,y);ctx.lineTo(H.hw,y);ctx.stroke()}ctx.setLineDash([]);
     for(const [y,col] of [[100,'#ec7a55'],[150,'#f2c14e'],[200,'#6fb3e8'],[250,'#c58af0'],[300,'#8fd88a']]){ctx.fillStyle='rgba(255,255,255,.25)';ctx.beginPath();ctx.ellipse(y%100?-14:14,y,6,4.5,0,0,7);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=1.6*px;ctx.stroke();ctx.fillStyle=col;ctx.fillRect((y%100?-14:14)-.15,y,.3,4)}}
   // water
-  for(const w of H.water){ell(w,1.06);ctx.fillStyle=P.waterE;ctx.fill()}
-  for(const w of H.water){const ic=H.theme==='ice',R=Math.max(w.rx,w.ry);
+  if(H.theme==='sky')drawChasms(T,px);
+  else for(const w of H.water){ell(w,1.06);ctx.fillStyle=P.waterE;ctx.fill()}
+  for(const w of H.theme==='sky'?[]:H.water){const ic=H.theme==='ice',R=Math.max(w.rx,w.ry);
     ctx.save();ell(w);const g=ctx.createRadialGradient(w.x+w.rx*.1,w.y-w.ry*.1,0,w.x,w.y,R);g.addColorStop(0,ic?'#277f93':'#185a85');g.addColorStop(.7,ic?'#3f9fb0':'#2b77a3');g.addColorStop(1,ic?'#74c8d2':'#4f9fc6');ctx.fillStyle=g;ctx.fill();ctx.clip();
     // sky reflection and ripples drifting with the wind
     ell({x:w.x-w.rx*.3,y:w.y+w.ry*.3,rx:w.rx*.5,ry:w.ry*.35});ctx.fillStyle='rgba(200,235,255,.12)';ctx.fill();
@@ -2668,6 +2718,18 @@ const AREAS={
     paths:[[[320,900],[320,700],[320,300]],[[320,560],[532,560],[532,504]],[[320,330],[90,330],[77,290]],[[90,330],[96,160]]],
     trees:[[16,0,640,0,70,13,19],[9,0,40,80,760,12,17],[9,600,640,80,760,12,17],[5,200,300,600,720,12,16],[4,40,140,600,740,12,16]],
     blobs:[{x:560,y:250,rx:40,ry:26,k:'snowrock'},{x:60,y:470,rx:28,ry:18,k:'snowrock'}],
+    carpark:{x:180,y:776,w:300,h:124}},
+  sky:{name:'Skyreach',chapter:5,label:'Chapter 5 · The Sky',map:{w:640,h:900},start:{x:330,y:760},arrive:{x:330,y:760},bg:'#a9c6e4',
+    buildings:[
+      {id:'club',x:180,y:130,w:280,h:160,roof:'#3d4a63',ridge:'#2d3850',wall:'#eef0f2',sign:'SKYREACH',door:320},
+      {id:'shop',x:420,y:410,w:124,h:94,roof:'#3d4a63',ridge:'#2d3850',wall:'#eef0f2',sign:'PRO SHOP',door:482},
+      {id:'hut',x:40,y:236,w:74,h:54,roof:'#3d4a63',ridge:'#2d3850',wall:'#e4e7ea',sign:'STARTER',door:77}],
+    cars:[{x:282,y:796,c:'#1b1b1b'},{x:332,y:796,c:'#e3e3dc'},{x:432,y:796,c:'#2b2f6b',sport:true}],
+    pond:null,pgreen:{x:170,y:500,rx:90,ry:50},teebox:{x:30,y:80,w:140,h:70},
+    benches:[{x:380,y:600,w:40,h:12},{x:400,y:330,w:40,h:12}],beds:[{x:208,y:312,rx:28,ry:10},{x:432,y:312,rx:28,ry:10}],
+    paths:[[[320,900],[320,700],[320,300]],[[320,560],[482,560],[482,504]],[[320,330],[90,330],[77,290]],[[90,330],[96,160]]],
+    trees:[[10,0,40,90,760,12,17],[5,200,290,600,720,12,16],[4,40,140,600,740,12,16],[6,0,560,70,110,13,18]],
+    blobs:[{x:60,y:470,rx:28,ry:18,k:'rock'},{x:250,y:640,rx:20,ry:13,k:'rock'}],cliff:556,
     carpark:{x:180,y:776,w:300,h:124}}
 };
 function setArea(id){
@@ -2743,9 +2805,20 @@ AREAS.frost.npcs=[
   {id:'bjorn',name:'Bjorn',x:360,y:680,face:1,dog:true,husky:true,home:{x0:340,x1:420,y0:580,y1:760}},
   {id:'car',name:'Your car',x:240,y:827,car:true,face:0}
 ];
+AREAS.sky.npcs=[
+  {id:'okafor',name:'Grace Okafor',x:370,y:330,face:0,look:{skin:'#7a4a2e',hair:'#1a1410',top:'#2b2f6b',legs:'#2b2f38',bun:true,flat:true}},
+  {id:'jonah',name:'Jonah Flint',x:110,y:108,face:0,look:{skin:'#f0c4a0',hair:'#d9a441',top:'#e8833a',legs:'#f4f4f0',cap:'#1b1b1b',spiky:true,extra:'club',swing:true}},
+  {id:'sofia',name:'Sofia Marchetti',x:290,y:520,face:1,look:{skin:'#e3b48c',hair:'#3a2214',top:'#2a8a6a',legs:'#f4f1e6',shades:true,extra:'club'}},
+  {id:'rex',name:'Rex Holloway',x:520,y:745,face:1,look:{skin:'#e0a37a',hair:'#8a6a3a',top:'#c9a227',legs:'#2b2f38',cap:'#8a3b2e',beard:true,extra:'club'}},
+  {id:'reyes',name:'Augustin Reyes',x:255,y:330,face:0,look:{skin:'#c98a64',hair:'#2a2420',top:'#2b2f6b',legs:'#f4f4f0',cap:'#f4f4f0'}},
+  {id:'luca',name:'Luca',x:482,y:530,face:0,look:{skin:'#efc19d',hair:'#4a3020',top:'#3d4a63',legs:'#2f3640',extra:'apron'}},
+  {id:'tobyx',name:'Toby Crane',x:420,y:640,face:1,look:{skin:'#f3cfae',hair:'#3a2a1c',top:'#e05a4f',legs:'#f2ede0',spiky:true}},
+  {id:'skye',name:'Skye',x:470,y:690,face:1,bird:true,home:{x0:420,x1:540,y0:620,y1:760}},
+  {id:'car',name:'Your car',x:240,y:827,car:true,face:0}
+];
 let NPCS=[],NPC={};
-const NPC_HCP={toby:4,dot:8,marcus:6,duncan:-1,callum:3,fiona:5,tam:7,gideon:-2,ricky:2,priya:3,wes:4,celia:-1,nils:1,yuki:0,brock:2,elena:-4};
-const FACE_COL={dolores:'#d9822b',ricky:'#d9822b',priya:'#6a4fb0',wes:'#a83232',celia:'#c9a227',marco:'#b8794f',ziggy:'#7fa84a',ingrid:'#2f6db0',nils:'#2f6db0',yuki:'#c23b5a',brock:'#5a4632',elena:'#1e8a8a',pavel:'#b07d48',bjorn:'#8a9aa8',morag:'#2f4f7a',callum:'#3e8f6b',fiona:'#b0305a',tam:'#6b5a3a',gideon:'#1b1b1b',ailsa:'#c98a64',gull:'#d9dde0',car:'#3f7fbf',dot:'#2a7f8f',marcus:'#ff6a1a',duncan:'#7a2430',hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
+const NPC_HCP={jonah:-3,sofia:-4,rex:-3,reyes:-6,tobyx:2,toby:4,dot:8,marcus:6,duncan:-1,callum:3,fiona:5,tam:7,gideon:-2,ricky:2,priya:3,wes:4,celia:-1,nils:1,yuki:0,brock:2,elena:-4};
+const FACE_COL={okafor:'#2b2f6b',jonah:'#e8833a',sofia:'#2a8a6a',rex:'#c9a227',reyes:'#2b2f6b',luca:'#3d4a63',tobyx:'#e05a4f',skye:'#d9dde0',dolores:'#d9822b',ricky:'#d9822b',priya:'#6a4fb0',wes:'#a83232',celia:'#c9a227',marco:'#b8794f',ziggy:'#7fa84a',ingrid:'#2f6db0',nils:'#2f6db0',yuki:'#c23b5a',brock:'#5a4632',elena:'#1e8a8a',pavel:'#b07d48',bjorn:'#8a9aa8',morag:'#2f4f7a',callum:'#3e8f6b',fiona:'#b0305a',tam:'#6b5a3a',gideon:'#1b1b1b',ailsa:'#c98a64',gull:'#d9dde0',car:'#3f7fbf',dot:'#2a7f8f',marcus:'#ff6a1a',duncan:'#7a2430',hartley:'#9b7bc4',toby:'#e05a4f',reg:'#2f5d8a',dev:'#b8794f',mags:'#3f7a3a',pip:'#c99a5b'};
 const PLAYER_LOOK={skin:'#f0c4a0',hair:'#5a3a22',top:'#f4f1e6',legs:'#3c4a5e',cap:'#1c3628'};
 let me={x:320,y:840,face:0,walk:0,moving:false};
 const storePos=()=>{save.story.pos[save.story.area]={x:me.x,y:me.y}};
@@ -2780,7 +2853,7 @@ function typeTick(dt){
   if(!dlg||dlg.shown>=dlg.full.length)return;
   const before=Math.floor(dlg.shown);
   dlg.shown=Math.min(dlg.full.length,dlg.shown+dt*(RM?999:55));
-  if(Math.floor(dlg.shown/3)>Math.floor(before/3)){const w=dlg.lines[dlg.i].who;SFX.blip(w?({toby:820,dot:660,marcus:520,duncan:360,hartley:700,reg:480,dev:560,mags:760,pip:1000}[w]||600):420)}
+  if(Math.floor(dlg.shown/3)>Math.floor(before/3)){const w=dlg.lines[dlg.i].who;SFX.blip(w?({tobyx:820,jonah:760,sofia:640,rex:400,reyes:470,okafor:600,luca:520,toby:820,dot:660,marcus:520,duncan:360,hartley:700,reg:480,dev:560,mags:760,pip:1000}[w]||600):420)}
   $('#dlgText').textContent=dlg.full.slice(0,Math.floor(dlg.shown));
   if(dlg.shown>=dlg.full.length)lineFinished();
 }
@@ -2816,7 +2889,8 @@ function talk(id){
     if(!f.ch2champ)return say([N('hartley','Our Club Champion! I knew it the day you walked in.'),N('hartley','The county qualifier is at Gullhaven Links, down on the coast. Ashby Green has never sent anyone. Until now.'),N('hartley','Your car\'s in the car park. Off you go, champion.')]);
     if(!f.ch3champ)return say([N('hartley','Through to the County Championship! From Ashby Green! I\'ve told everyone. Twice.')]);
     if(!f.ch4champ)return say([N('hartley','County Champion! I\'ve had the board in the bar repainted.'),N('hartley','The Winter Open at Frostpeak, though... that\'s proper tour golf. Wrap up warm.')]);
-    return say([N('hartley','Winter Open champion. A tour card. From our little club.'),N('hartley','I may need a sit down.')]);
+    if(!f.ch5champ)return say([N('hartley','Winter Open champion. A tour card. From our little club.'),N('hartley','And now the Tour Championship at Skyreach. I\'ve booked the day off. I\'m coming to watch.')]);
+    return say([N('hartley','Tour Champion. I\'ve run out of space on the board in the bar.'),N('hartley','Whatever happens next, you\'ll always have a locker at Ashby Green.')]);
   }
   if(id==='toby'){
     if(!f.metCaptain)return say([N('toby','Do you mind? I\'m working on my takeaway.'),N('toby','Members on the 1st only. Go and say hello to the captain first, new kid.')]);
@@ -2989,7 +3063,7 @@ function talk(id){
     if(!f.beatYuki)return say([N('ingrid','Yuki next, by the practice green. She hardly ever misses.')]);
     if(!f.beatBrock)return say([N('ingrid','Brock\'s in the car park. They call him Avalanche, and it\'s not because he\'s gentle.')]);
     if(!f.ch4champ)return say([N('ingrid','Elena Vasquez is waiting by the lodge. A real tour pro. The Winter Open is all nine holes.')]);
-    return say([N('ingrid','Winter Open champion! The whole lodge was watching from the window.'),NARR('Chapter 5, Skyreach, is on its way.')]);
+    return say([N('ingrid','Winter Open champion! The whole lodge was watching from the window.'),N('ingrid','They say the Tour Championship is at Skyreach this year. A course on top of the world. Your car knows the way.')]);
   }
   if(id==='nils'){
     if(!f.metIngrid)return say([N('nils','Hej! Go and warm up with Ingrid first, ja? Then we play.')]);
@@ -3032,6 +3106,66 @@ function talk(id){
     const lines=['Bjorn howls at the mountains.','Bjorn rolls in the snow.','Bjorn tries to eat a snowflake.','Bjorn leans his whole weight against your legs.'];
     return say([NARR(lines[Math.floor(Math.random()*lines.length)])]);
   }
+  // ---------- Chapter 5: Skyreach ----------
+  if(id==='okafor'){
+    if(!f.metOkafor)return say([
+      N('okafor','Welcome to Skyreach. Grace Okafor, tour director. Congratulations on the card.'),
+      N('okafor','The Tour Championship is the last event of the season. The best players in the world, nine holes, one champion.'),
+      N('okafor','Before Reyes will even look at you, you\'ll need to get past three of the tour\'s finest. Jonah Flint is on the 1st tee, Sofia Marchetti by the practice green, and Rex Holloway is in the car park.'),
+      N('okafor','About the course. Those gaps are chasms. Anything that goes in is gone: penalty drop. The air is the thinnest on tour, the ground is firm, and the gusts come out of nowhere.')],()=>{f.metOkafor=true;persist();updateGoal()});
+    if(!f.beatJonah)return say([N('okafor','Jonah\'s on the 1st tee. Rookie of the year. Fearless, which is not always the same as clever.')]);
+    if(!f.beatSofia)return say([N('okafor','Sofia next, by the practice green. Three majors. She makes it look like ballet.')]);
+    if(!f.beatRex)return say([N('okafor','Rex is in the car park, probably telling someone how far he hits it.')]);
+    if(!f.ch5champ)return say([N('okafor','Augustin Reyes is waiting by the clubhouse. World number one for four years. All nine holes.')]);
+    return say([N('okafor','Tour Champion. I\'ve been doing this for twenty years, and I\'ve never seen a story quite like yours.')]);
+  }
+  if(id==='jonah'){
+    if(!f.metOkafor)return say([N('jonah','Oh hey! New card? Nice. Go and check in with Grace first, she\'s strict about that.')]);
+    const go=[{t:'You\'re on',fn:()=>startRivalMatch('jonah')},{t:'Not yet',fn:()=>say([N('jonah','No worries. I\'ll be here, hitting bombs.')])}];
+    if(f.beatJonah)return say([N('jonah','Rematch? Holes 1 to 3. I\'ve been practising. Sort of.',go)]);
+    if(f.jonahPlayed)return say([N('jonah','Round two? Same three holes.',go)]);
+    return say([N('jonah','Jonah Flint. Rookie of the year. You might have seen the highlights.'),N('jonah','Holes 1 to 3: Cloudbreak, The Ledge and Eagle\'s Nest. Eagle\'s Nest is a tiny green with nothing but sky around it. I love it.'),
+      N('jonah','Beat me and I\'ll give you a couple of bits of my Jetstream driver. It laughs at the wind.',go)]);
+  }
+  if(id==='sofia'){
+    if(!f.beatJonah)return say([N('sofia','Ciao. You must play Jonah first. He will be... loud about it.')]);
+    const go=[{t:'Let\'s play',fn:()=>startRivalMatch('sofia')},{t:'Not just now',fn:()=>say([N('sofia','Prego. Whenever you are ready.')])}];
+    if(f.beatSofia)return say([N('sofia','Again? Holes 4 to 6. With pleasure.',go)]);
+    if(f.sofiaPlayed)return say([N('sofia','Back again. Good. Courage is half the game.',go)]);
+    return say([N('sofia','Sofia Marchetti. They tell me you came from a little club. So did I.'),N('sofia','Holes 4 to 6: Highwire, Windward and Sky Bridge. Sky Bridge is all carry. Nothing short survives.'),
+      N('sofia','Win and you take shards of my Cirrus. It lands like a feather.',go)]);
+  }
+  if(id==='rex'){
+    if(!f.beatSofia)return say([N('rex','G\'day! Beat Sofia and I\'m all yours. Good luck, mate, nobody beats Sofia.')]);
+    const go=[{t:'Let\'s go',fn:()=>startRivalMatch('rex')},{t:'Maybe later',fn:()=>say([N('rex','No dramas. I\'ll keep the engine warm.')])}];
+    if(f.beatRex)return say([N('rex','Again?! Holes 7 to 9, let\'s have it!',go)]);
+    if(f.rexPlayed)return say([N('rex','Back for another crack? Good on ya.',go)]);
+    return say([N('rex','Rex Holloway. Longest hitter on tour, three years running.'),N('rex','Holes 7 to 9: Thin Air, Summit Ridge and Skyreach. Up here the ball flies forever. Mostly into chasms, in my case.'),
+      N('rex','Beat me and you get a chunk of my Big Sky three wood. Hits it into next week.',go)]);
+  }
+  if(id==='reyes'){
+    if(!f.beatRex)return say([N('reyes','Grace tells me you\'re good. Show the others first. Then we\'ll talk.')]);
+    const go=[{t:'I\'m ready',fn:()=>startRivalMatch('reyes')},{t:'Not yet',fn:()=>say([N('reyes','Take your time. I\'ve waited four years for a real challenge. I can wait a little longer.')])}];
+    if(f.ch5champ)return say([N('reyes','I want my title back. All nine?',go)]);
+    if(f.reyesPlayed)return say([N('reyes','Again. Good. Champions come back.',go)]);
+    return say([N('reyes','Augustin Reyes.'),N('reyes','I started on a municipal course outside Seville with three clubs and a borrowed putter. I know where you\'ve come from.'),
+      N('reyes','The Tour Championship. All nine holes at Skyreach. Win it and the Zenith is yours, the putter I\'ve used to win everything.'),N('reyes','Shall we?',go)]);
+  }
+  if(id==='luca')return say([N('luca','Benvenuto! Best view of any pro shop in the world. Prices to match.',[
+    {t:'Browse the pro shop',fn:()=>openSheet('shop')},{t:'Check my bag',fn:()=>openSheet('bag')},
+    {t:'Any tips?',fn:()=>say([N('luca',['Anything in a chasm is gone. Take one more club and fly it over.','The air is so thin the ball goes about ten percent further. Club down.','The gusts change between every shot. Check the wind every time.','The ground is firm. Land it short and let it run on.','The Heavy ball is popular up here. The wind doesn\'t push it about so much.'][Math.floor(Math.random()*5)])])},
+    {t:'Bye',fn:null}])]);
+  if(id==='tobyx'){
+    if(!f.tobyCameo){f.tobyCameo=true;persist();return say([N('tobyx','Alright? Don\'t look so surprised.'),N('tobyx','Hartley drove a minibus up from Ashby. Half the club is here. I came to see how far you\'d got.'),
+      N('tobyx','You know what? I used to think I was the best golfer in the world. Then you showed up on your first day and took my driver.'),N('tobyx','Go on, then. Win the thing. Ashby Green\'s watching.')])}
+    if(f.ch5champ)return say([N('tobyx','Tour Champion. From our club. Unbelievable.'),N('tobyx','Rematch at Ashby when you\'re back? Three holes. For old times\' sake.')]);
+    return say([N('tobyx',['Hartley\'s brought sandwiches. Loads of sandwiches.','Dot says to remember the short game. Always the short game.','Marcus is here too. He\'s telling everyone he taught you.','Duncan doesn\'t say much, but he\'s wearing an Ashby Green scarf.'][Math.floor(Math.random()*4)])]);
+  }
+  if(id==='skye'){
+    if(!f.skyeCoin){f.skyeCoin=true;save.coins+=100;persist();updateCoins();return say([NARR('Skye the gull swoops down on the updraft and lands on a rock next to you, a shiny coin in her beak.'),NARR('She drops it at your feet. +100 coins.')])}
+    const lines=['Skye hangs on the updraft without flapping once.','Skye eyes the clouds below.','Skye pretends she hasn\'t seen you.','Skye inspects your tee peg.'];
+    return say([NARR(lines[Math.floor(Math.random()*lines.length)])]);
+  }
   if(id==='pip'){
     if(!f.pipTee){f.pipTee=true;save.coins+=25;persist();updateCoins();return say([NARR('Pip drops a slobbery tee at your feet and wags hopefully.'),NARR('Tucked in the grass next to it you find 25 coins.')])}
     const lines=['Woof!','Pip rolls over for a belly rub.','Pip is very interested in your shoelaces.','Pip sneezes, then looks offended about it.'];
@@ -3044,7 +3178,7 @@ const TRIPS=[
   {id:'links',name:'Gullhaven Links',ch:'Chapter 2 · The Coast',open:()=>!!SF().champion,lock:'Win the Ashby Green Club Championship'},
   {id:'mesa',name:'Sun Mesa',ch:'Chapter 3 · The Desert',open:()=>!!SF().ch2champ,lock:'Win the County Qualifier at Gullhaven'},
   {id:'frost',name:'Frostpeak',ch:'Chapter 4 · The Peaks',open:()=>!!SF().ch3champ,lock:'Win the County Championship at Sun Mesa'},
-  {id:'sky',name:'Skyreach',ch:'Chapter 5 · The Sky',open:()=>false,lock:'Coming soon'}
+  {id:'sky',name:'Skyreach',ch:'Chapter 5 · The Sky',open:()=>!!SF().ch4champ,lock:'Win the Winter Open at Frostpeak'}
 ];
 function openTravel(){
   const here=save.story.area;
@@ -3068,7 +3202,7 @@ function driveStep(dt){
   const D=driving;if(!D)return;D.t+=dt;
   const c=$('#drive').getContext('2d'),d=devicePixelRatio||1,W2=D.w,H3=D.h,u=Math.min(1,D.t/D.dur);
   c.setTransform(d,0,0,d,0,0);
-  const sides={ashby:['#4a8641'],links:['#8fa45c'],mesa:['#d9b47c'],frost:['#e9f0f6']};
+  const sides={ashby:['#4a8641'],links:['#8fa45c'],mesa:['#d9b47c'],frost:['#e9f0f6'],sky:['#6aa35f']};
   const [a1]=sides[D.from]||sides.ashby,[b1]=sides[D.dest]||sides.links;
   const mix=(p,q,k)=>{const P=parseInt(p.slice(1),16),Q=parseInt(q.slice(1),16);const ch=s=>Math.round(((P>>s)&255)*(1-k)+((Q>>s)&255)*k);return `rgb(${ch(16)},${ch(8)},${ch(0)})`};
   c.fillStyle=mix(a1,b1,u);c.fillRect(0,0,W2,H3);
@@ -3081,7 +3215,9 @@ function driveStep(dt){
     if(zone==='links'){c.fillStyle='#d8c899';c.beginPath();c.ellipse(side,y,18,10,0,0,7);c.fill()}
     else if(zone==='mesa'){if(k%3){c.fillStyle='#3f7a3a';c.beginPath();c.roundRect(side-4,y-14,8,26,4);c.fill();c.fillRect(side-11,y-4,8,4);c.fillRect(side-11,y-10,4,8);c.fillRect(side+3,y-7,8,4);c.fillRect(side+7,y-13,4,8)}else{c.fillStyle='#b5683f';c.beginPath();c.ellipse(side,y,22,13,0,0,7);c.fill()}}
     else if(zone==='frost'){c.fillStyle='#234d3a';c.beginPath();c.moveTo(side-r,y+r*.6);c.lineTo(side+r,y+r*.6);c.lineTo(side,y-r*1.2);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(side-r*.4,y-r*.2);c.lineTo(side+r*.4,y-r*.2);c.lineTo(side,y-r*1.2);c.fill()}
+    else if(zone==='sky'){c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.ellipse(side,y,r*1.6,r*.8,0,0,7);c.ellipse(side+r,y+r*.3,r,r*.6,0,0,7);c.fill()}
     else{c.fillStyle='#2a5d33';c.beginPath();c.arc(side,y,r,0,7);c.fill()}}
+  if(D.dest==='sky'&&u>.55){c.fillStyle=`rgba(234,243,252,${Math.min(.55,(u-.55)*1.4)})`;c.fillRect(0,0,rx-10,H3);c.fillRect(rx+roadW+10,0,W2-rx-roadW-10,H3)}
   if(D.dest==='frost'&&!RM){c.fillStyle='rgba(255,255,255,.8)';for(let k=0;k<50*u;k++){c.beginPath();c.arc((k*97)%W2,(k*53+D.t*120)%H3,1.5,0,7);c.fill()}}
   if(u>.7&&D.dest==='links'){c.fillStyle=`rgba(47,125,154,${(u-.7)/.3})`;c.fillRect(W2*.86,0,W2*.14,H3)}
   // your car
@@ -3151,8 +3287,28 @@ const MATCH={
     draw:'A DRAW! That\'s... fine. I guess.',lose:['AVALANCHE!','You got buried. Come back.']},
   elena:{flag:'ch4champ',played:'elenaPlayed',prize:{club:'aurora',coins:1500,kits:3},
     win:[N('elena','...'),N('elena','You\'re the real thing. Winter Open champion.'),N('elena','The Aurora is yours. See you on tour.')],
-    next:'Chapter 4 complete. You\'ve won the Winter Open and earned your tour card. Chapter 5, Skyreach, is on its way.',rematch:'Still sharp. Good.',
+    next:'Chapter 4 complete. You\'ve won the Winter Open and earned your tour card. The Tour Championship is at Skyreach, and your car can take you there.',rematch:'Still sharp. Good.',
     draw:'Level after nine. A play-off another day.',lose:['That\'s tour golf.','Come back stronger.']},
+  jonah:{flag:'beatJonah',played:'jonahPlayed',shard:'jetstream',
+    win:[N('jonah','No way. NO WAY.'),N('jonah','Okay, that was class. Here, take this, and two bits of my Jetstream.')],
+    next:'Collect 5 Jetstream shards to forge it. Sofia Marchetti is next, by the practice green.',rematch:'Again?! Fine, fine. Take it.',
+    draw:'All square! I\'ll take it. Actually no, I won\'t. Come back.',lose:['Rookie of the year, baby!','Come back when you\'ve warmed up.']},
+  sofia:{flag:'beatSofia',played:'sofiaPlayed',shard:'cirrus',
+    win:[N('sofia','Brava. Truly.'),N('sofia','Two shards of my Cirrus. Use them well.')],
+    next:'Collect 5 Cirrus shards to forge it. Rex Holloway is next, in the car park.',rematch:'Bellissimo. Here, for you.',
+    draw:'Pari. Even. Another day.',lose:['The sky is not kind to everyone.','Try again. Courage.']},
+  rex:{flag:'beatRex',played:'rexPlayed',shard:'bigsky',
+    win:[N('rex','Strewth! You\'re the real deal.'),N('rex','Here, take this, and two chunks of my Big Sky. Let it rip.')],
+    next:'Collect 5 Big Sky shards to forge it. Augustin Reyes is waiting by the clubhouse for the Tour Championship.',rematch:'You beauty! Again! Take it.',
+    draw:'A draw? Fair dinkum. Rematch soon.',lose:['Too long, too strong, mate.','Come back for another crack.']},
+  reyes:{flag:'ch5champ',played:'reyesPlayed',prize:{club:'zenith',coins:2000,kits:4},
+    win:[N('reyes','...'),N('reyes','Four years. I\'d forgotten what it feels like to be beaten properly.'),N('reyes','The Zenith is yours. Champion.')],
+    next:'Chapter 5 complete. You\'re the Tour Champion.',
+    epilogue:[NARR('Somewhere behind the 9th green, a minibus full of Ashby Green members is cheering louder than anyone.'),
+      NARR('From a nervous first day at a little parkland club, past the links, the desert and the mountains, all the way to the top of the world.'),
+      NARR('Thank you for playing Fairway Tales. Your story mode is complete, but every rival is up for a rematch, and the courses are yours to play.'),
+      NARR('Ideas, design and testing by Kris. Built with Claude, an AI by Anthropic.')],
+    rematch:'Still the champion. Good.',draw:'Level after nine. The mountain couldn\'t separate us.',lose:['That\'s why I\'m number one.','Come back. I\'ll be waiting.']},
   duncan:{flag:'champion',played:'duncanPlayed',prize:{club:'kestrel',coins:500,kits:1},
     win:[N('duncan','Twelve years.'),N('duncan','...Well. The club\'s in good hands.'),N('duncan','The Kestrel. It drops out of the sky and stops. Look after it, champion.')],
     next:'Chapter 1 complete. You\'re the Ashby Green Club Champion. Your car is waiting in the car park: Gullhaven Links is now open.',rematch:'Still got it, champion.',
@@ -3167,7 +3323,7 @@ function afterMatch(id,res){
     if(M.prize){lines=[...grant({t:'club',c:M.prize.club}),...grant({t:'coins',n:M.prize.coins}),...grant({t:'kit',n:M.prize.kits})]}
     else lines=[...grant({t:'rare'}),...grant({t:'shard',c:M.shard,n:2})];
     persist();updateGoal();updateCoins();
-    return say(M.win,()=>showLoot(M.prize?(id==='duncan'?'Champion\'s prize':`${RIVALS[id].title} won`):`Beat ${name} · first win`,lines,()=>say(M.prize?[NARR(M.next),NARR('Enjoying Fairway Tales? It\'s free, and if you\'d like to support it there\'s a Ko-fi button on the main menu.')]:[NARR(M.next)])));
+    return say(M.win,()=>showLoot(M.prize?(id==='duncan'?'Champion\'s prize':`${RIVALS[id].title} won`):`Beat ${name} · first win`,lines,()=>say(M.epilogue?[NARR(M.next),...M.epilogue]:M.prize?[NARR(M.next),NARR('Enjoying Fairway Tales? It\'s free, and if you\'d like to support it there\'s a Ko-fi button on the main menu.')]:[NARR(M.next)])));
   }
   if(res==='win'){const lines=openBag(id,1);updateCoins();return say([N(id,M.rematch)],()=>showLoot(`Beat ${name} · rematch`,lines))}
   persist();
@@ -3189,7 +3345,15 @@ function updateGoal(){
     :!f.beatFiona?'<b>Goal</b> · Beat Fiona Baird by the practice green'
     :!f.beatTam?'<b>Goal</b> · Beat Old Tam on the putting green'
     :!f.ch2champ?'<b>Goal</b> · Win the County Qualifier against Gideon Thorne'
+    :save.story.area==='sky'?(
+      !f.metOkafor?'<b>Goal</b> · Find Grace Okafor outside the clubhouse'
+      :!f.beatJonah?'<b>Goal</b> · Beat Jonah Flint on the 1st tee'
+      :!f.beatSofia?'<b>Goal</b> · Beat Sofia Marchetti by the practice green'
+      :!f.beatRex?'<b>Goal</b> · Beat Rex Holloway in the car park'
+      :!f.ch5champ?'<b>Goal</b> · Win the Tour Championship against Augustin Reyes'
+      :'<b>Tour Champion!</b> · Story complete. Every rival is up for a rematch')
     :save.story.area!=='mesa'&&save.story.area!=='frost'&&!f.visitedMesa?'<b>Goal</b> · Drive to Sun Mesa for the County Championship'
+    :save.story.area!=='frost'&&f.ch4champ&&!f.visitedSky?'<b>Goal</b> · Drive to Skyreach for the Tour Championship'
     :save.story.area==='links'||save.story.area==='ashby'?(f.ch3champ&&!f.visitedFrost?'<b>Goal</b> · Drive to Frostpeak for the Winter Open':'<b>On the road</b> · Your car is in the car park')
     :save.story.area==='mesa'?(
       !f.metDolores?'<b>Goal</b> · Find Dolores Vance outside the clubhouse'
@@ -3204,7 +3368,8 @@ function updateGoal(){
     :!f.beatYuki?'<b>Goal</b> · Beat Yuki Tanaka by the practice green'
     :!f.beatBrock?'<b>Goal</b> · Beat Brock Harlan in the car park'
     :!f.ch4champ?'<b>Goal</b> · Win the Winter Open against Elena Vasquez'
-    :'<b>Tour card!</b> · Chapter 4 complete. Chapter 5 coming soon';
+    :f.ch4champ&&!f.visitedSky?'<b>Goal</b> · Drive to Skyreach for the Tour Championship. Your car is in the car park'
+    :'<b>Tour card!</b> · Your car is in the car park';
 }
 const updateCoins=()=>{$('#wcoins').textContent=`${save.coins} coins`};
 
@@ -3229,6 +3394,10 @@ function openWorld(opts={}){
     NARR('Frostpeak. A mountain lodge, pine trees heavy with snow, and a course carved out of the winter.'),
     NARR('Frozen ponds, deep snowdrifts and slick greens. The ball skids, plugs and races. The wind comes in gusts off the peaks.'),
     NARR('Ingrid is waiting outside the lodge.')])}
+  if(save.story.area==='sky'&&!SF().visitedSky){SF().visitedSky=true;persist();updateGoal();return say([
+    NARR('Skyreach. A clubhouse of white stone on a mountaintop, and a sea of cloud in every direction.'),
+    NARR('Fairways on rock shelves with nothing between them but sky. The air is thin, the ground is firm and the wind comes from everywhere at once.'),
+    NARR('Grace Okafor, the tour director, is waiting outside the clubhouse.')])}
   if(!SF().intro){SF().intro=true;persist();say([
     NARR('Ashby Green Golf Club. Your first day as a full member.'),
     NARR('Tap anywhere to walk, or hold your thumb down to steer. Walk up to people and tap Talk.'),
@@ -3384,7 +3553,9 @@ function questFor(id,f){
     ||(id==='morag'&&!f.metMorag)||(id==='callum'&&f.metMorag&&!f.beatCallum)||(id==='fiona'&&f.beatCallum&&!f.beatFiona)||(id==='tam'&&f.beatFiona&&!f.beatTam)||(id==='gideon'&&f.beatTam&&!f.ch2champ)
     ||(id==='car'&&f.ch2champ&&!f.visitedMesa&&save.story.area!=='mesa')||(id==='car'&&f.ch3champ&&!f.visitedFrost&&save.story.area!=='frost')
     ||(id==='dolores'&&!f.metDolores)||(id==='ricky'&&f.metDolores&&!f.beatRicky)||(id==='priya'&&f.beatRicky&&!f.beatPriya)||(id==='wes'&&f.beatPriya&&!f.beatWes)||(id==='celia'&&f.beatWes&&!f.ch3champ)
-    ||(id==='ingrid'&&!f.metIngrid)||(id==='nils'&&f.metIngrid&&!f.beatNils)||(id==='yuki'&&f.beatNils&&!f.beatYuki)||(id==='brock'&&f.beatYuki&&!f.beatBrock)||(id==='elena'&&f.beatBrock&&!f.ch4champ);
+    ||(id==='ingrid'&&!f.metIngrid)||(id==='nils'&&f.metIngrid&&!f.beatNils)||(id==='yuki'&&f.beatNils&&!f.beatYuki)||(id==='brock'&&f.beatYuki&&!f.beatBrock)||(id==='elena'&&f.beatBrock&&!f.ch4champ)
+    ||(id==='car'&&f.ch4champ&&!f.visitedSky&&save.story.area!=='sky')
+    ||(id==='okafor'&&!f.metOkafor)||(id==='jonah'&&f.metOkafor&&!f.beatJonah)||(id==='sofia'&&f.beatJonah&&!f.beatSofia)||(id==='rex'&&f.beatSofia&&!f.beatRex)||(id==='reyes'&&f.beatRex&&!f.ch5champ)||(id==='tobyx'&&!f.tobyCameo);
 }
 function drawGull(c,p,T){
   const {x,y}=p,flap=p.moving?Math.sin((p.walk||0)*1.4):0,left=p.face===1;
@@ -3520,7 +3691,26 @@ function groundFrost(c,T){
   // a fire pit outside the lodge
   c.fillStyle='#6b6f6a';c.beginPath();c.arc(470,340,11,0,7);c.fill();c.fillStyle=`rgba(255,${150+Math.round(60*Math.sin(T*9))},60,.95)`;c.beginPath();c.arc(470,338,6+Math.sin(T*7),0,7);c.fill();
 }
-AREAS.ashby.ground=null;AREAS.links.ground=(c,T)=>groundLinks(c,T);AREAS.mesa.ground=(c,T)=>groundMesa(c,T);AREAS.frost.ground=(c,T)=>groundFrost(c,T);
+function groundSky(c,T){
+  // alpine meadow on a mountaintop, with a cliff edge and a sea of cloud to the east
+  for(let y=0,i=0;y<MAP.h;y+=36,i++){c.fillStyle=i%2?'#6aa35f':'#71aa65';c.fillRect(0,y,MAP.w,36)}
+  for(let k=0;k<300;k++){c.fillStyle=k%3?'rgba(40,80,40,.25)':['#f4e27a','#f4f1e6','#c9a0e0'][k%3===0?(k>>2)%3:0];c.beginPath();c.ellipse(((k*.618034)%1)*MAP.w,((k*.7548777)%1)*MAP.h,k%3?3:1.8,k%3?1.6:1.8,0,0,7);c.fill()}
+  // distant peaks poking out of the clouds
+  for(const [x0,x1,h] of [[-20,160,60],[120,300,80],[280,460,66],[420,620,84]]){const m=(x0+x1)/2;c.fillStyle='#8a9bb0';c.beginPath();c.moveTo(x0,70);c.lineTo(m,70-h);c.lineTo(x1,70);c.fill();c.fillStyle='#f6f9fc';c.beginPath();c.moveTo(m-(x1-x0)*.14,70-h*.7);c.lineTo(m,70-h);c.lineTo(m+(x1-x0)*.14,70-h*.7);c.fill()}
+  c.fillStyle='rgba(240,246,252,.9)';for(let k=0;k<7;k++){const x=((k*120+T*6)%760)-60;c.beginPath();c.ellipse(x,66,46,12,0,0,7);c.fill()}
+  // the cliff edge and the cloud sea below it
+  const E=AREA.cliff;c.fillStyle='#7a6f62';c.beginPath();c.moveTo(E,0);for(let y=0;y<=MAP.h;y+=30)c.lineTo(E+Math.sin(y*.04)*8,y);c.lineTo(E+40,MAP.h);c.lineTo(E+40,0);c.fill();
+  c.fillStyle='#bcd4ec';c.beginPath();c.moveTo(E+14,0);for(let y=0;y<=MAP.h;y+=30)c.lineTo(E+14+Math.sin(y*.04)*8,y);c.lineTo(MAP.w,MAP.h);c.lineTo(MAP.w,0);c.fill();
+  c.fillStyle='rgba(255,255,255,.85)';for(let k=0;k<14;k++){const y=((k*71+T*9)%(MAP.h+60))-30,x=E+30+(k*37)%(MAP.w-E-20);c.beginPath();c.ellipse(x,y,26,10,0,0,7);c.ellipse(x+16,y+4,16,8,0,0,7);c.fill()}
+  drawCarpark(c,'#7b8288');drawPaths(c,'#a49c8c','#c4bcaa');
+  drawFirstTee(c,'#88c670','#2b2f6b',SKY[0]);drawPGreen(c,'#76b862','#8fd27a','#2b2f6b');
+  for(const g of BLOBS){c.fillStyle='rgba(40,50,60,.25)';c.beginPath();c.ellipse(g.x+5,g.y+5,g.rx,g.ry,0,0,7);c.fill();c.fillStyle='#9a9286';c.beginPath();c.ellipse(g.x,g.y,g.rx,g.ry,0,0,7);c.fill();c.fillStyle='#b8b0a2';c.beginPath();c.ellipse(g.x-g.rx*.2,g.y-g.ry*.3,g.rx*.6,g.ry*.45,0,0,7);c.fill()}
+  for(const b of BENCHES){c.fillStyle='#8a6a43';c.fillRect(b.x,b.y,b.w,b.h)}
+  for(const b of BEDS){c.fillStyle='#4f8f3a';c.beginPath();c.ellipse(b.x,b.y,b.rx,b.ry,0,0,7);c.fill();for(let k=0;k<6;k++){c.fillStyle=['#f2c14e','#e05a4f','#c9a0e0'][k%3];c.beginPath();c.arc(b.x-b.rx*.7+k*b.rx*.28,b.y-1+(k%2)*3,2.4,0,7);c.fill()}}
+  // a flag on the clubhouse lawn
+  c.strokeStyle='#eef0f2';c.lineWidth=2;c.beginPath();c.moveTo(470,330);c.lineTo(470,296);c.stroke();c.fillStyle='#2b2f6b';c.beginPath();c.moveTo(470,296);c.lineTo(490+Math.sin(T*3)*2,301);c.lineTo(470,306);c.fill();
+}
+AREAS.ashby.ground=null;AREAS.sky.ground=(c,T)=>groundSky(c,T);AREAS.links.ground=(c,T)=>groundLinks(c,T);AREAS.mesa.ground=(c,T)=>groundMesa(c,T);AREAS.frost.ground=(c,T)=>groundFrost(c,T);
 function drawWorld(){
   const d=devicePixelRatio||1,c=wctx,z=wzoom,T=performance.now()/1000;
   c.setTransform(d,0,0,d,0,0);c.fillStyle=AREA.bg||'#24502c';c.fillRect(0,0,WW,WH);
@@ -3567,7 +3757,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.19.0';
+const GAME_VERSION='1.0.0';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4157,13 +4347,13 @@ function openMenu(screen){
     ${brandNew()?`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">Welcome to Fairway Tales</div></div>
       <div class="blurb">A golf RPG you play with one thumb. Beat the members of your club, collect and level up clubs, and work your way up to the tour.</div>
       <div class="blurb"><b>New here?</b> Start with the story. Your first shots come with tips, and Toby goes easy on new members. Probably.</div>
-      <div class="acts"><button id="wcStory" class="sbtn pri">Start the story</button><button id="wcHelp" class="sbtn">How to play</button></div></div>`:seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: dailies, trophies and legends</div></div>
-      <div class="blurb"><b>Daily challenge</b>: one quick mini-game a day, the same for everyone. Win a medal for coins and a shot at a fitting.</div>
-      <div class="blurb"><b>Trophies</b>: ${ACH.length} achievements with rewards and titles. Your progress so far already counts.</div>
-      <div class="blurb"><b>Legendary clubs</b>: seven clubs you can't buy. Complete a club's trial to earn it.</div>
-      <div class="acts"><button id="wnOk" class="sbtn pri">Got it</button><button id="wnSet" class="sbtn">See trophies</button></div></div>`}
+      <div class="acts"><button id="wcStory" class="sbtn pri">Start the story</button><button id="wcHelp" class="sbtn">How to play</button></div></div>`:seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">Fairway Tales 1.0</div></div>
+      <div class="blurb"><b>Chapter 5: Skyreach</b>. The Tour Championship on a clifftop course above the clouds, with four new rivals, four new clubs and a proper ending.${SF().ch4champ?'':' Win the Winter Open to get there.'}</div>
+      <div class="blurb"><b>Club rework</b>: every club starts at 10 in every stat. Rarity and level now boost your fitted parts, and clubs above Common come with a factory head.</div>
+      <div class="blurb"><b>Your ball</b>: pick Distance, Tour, Soft or Heavy in the Bag tab. It's yours for good.</div>
+      <div class="acts"><button id="wnOk" class="sbtn pri">Got it</button><button id="wnSet" class="sbtn">See my bag</button></div></div>`}
     ${resume?MB('mResume','resume','Resume',esc(where),' pri'):''}
-    <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch4champ?'Winter Open champion. Chapter 5 coming soon.':SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CHEV}</button>
+    <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch4champ?5:SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch5champ?'Tour Champion! Story complete. Every rival is up for a rematch.':SF().ch4champ?(SF().visitedSky?`Skyreach. ${['beatJonah','beatSofia','beatRex','ch5champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Tour card! Drive to Skyreach for the Tour Championship.'):SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CHEV}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
     ${(()=>{const T=dailyToday(),dn=dHist()[T.k];return MB('mDaily','daily','Daily challenge',dn?`Done today: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''} · new one tomorrow`:`Today: ${DFMT[T.fmt].n}. Win a medal and coins.`,dn?'':' fresh')})()}
@@ -4199,7 +4389,7 @@ function openMenu(screen){
   $('#mHelp').onclick=()=>openMenu('help');
   $('#mSettings').onclick=()=>openMenu('settings');
   if($('#wcStory')){$('#wcStory').onclick=()=>{markNew();$('#mStory').click()};$('#wcHelp').onclick=()=>{markNew();openMenu('help')}}
-  if($('#wnOk')){$('#wnOk').onclick=()=>{markNew();openMenu('home')};$('#wnSet').onclick=()=>{markNew();openMenu('trophies')}}
+  if($('#wnOk')){$('#wnOk').onclick=()=>{markNew();openMenu('home')};$('#wnSet').onclick=()=>{markNew();openSheet('bag',true)}}
   startHero();
 }
 // ---------- Main menu hero: a golfer teeing off, set wherever you are in the story ----------
@@ -4209,7 +4399,8 @@ function heroTheme(){
     ashby:{tag:'Ashby Green',sky:['#7cc3e8','#cfe9f2'],sun:'#fff3c4',far:'#6f9c6a',near:'#4f8c46',ground:['#5a9a4c','#4f8c46'],tee:'#74ba60',flag:'#f2c14e',tree:'oak',cloud:'rgba(255,255,255,.85)'},
     links:{tag:'Gullhaven Links',sky:['#8fb8cf','#dfe9e6'],sun:'#fff6d8',far:'#9aab73',near:'#8fa45c',ground:['#9cbc63','#8fa45c'],tee:'#a8c870',flag:'#c0392b',tree:'dune',sea:'#2f7d9a',cloud:'rgba(255,255,255,.9)'},
     mesa:{tag:'Sun Mesa',sky:['#f2a65a','#fbe3b0'],sun:'#fff1c2',far:'#b5683f',near:'#d9b47c',ground:['#6fa64a','#64a046'],tee:'#7bb556',flag:'#d9822b',tree:'palm',mesa:true,cloud:'rgba(255,240,220,.6)'},
-    frost:{tag:'Frostpeak',sky:['#9fb7d1','#e4ecf4'],sun:'#ffffff',far:'#6f8296',near:'#e9f0f6',ground:['#86b08f','#7fa889'],tee:'#8ab595',flag:'#2f6db0',tree:'pine',snow:true,cloud:'rgba(255,255,255,.75)'}
+    frost:{tag:'Frostpeak',sky:['#9fb7d1','#e4ecf4'],sun:'#ffffff',far:'#6f8296',near:'#e9f0f6',ground:['#86b08f','#7fa889'],tee:'#8ab595',flag:'#2f6db0',tree:'pine',snow:true,cloud:'rgba(255,255,255,.75)'},
+    sky:{tag:'Skyreach',sky:['#5f9bd6','#e6f0fa'],sun:'#fff6d8',far:'#a9bccf',near:'#e4eef8',ground:['#7fbe68','#6aa957'],tee:'#88c670',flag:'#2b2f6b',tree:'oak',cloud:'rgba(255,255,255,.95)'}
   };
   return T[a]||T.ashby;
 }
@@ -4326,6 +4517,7 @@ const ACH=[
  {id:'champ',g:'Story',n:'Club Champion',d:'Win the Ashby Green Club Championship',p:()=>[+!!F_().champion,1],r:{coins:200}},
  {id:'qual',g:'Story',n:'Qualified',d:'Win the County Qualifier at Gullhaven',p:()=>[+!!F_().ch2champ,1],r:{coins:300}},
  {id:'county',g:'Story',n:'County Champion',d:'Win the County Championship at Sun Mesa',p:()=>[+!!F_().ch3champ,1],r:{coins:400}},
+ {id:'skyreach',g:'Story',n:'Top of the World',d:'Win the Tour Championship at Skyreach',p:()=>[+!!F_().ch5champ,1],r:{kits:3},title:'Tour Champion'},
  {id:'tourcard',g:'Story',n:'Tour Card',d:'Win the Winter Open at Frostpeak',p:()=>[+!!F_().ch4champ,1],r:{kits:2},title:'Winter Open Champ'},
  {id:'giant',g:'Story',n:'Giant Killer',d:'Beat all 16 story rivals',p:()=>[['beatToby','beatDot','beatMarcus','champion','beatCallum','beatFiona','beatTam','ch2champ','beatRicky','beatPriya','beatWes','ch3champ','beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>F_()[k]).length,16],r:{fit:1},title:'Giant Killer'},
  {id:'roadtrip',g:'Story',n:'Road Trip',d:'Visit all four courses in Story mode',p:()=>[1+['visitedLinks','visitedMesa','visitedFrost'].filter(k=>F_()[k]).length,4],r:{coins:150}},
@@ -4395,8 +4587,8 @@ function achNext(){
   setTimeout(()=>{el.hidden=true;setTimeout(achNext,250)},a.legend?4200:3200);
 }
 const brandNew=()=>!seenNew()&&!(save.rounds&&save.rounds.length)&&!SF().intro;
-const seenNew=()=>{try{return localStorage.getItem('fsl-seen-v13')==='1'}catch(e){return true}};
-const markNew=()=>{try{localStorage.setItem('fsl-seen-v13','1')}catch(e){}};
+const seenNew=()=>{try{return localStorage.getItem('fsl-seen-v100')==='1'}catch(e){return true}};
+const markNew=()=>{try{localStorage.setItem('fsl-seen-v100','1')}catch(e){}};
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};
 function makeBackup(){
   const ls={};try{for(const k of ['fsl-preview','fsl-names','fsl-pcount','fsl-settings','fsl-seen-help','fsl-custom']){const v=localStorage.getItem(k);if(v!=null)ls[k]=v}}catch(e){}
