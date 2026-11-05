@@ -277,6 +277,20 @@ body.lefty .read{left:auto;right:14px}
 .setrow[aria-pressed="true"] .tog{background:var(--good)}
 .setrow[aria-pressed="true"] .tog::after{transform:translateX(20px)}
 .setrow:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
+.coach{position:absolute;left:10px;right:34px;top:10px;z-index:2;background:rgba(242,193,78,.96);color:#1d1a0e;border-radius:12px;padding:8px 11px;font-size:13px;line-height:1.35;font-weight:700;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.coach b{font-weight:900}
+.coach::after{content:"";position:absolute;left:22px;bottom:-6px;width:12px;height:12px;background:inherit;transform:rotate(45deg)}
+.ghost-thumb{position:absolute;left:50%;top:38%;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:rgba(238,243,228,.85);box-shadow:0 0 0 6px rgba(238,243,228,.18);pointer-events:none;animation:gthumb 2.6s ease-in-out infinite}
+@keyframes gthumb{0%{transform:translateY(0);opacity:0}8%{opacity:1}38%{transform:translateY(62px)}58%{transform:translateY(62px)}80%{transform:translateY(-34px);opacity:1}92%,100%{transform:translateY(-34px);opacity:0}}
+.ghost-thumb.putt{animation-name:gputt}
+@keyframes gputt{0%{transform:translateY(0);opacity:0}10%{opacity:1}60%{transform:translateY(62px);opacity:1}75%,100%{transform:translateY(62px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ghost-thumb{animation:none;top:55%}}
+details.cc.help>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.cc.help>summary::-webkit-details-marker{display:none}
+details.cc.help>summary::after{content:"+";font-weight:900;color:var(--flag);font-size:20px;line-height:1}
+details.cc.help[open]>summary::after{content:"−"}
+.qs{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px;line-height:1.45;font-weight:600}
+.qs b{color:var(--flag)}
 .cc.help p{margin:0;font-size:14px;line-height:1.5;color:var(--chalk);font-weight:600}
 .cc.help p b{color:var(--flag)}
 .demo{display:flex;justify-content:center}
@@ -409,6 +423,7 @@ table.card th.pn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-spa
   <div id="pad" class="pad" aria-label="Swing pad">
     <canvas id="padcv"></canvas>
     <div id="padHint" class="hint">Swipe down · pause · swipe up</div>
+    <div id="coach" class="coach" hidden></div><i id="ghostThumb" class="ghost-thumb" hidden></i>
     <div id="padRead" class="read"></div>
     <button id="mCancel" class="mcancel" hidden>✕ Cancel</button>
   </div>
@@ -1167,6 +1182,7 @@ function hud(){
   $('#preview').hidden=!c.putter; previewBtn(); guideBtn(); undoBtn();
   $('#spin').hidden=c.putter; $('.stage').classList.toggle('has-spin',!c.putter);
   $('#padHint').textContent=clickOn()?'':c.putter?'Pull down and let go':'Swipe down · pause · swipe up';if(clickOn()&&!mtr)drawPad();
+  coachTick();
 }
 const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':'Rough'):SURF[s].name;
 const fricOf=s=>s==='green'&&H.greenFric?H.greenFric:SURF[s].fric;
@@ -1697,7 +1713,8 @@ function makeRival(id){
   const R=RIVALS[id];
   // the rival's score on each hole is rolled before you tee off, and revealed once you hole out
   const C=COURSES[R.course||'ashby'].holes;
-  const scores=[],nud=.04*bonusLv();for(let k=R.s;k<R.s+R.holes;k++){let r=Math.random(),d=0;for(const [v,p] of R.odds){if(r<p){d=v;break}r-=p}if(Math.random()<nud)d++;scores[k]=C[k].par+d}
+  const first=id==='toby'&&!SF().tobyPlayed,odds=first?[[0,.4],[1,.45],[2,.15]]:R.odds;
+  const scores=[],nud=.04*bonusLv();for(let k=R.s;k<R.s+R.holes;k++){let r=Math.random(),d=0;for(const [v,p] of odds){if(r<p){d=v;break}r-=p}if(Math.random()<nud)d++;scores[k]=C[k].par+d}
   return{id,...R,scores};
 }
 function rivalTotals(upTo){let me=0,him=0;for(let k=rival.s;k<=upTo;k++){me+=scores[k]||0;him+=rival.scores[k]}return{me,him}}
@@ -1756,6 +1773,30 @@ $('#reset').onclick=()=>{
   setTimeout(()=>{if(resetArm&&performance.now()-resetArm>=2400){resetArm=0;$('#reset').textContent='Restart'}},2500);
 };
 
+/* ---------- Coach: one-off tips for a brand-new player's first shots (0.18) ---------- */
+// Each tip shows once per device. Returning players (any round played or story started before 0.18) never see them.
+const COACH=(()=>{try{const raw=localStorage.getItem('fsl-coach');return raw?JSON.parse(raw):null}catch(e){return{all:1}}})()||{fresh:1};
+const coachSave=()=>{try{localStorage.setItem('fsl-coach',JSON.stringify(COACH))}catch(e){}};
+let coachCur=null,coachAt=0;
+function coachDone(k){COACH[k]=1;coachSave()}
+function coachHide(){$('#coach').hidden=true;$('#ghostThumb').hidden=true}
+function coachTick(){
+  if(COACH.fresh){delete COACH.fresh;if((save.rounds&&save.rounds.length)||(save.story&&save.story.flags&&save.story.flags.metCaptain))COACH.all=1;coachSave()}
+  // a tip counts as learnt once a stroke has been played while it was showing
+  if(coachCur&&(strokes>coachAt||holeIdx!==coachCur.h)){coachDone(coachCur.k);coachCur=null}
+  coachHide();$('#padHint').style.visibility='';
+  if(COACH.all||!gameOn||state!=='ready'||players.length>1)return;
+  const c=club(),tap=clickOn();let k=null,html='';
+  if(c.putter){if(!COACH.putt){k='putt';html=tap?'<b>Putting:</b> same three taps, with a gentler meter. The chevrons on the green flow downhill.':'<b>Putting:</b> pull down on the pad and let go. Further back hits it harder. The chevrons on the green flow downhill.'}}
+  else if(!COACH.swing){k='swing';html=tap?'<b>Your first swing:</b> tap to start, tap again to set power, then tap as the needle crosses the white line.':'<b>Your first swing:</b> swipe down on the pad, pause for a beat, then swipe straight up.'}
+  else if(!COACH.aim){k='aim';html='<b>Aiming:</b> drag anywhere on the course to nudge your aim. The gold ring is where the ball should land.'}
+  else if(!COACH.club&&strokes>0){k='club';html='<b>Clubs:</b> the game picks one for you. Tap ‹ or › to change it. The yards show how far each one carries.'}
+  if(!k)return;
+  coachCur={k,h:holeIdx};coachAt=strokes;
+  $('#coach').innerHTML=html;$('#coach').hidden=false;$('#padHint').style.visibility='hidden';
+  if(!tap&&(k==='swing'||k==='putt')){const g=$('#ghostThumb');g.classList.toggle('putt',k==='putt');g.hidden=false}
+}
+
 /* ---------- Swing pad ---------- */
 let sw=null, PW=0, PH=0;
 const padPt=e=>{const r=pad.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()}};
@@ -1766,7 +1807,7 @@ pad.addEventListener('pointerdown',e=>{
   if(clickOn()){meterTap(e);return}
   if(state!=='ready'||!$('#end').hidden)return; pad.setPointerCapture(e.pointerId);
   const p=padPt(e); sw={phase:'back',s:p,low:p,pts:[p],putt:club().putter};
-  $('#padHint').hidden=true; drawPad();
+  $('#padHint').hidden=true; coachHide(); drawPad();
 });
 pad.addEventListener('pointermove',e=>{
   if(!sw)return; const p=padPt(e); sw.pts.push(p);
@@ -1854,6 +1895,7 @@ const MWIN=[.075,.055,.045,.037,.03];  // half-width of the sweet spot by swing 
 function sweetHalf(putt){const w=MWIN[swingLv()]*(1+eqStats().C*.01);return putt?w*1.6:w*(1-.45*Math.min(1,Math.abs(SP.x)))}
 const meterBlocked=()=>state!=='ready'||!$('#end').hidden||!$('#menu').hidden||!$('#sheet').hidden;
 function meterTap(e){
+  coachHide();
   e.preventDefault();
   if(meterBlocked())return;
   const now=performance.now(),c=club();
@@ -3489,7 +3531,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.17.0';
+const GAME_VERSION='0.18.0';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3832,8 +3874,14 @@ function openMenu(screen){
   }
   if(screen==='help'){
     try{localStorage.setItem('fsl-seen-help','1')}catch(e){}
-    const sec=(t,body)=>`<div class="cc help"><div class="cc-name">${t}</div>${body}</div>`;
+    const sec=(t,body,open)=>`<details class="cc help"${open?' open':''}><summary class="cc-name">${t}</summary>${body}</details>`;
     b.innerHTML=`<div class="screen-h"><div class="sheet-title">How to play</div><button id="mBack" class="ghost">Back</button></div>
+      <div class="cc help"><div class="cc-name">Quick start</div><ol class="qs">
+        <li><b>Aim:</b> drag the course. The gold ring is where the ball lands.</li>
+        <li><b>Swing:</b> swipe down on the pad, pause, then swipe straight up. The gold line on the meter is 100%.</li>
+        <li><b>Putt:</b> pull down on the pad and let go. Further back hits it harder.</li>
+        <li><b>Change your mind:</b> mid-swing, slide your thumb sideways into the red.</li></ol>
+        <p>That's all you need. Tap a section below for the details.</p></div>
       ${sec('Swing',`<div class="demo" aria-hidden="true"><div class="demo-pad"><i class="demo-dot"></i><i class="demo-line"></i></div></div>
         <p><b>Swipe down</b> on the pad for your backswing. The meter shows power. The gold line is 100%, and past it you'll overswing and spray it.</p>
         <p><b>Pause</b> for a beat at the top, then <b>swipe up</b> smoothly. Rushing, stopping short or slowing down all cost you.</p>
@@ -4068,7 +4116,10 @@ function openMenu(screen){
   const MB=(id,ic,title,sub,cls='')=>`<button id="${id}" class="mbtn ico${cls}">${IC(ICONS[ic])}<b>${title}</b><span>${sub}</span>${CHEV}</button>`;
   b.innerHTML=`<div class="hero-card"><canvas id="heroCv" aria-label="A golfer teeing off" role="img"></canvas><div class="hero-tag">${esc(heroTheme().tag)}</div></div>
     <div class="hero-row"><div><div class="k">A golf RPG</div><div class="menu-title">Fairway <span>Tales</span></div></div><div class="hero-stats"><span class="chip">HCP ${hcp()==null?'36':fmtH(hcp())}</span><span class="chip">${DIFF[swingLv()].n} swing</span>${best?`<span class="chip">Best ${best}</span>`:''}</div></div>
-    ${seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: dailies, trophies and legends</div></div>
+    ${brandNew()?`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">Welcome to Fairway Tales</div></div>
+      <div class="blurb">A golf RPG you play with one thumb. Beat the members of your club, collect and level up clubs, and work your way up to the tour.</div>
+      <div class="blurb"><b>New here?</b> Start with the story. Your first shots come with tips, and Toby goes easy on new members. Probably.</div>
+      <div class="acts"><button id="wcStory" class="sbtn pri">Start the story</button><button id="wcHelp" class="sbtn">How to play</button></div></div>`:seenNew()?'':`<div class="cc whatsnew"><div class="cc-top"><div class="cc-name">New: dailies, trophies and legends</div></div>
       <div class="blurb"><b>Daily challenge</b>: one quick mini-game a day, the same for everyone. Win a medal for coins and a shot at a fitting.</div>
       <div class="blurb"><b>Trophies</b>: ${ACH.length} achievements with rewards and titles. Your progress so far already counts.</div>
       <div class="blurb"><b>Legendary clubs</b>: seven clubs you can't buy. Complete a club's trial to earn it.</div>
@@ -4093,7 +4144,7 @@ function openMenu(screen){
     </div>
     <button data-install type="button" class="mbtn small"><b>Install the app</b><span>Play from your home screen, even offline</span></button>
     <button id="mKofi" class="mbtn small kofi"><b>☕ Support the game</b><span>Fairway Tales is free. If you're enjoying it, you can buy Kris a coffee on Ko-fi.</span></button>
-    <div class="blurb" style="text-align:center;margin-top:8px">© 2026 kralnu90. All rights reserved.</div>`;
+    <div class="blurb" style="text-align:center;margin-top:8px">Ideas, design and testing by Kris. Built with Claude, an AI by Anthropic.<br>© 2026 kralnu90. All rights reserved.</div>`;
   if(resume)$('#mResume').onclick=()=>{$('#menu').hidden=true;if(players.length>1&&state==='ready')showPass(false)};
   $('#mStory').onclick=()=>openWorld();
   $('#mSolo').onclick=()=>courseOpen('links')?openMenu('solo'):startGame({mode:'solo'});
@@ -4109,6 +4160,7 @@ function openMenu(screen){
   $('#mReview').onclick=()=>openMenu('review');
   $('#mHelp').onclick=()=>openMenu('help');
   $('#mSettings').onclick=()=>openMenu('settings');
+  if($('#wcStory')){$('#wcStory').onclick=()=>{markNew();$('#mStory').click()};$('#wcHelp').onclick=()=>{markNew();openMenu('help')}}
   if($('#wnOk')){$('#wnOk').onclick=()=>{markNew();openMenu('home')};$('#wnSet').onclick=()=>{markNew();openMenu('trophies')}}
   startHero();
 }
@@ -4304,6 +4356,7 @@ function achNext(){
   el.hidden=false;try{a.legend?0:SFX.loot()}catch(e){}
   setTimeout(()=>{el.hidden=true;setTimeout(achNext,250)},a.legend?4200:3200);
 }
+const brandNew=()=>!seenNew()&&!(save.rounds&&save.rounds.length)&&!SF().intro;
 const seenNew=()=>{try{return localStorage.getItem('fsl-seen-v13')==='1'}catch(e){return true}};
 const markNew=()=>{try{localStorage.setItem('fsl-seen-v13','1')}catch(e){}};
 const seenHelp=()=>{try{return localStorage.getItem('fsl-seen-help')==='1'}catch(e){return true}};

@@ -44,6 +44,14 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 0.18 · 5 November 2026
+- **A friendlier first few minutes.** Played through as a brand-new player and smoothed out the start:
+  - **Welcome card:** new players get a short welcome on the main menu that points them to the story, instead of a list of features they haven't seen yet.
+  - **First-shot tips:** your first swing, first aim, first club change and first putt each get a one-off tip on the swing pad, with a ghost thumb showing the swipe. They only appear once, and never for existing players.
+  - **How to play:** now opens with a four-line quick start. The detailed sections fold away until you tap them.
+  - **Toby goes easier on new members:** your very first match against him is a little more forgiving. Rematches are full strength.
+- **Credits:** the main menu now says "Ideas, design and testing by Kris. Built with Claude, an AI by Anthropic."
+
 ### 0.17 · 3 November 2026
 - **Graphics update.** Every course has had a fresh coat of paint:
   - **Course:** mowing stripes on the fairways, a raised and striped tee box, gentle light and shade across the rough, and greens that catch the light.
