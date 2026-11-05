@@ -46,6 +46,10 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 1.1.2 · 5 November 2026
+- **Fixed the freeze.** On some short shots, mostly ones with backspin, the ball could stop dead in the middle of its landing bounce. The game then divided by zero, lost track of the ball and froze: the picture looked shifted to one side, and the swing pad and every button stopped responding until you closed the game. That's fixed.
+- **Safety net:** if anything else ever goes wrong mid-shot, the game now puts the ball back somewhere sensible and hands control back to you instead of freezing.
+
 ### 1.1.1 · 5 November 2026
 - **Rooms:** the live room standings now show on the card between holes, not just at the end of the round.
 - **Rooms:** pop-ups about your friends' holes no longer go missing if they arrive during the hole flyover. They wait and show as soon as you're ready to play, and the room is checked every 10 seconds.

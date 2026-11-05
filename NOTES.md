@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 5 November 2026 · game version **1.1.0**
+Last updated: 5 November 2026 · game version **1.1.2**
 
 ---
 
@@ -150,3 +150,4 @@ Kris's rule: the Play Store release happens only once a game is completely finis
   - Shipped 0.19: club rework (baseline 10, rarity and level boost parts, factory heads) and the ball slot.
   - Shipped 1.0: Chapter 5, Skyreach, with 4 rivals, 4 epic clubs, an ending and the Top of the World trophy.
   - Shipped 1.1: live rooms (play with friends online) and updated Firestore rules (rooms plus the Skyreach board).
+  - Shipped 1.1.1 (room standings between holes) and 1.1.2: fixed the long-standing freeze (divide by zero in `stepRoll()` when a ball stopped mid-bounce gave NaN, `draw()` then threw every frame, state stayed 'roll' so every button was blocked). `frame()` now schedules itself first and wraps physics and drawing in try/catch, with `rescueShot()` and a 25 s `busyT` watchdog. A shot fuzzer (thousands of random strikes on every course, frames stepped by hand) is the way to hunt this kind of bug.

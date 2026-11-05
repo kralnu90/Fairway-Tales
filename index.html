@@ -1393,7 +1393,7 @@ function stepRoll(dt){
   if(s==='green'||s==='fringe'){const sl=slope(ball.x,ball.y);vel.x+=sl.x*dt;vel.y+=sl.y*dt}
   const air=flight&&flight.bounce, sp=Math.hypot(vel.x,vel.y), ns=sp-(air?0:fricOf(s))*dt;
   if(ns<=.03&&!air){vel={x:0,y:0};stopBall(flight.head);return}
-  vel.x*=ns/sp; vel.y*=ns/sp;
+  if(sp>1e-9){vel.x*=ns/sp; vel.y*=ns/sp}else{vel.x=0;vel.y=0} // a dead ball mid-bounce used to divide by zero
   ball.x+=vel.x*dt; ball.y+=vel.y*dt;
   if(H.cactiList)for(const t of H.cactiList){const dx=ball.x-t.x,dy=ball.y-t.y,dd=Math.hypot(dx,dy);if(dd<t.r+.4){const nx=dx/dd,ny=dy/dd,dot=vel.x*nx+vel.y*ny;if(dot<0){vel.x=(vel.x-2*dot*nx)*.5;vel.y=(vel.y-2*dot*ny)*.5;SFX.land('trees',.5)}ball.x=t.x+nx*(t.r+.45);ball.y=t.y+ny*(t.r+.45)}}
   const dp=dist(ball,PIN), cap=flight.cap||.09;
@@ -3762,7 +3762,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='1.1.1';
+const GAME_VERSION='1.1.2';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4930,14 +4930,30 @@ $('#menuBtn').onclick=()=>openMenu('home');
 
 /* ---------- Loop ---------- */
 let last=performance.now();
+// Safety net (1.1.2): if anything ever goes wrong mid-shot, put the ball back somewhere sensible and hand
+// control back to the player, rather than leaving the game stuck thinking the ball is still moving.
+let busyT=0;
+const okPt=p=>p&&isFinite(p.x)&&isFinite(p.y);
+function rescueShot(){
+  if(!okPt(ball))ball={...(okPt(lastDry)?lastDry:okPt(shotStart)?shotStart:{x:0,y:1})};
+  vel={x:0,y:0};busyT=0;
+  if(flight){flight.bounce=null;if(!isFinite(flight.t))flight.t=1}
+  if(state==='flight'||state==='roll'){try{state='roll';stopBall(flight&&flight.head)}catch(e){state='ready';try{readyAgain()}catch(e2){}try{hud()}catch(e3){}}}
+  if(!okPt(cam)||!isFinite(cam.s)){try{updateCam(0,true)}catch(e){}}
+}
 function frame(now){
-  const dt=Math.min(.05,(now-last)/1000);last=now;
-  if(mtr)tickMeter(now);
-  if(state==='flight'){flight.t+=dt/flight.dur;if(flight.t>=1){flight.t=1;land()}else trace.push(flightPos(flight.t))}
-  else if(state==='roll'){stepBounce(dt);if(!(flight&&flight.bounce&&flight.bounce.hold))for(let i=0;i<6&&state==='roll';i++)stepRoll(dt*1.4/6)}
-  if(fly){fly.t+=dt;if(fly.t>=fly.dur)endFly()}
-  if(worldOn)worldFrame(dt);else if(editMode){draw();drawEd()}else{updateCam(dt);draw()}
-  requestAnimationFrame(frame);
+  requestAnimationFrame(frame); // keep the loop alive whatever happens below
+  const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
+  try{
+    if(mtr)tickMeter(now);
+    if(state==='flight'){flight.t+=dt/flight.dur;if(flight.t>=1){flight.t=1;land()}else trace.push(flightPos(flight.t))}
+    else if(state==='roll'){stepBounce(dt);if(!(flight&&flight.bounce&&flight.bounce.hold))for(let i=0;i<6&&state==='roll';i++)stepRoll(dt*1.4/6)}
+    if(state==='flight'||state==='roll'){busyT+=dt;if(!okPt(ball)||!okPt(vel)||busyT>25)rescueShot()}else busyT=0;
+  }catch(e){rescueShot()}
+  try{if(fly){fly.t+=dt;if(fly.t>=fly.dur)endFly()}}catch(e){fly=null}
+  try{
+    if(worldOn)worldFrame(dt);else if(editMode){draw();drawEd()}else{if(!okPt(cam)||!isFinite(cam.s))updateCam(0,true);updateCam(dt);draw()}
+  }catch(e){try{ctx.setTransform(1,0,0,1,0,0)}catch(e2){}if(!worldOn&&(!okPt(ball)||!okPt(cam)))rescueShot()}
 }
 applySettings();startGame({mode:'solo'});gameOn=false;endFly();resize();updateCam(0,true);if(!handleLinkHash())openMenu('home');addEventListener('hashchange',()=>{if(!gameOn||state==='done')handleLinkHash()});requestAnimationFrame(frame);
 })();
