@@ -44,6 +44,16 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 0.19 · 5 November 2026
+- **Club rework.** Every club now starts at **10 in every stat**. What makes clubs different:
+  - **Parts:** heads, shafts and grips set the stats, as before.
+  - **Rarity boosts parts:** whatever you fit is boosted by the club's rarity: Common ×1.0, Rare ×1.15, Epic ×1.3, Legendary ×1.5.
+  - **Levels boost parts:** each level makes that club's fitted parts 5% stronger.
+  - **Factory heads:** clubs above Common come with a factory head that matches their character, so a Thunderhead still hits it a mile and a Needle still threads fairways. Fit your own head and it replaces the factory one.
+  - **Perks stay:** wind resistance, spin-back, extra roll, two green reads and the legendary effects all work as before.
+  - Every club card shows its parts boost, and existing saves carry straight over with all their parts.
+- **Ball slot.** Pick your ball at the top of the Bag tab: **Distance** (about 4% more carry, less spin), **Tour** (more spin, a touch shorter), **Soft** (straighter, kinder on putts) or **Heavy** (wind moves it 20% less). It's yours for good, never lost or used up, and you can swap between shots. Pass & play and Clubhouse-set challenges use a standard ball.
+
 ### 0.18 · 5 November 2026
 - **A friendlier first few minutes.** Played through as a brand-new player and smoothed out the start:
   - **Welcome card:** new players get a short welcome on the main menu that points them to the story, instead of a list of features they haven't seen yet.

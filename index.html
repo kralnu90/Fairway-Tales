@@ -108,9 +108,9 @@ button.club{font:inherit;color:inherit;text-align:left;cursor:pointer;overflow:h
 .bar i{display:block;height:100%;background:var(--good);border-radius:99px}
 .bar.cap i{background:var(--flag)}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
-.st{display:grid;grid-template-columns:76px 1fr 22px;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.st{display:grid;grid-template-columns:76px 1fr minmax(22px,auto);align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
 .st .bar{height:6px}.st .bar i{background:var(--chalk)}
-.st b{color:var(--chalk);text-align:right}
+.st b{color:var(--chalk);text-align:right;white-space:nowrap}
 .perk{font-size:12px;font-weight:700;color:var(--flag)}
 .blurb{font-size:12px;color:var(--muted);font-weight:700}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
@@ -291,6 +291,11 @@ details.cc.help>summary::after{content:"+";font-weight:900;color:var(--flag);fon
 details.cc.help[open]>summary::after{content:"−"}
 .qs{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px;line-height:1.45;font-weight:600}
 .qs b{color:var(--flag)}
+.boost{font-size:12px;font-weight:700;color:var(--muted)}.boost b{color:var(--flag)}
+.balls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ballopt{text-align:left;display:grid;gap:3px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--chalk);font:inherit;cursor:pointer}
+.ballopt b{font-size:14px}.ballopt small{font-size:12px;color:var(--muted);line-height:1.35}
+.ballopt[aria-pressed="true"]{border-color:var(--flag);box-shadow:inset 0 0 0 1px var(--flag)}
 .cc.help p{margin:0;font-size:14px;line-height:1.5;color:var(--chalk);font-weight:600}
 .cc.help p b{color:var(--flag)}
 .demo{display:flex;justify-content:center}
@@ -667,9 +672,25 @@ const FIT_SLOT_NAME={head:'Head',shaft:'Shaft',grip:'Grip'}, FIT_PRICE=250;
 const fitSlots=id=>DEF[id].t==='putter'?['head','grip']:['head','shaft','grip'];
 const fitById=fid=>(save.fits||[]).find(f=>f.id===fid);
 const fitName=f=>FIT_STYLES[f.s].n;
-function fitDelta(f){const S=FIT_STYLES[f.s],o={};for(const k in S.up)o[k]=(o[k]||0)+S.up[k]*FIT_BON[f.t];for(const k in S.down)o[k]=(o[k]||0)-S.down[k]*FIT_PEN[f.t];return o}
+function fitDelta(f,boost=1){const S=FIT_STYLES[f.s],o={};for(const k in S.up)o[k]=(o[k]||0)+S.up[k]*FIT_BON[f.t]*boost;for(const k in S.down)o[k]=(o[k]||0)-S.down[k]*FIT_PEN[f.t];return o}
+// 0.19 club rework: every club starts at 10 in every stat. Parts make the difference, boosted by the club's
+// rarity (x1.0 to x1.5) and its level (+5% a level). Non-starter clubs come with a factory head that matches
+// their old strength, so a Thunderhead still hits it a mile. Fit your own head and it replaces the factory one.
+const RAR_MUL={common:1,rare:1.15,epic:1.3,legendary:1.5};
+const FAC_STYLE={P:'max',C:'lite',S:'forged',F:'cavity'},FAC_PUTT={C:'blade',F:'mallet'},FAC_TIER={rare:2,epic:3,legendary:4};
+function facFit(id){const d=DEF[id];if(!d||d.r==='common')return null;const k=d.f[0],sid=d.t==='putter'?(FAC_PUTT[k]||'blade'):FAC_STYLE[k];return sid?{id:'fac-'+id,s:sid,t:FAC_TIER[d.r],fac:1}:null}
+const partBoost=(id,lv)=>RAR_MUL[DEF[id].r]*(1+.05*(lv-1));
+// Ball slot: one permanent ball, swap any time between shots. Never lost or used up.
+const BALLS={
+  distance:{n:'Distance ball',d:{P:5,S:-2},blurb:'Flies further and spins less. About 4% more carry.'},
+  tour:{n:'Tour ball',d:{S:3,P:-2},blurb:'Grabs and checks up on the greens. A touch shorter.'},
+  soft:{n:'Soft ball',d:{C:2,F:1,P:-2},blurb:'Lovely feel. Straighter, and kinder on putts. A touch shorter.'},
+  heavy:{n:'Heavy ball',d:{F:2,S:-1},wind:.8,blurb:'Bores through the breeze: wind moves it 20% less. Spins a little less.'}
+};
+const ballOn=()=>!clubGear()&&BALLS[save.ball]?save.ball:null;
+const ballWind=()=>{const b=ballOn();return b&&BALLS[b].wind||1};
 const fitBias=f=>FIT_STYLES[f.s].bias?FIT_STYLES[f.s].bias*(1.2+.3*f.t):0;
-function fitsOn(id,over){const m={...((save.fitOn||{})[id]||{}),...(over||{})};return Object.values(m).map(fitById).filter(Boolean)}
+function fitsOn(id,over){const m={...((save.fitOn||{})[id]||{}),...(over||{})};const out=Object.values(m).map(fitById).filter(Boolean);const fac=facFit(id);if(fac&&!fitById(m.head))out.push(fac);return out}
 function fitFx(id){const fs=clubGear()?[]:fitsOn(id);let launch=1,roll=1,bias=0;for(const f of fs){const S=FIT_STYLES[f.s];if(S.launch)launch+=S.launch;if(S.roll)roll+=S.roll;bias+=fitBias(f)}return{launch,roll,bias}}
 function fitWhere(fid){for(const [cid,m] of Object.entries(save.fitOn||{}))for(const [sl,v] of Object.entries(m))if(v===fid)return{cid,sl};return null}
 function fitEffects(f){const d=fitDelta(f),S=FIT_STYLES[f.s],parts=Object.entries(d).filter(([,v])=>Math.abs(v)>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${v>0?'+':'−'}${fmtStat(Math.round(Math.abs(v)*10)/10)} ${STAT_NAME[k]}`);
@@ -712,8 +733,15 @@ const ownLvl=id=>save.owned[id]?save.owned[id].lvl:1;
 const lvlOf=id=>clubGear()?1:ownLvl(id);
 function statsOf(id,lv=lvlOf(id),fits=true,over=null){
   const d=DEF[id],L=lv-1,out={};
-  STAT_KEYS.forEach((k,i)=>{out[k]=d.t==='putter'&&(k==='P'||k==='S')?0:Math.min(20,d.st[i]+L*.5+(d.f.includes(k)?L*.5:0))});
-  if(fits&&!clubGear()&&save.owned[id]){for(const f of fitsOn(id,over)){const dl=fitDelta(f);for(const k in dl)if(!(d.t==='putter'&&(k==='P'||k==='S')))out[k]=Math.max(0,Math.min(24,out[k]+dl[k]))}}
+  const noPS=k=>d.t==='putter'&&(k==='P'||k==='S');
+  STAT_KEYS.forEach(k=>{out[k]=noPS(k)?0:10});
+  if(fits&&!clubGear()){
+    // the factory head counts even on clubs you're only looking at in the shop
+    const fs=save.owned[id]?fitsOn(id,over):[facFit(id)].filter(Boolean),bst=partBoost(id,save.owned[id]?lv:1);
+    for(const f of fs){const dl=fitDelta(f,bst);for(const k in dl)if(!noPS(k))out[k]+=dl[k]}
+    const b=ballOn();if(b)for(const k in BALLS[b].d)if(!noPS(k))out[k]+=BALLS[b].d[k];
+    for(const k of STAT_KEYS)if(!noPS(k))out[k]=Math.max(0,Math.min(25,out[k]));
+  }
   for(const k of STAT_KEYS)out[k]=Math.round(out[k]*10)/10;
   return out;
 }
@@ -1245,7 +1273,7 @@ function strike(r){
   const curveDeg=(trueShot?0:r.path*.2*ps*DP.sens+dft*.12*ps+wbl*.35*ps+gauss()*noise*.6)+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
   if(trueShot)notes.push('Heartwood: dead straight');
   mult*=1-.04*Math.abs(SP.y);
-  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1);
+  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1)*ballWind();
   // XP: a clean, well-tempoed swing earns the most
   const clean=p<=1.02&&r.pause>=70&&r.pause<=700&&Math.abs(r.path)<4&&r.follow>=.6&&r.speed>=.45;
   const okay=p<=1.06&&r.pause>=50&&Math.abs(r.path)<8;
@@ -2061,12 +2089,12 @@ const canTune=o=>isCapped(o)&&o.xp>=needXp(o.lvl);
 const fmtStat=v=>Number.isInteger(v)?v:v.toFixed(1);
 function statBars(id){
   const s=statsOf(id,ownLvl(id)),b=statsOf(id,ownLvl(id),false),t=DEF[id].t;
-  return `<div class="stats">${STAT_KEYS.filter(k=>t!=='putter'||k==='C'||k==='F').map(k=>{const dv=Math.round((s[k]-b[k])*10)/10;return `<div class="st"><span>${STAT_NAME[k]}</span><div class="bar"><i style="width:${Math.min(100,s[k]/20*100)}%"></i></div><b>${fmtStat(s[k])}${dv?`<span class="dlt ${dv>0?'up':'dn'}">${dv>0?'+':''}${fmtStat(dv)}</span>`:''}</b></div>`}).join('')}</div>`;
+  return `<div class="stats">${STAT_KEYS.filter(k=>t!=='putter'||k==='C'||k==='F').map(k=>{const dv=Math.round((s[k]-b[k])*10)/10;return `<div class="st"><span>${STAT_NAME[k]}</span><div class="bar"><i style="width:${Math.min(100,s[k]/25*100)}%"></i></div><b>${fmtStat(s[k])}${dv?`<span class="dlt ${dv>0?'up':'dn'}">${dv>0?'+':''}${fmtStat(dv)}</span>`:''}</b></div>`}).join('')}</div>`;
 }
 const fitLabel=f=>`<span style="color:${FIT_TIER[f.t].col}">${fitName(f)}</span>`;
 function fitRow(id){
   const m=(save.fitOn||{})[id]||{};
-  return `<div class="fitrow">${fitSlots(id).map(sl=>{const f=fitById(m[sl]);return `<span class="fchip"${f?` style="color:${FIT_TIER[f.t].col};border-color:${FIT_TIER[f.t].col}55"`:''}><i>${FIT_SLOT_NAME[sl]}</i>${f?fitName(f).replace(/ (head|shaft|grip|putter head|putter grip)$/,''):'Stock'}</span>`}).join('')}</div>`;
+  return `<div class="fitrow">${fitSlots(id).map(sl=>{const f=fitById(m[sl]);return `<span class="fchip"${f?` style="color:${FIT_TIER[f.t].col};border-color:${FIT_TIER[f.t].col}55"`:''}><i>${FIT_SLOT_NAME[sl]}</i>${f?fitName(f).replace(/ (head|shaft|grip|putter head|putter grip)$/,''):sl==='head'&&facFit(id)?'Factory '+fitName(facFit(id)).replace(/ (head|putter head)$/,''):'Stock'}</span>`}).join('')}</div>`;
 }
 // Fitting bench: pick a part for a slot, see before and after, then fit it
 function benchHTML(id){
@@ -2075,7 +2103,7 @@ function benchHTML(id){
   for(const sl of fitSlots(id)){
     const cur=fitById(m[sl]),opts=save.fits.filter(f=>FIT_STYLES[f.s].slot===sl&&!!FIT_STYLES[f.s].putter===putter&&f.id!==m[sl]).sort((a,b)=>b.t-a.t||fitName(a).localeCompare(fitName(b)));
     h+=`<div class="bench-slot"><div class="bench-h"><span>${FIT_SLOT_NAME[sl]}</span>${cur?`<button class="sbtn" data-act="unfit" data-id="${id}" data-sl="${sl}">Remove</button>`:''}</div>`;
-    h+=`<div class="fitted${cur?' on':''}"><b>Fitted now:</b> ${cur?`${fitLabel(cur)} <small>${FIT_TIER[cur.t].n}</small><br><small>${fitEffects(cur)}</small>`:'Stock (nothing fitted)'}</div>`;
+    h+=`<div class="fitted${cur?' on':''}"><b>Fitted now:</b> ${cur?`${fitLabel(cur)} <small>${FIT_TIER[cur.t].n}</small><br><small>${fitEffects(cur)}</small>`:sl==='head'&&facFit(id)?`Factory ${fitLabel(facFit(id))} <small>${FIT_TIER[facFit(id).t].n}</small><br><small>Comes with the club. Fit your own head to replace it.</small>`:'Stock (nothing fitted)'}</div>`;
     if(!opts.length)h+=`<div class="blurb">No spare ${putter?'putter ':''}${sl}s. They drop from reward bags, the trade-in, or Common ones from the pro shop.</div>`;
     else h+=`<div class="pick-h">${opts.length===1?'Your spare part':'Your spare parts'}: tap one to see the difference, then fit it</div>`;
     for(const f of opts){const w=fitWhere(f.id);h+=`<button class="part" data-act="pickfit" data-id="${id}" data-f="${f.id}" aria-pressed="${fitPick&&fitPick.f===f.id}">${fitLabel(f)}<em>${FIT_TIER[f.t].n}<br>${w?`Fitted to your ${TYPE_NAME[DEF[w.cid].t]}`:'Not fitted'}</em><small>${fitEffects(f)}</small></button>`}
@@ -2119,6 +2147,7 @@ function clubCard(id,mode){
     h+=`<div class="lvrow"><span class="lv">Lv ${o.lvl}</span><div class="bar${full?' cap':''}"><i style="width:${max?100:Math.min(100,o.xp/needXp(o.lvl)*100)}%"></i></div><span>${max?'Max level':full?'Needs a tune-up':`${o.xp}/${needXp(o.lvl)} XP`}</span></div>`;
   }
   h+=statBars(id);
+  {const lv=o?o.lvl:1,bst=partBoost(id,lv);const fac=facFit(id),ownHead=o&&fitById(((save.fitOn||{})[id]||{}).head);h+=`<div class="boost">Parts boost <b>×${bst.toFixed(2)}</b> · ${R.n} ×${RAR_MUL[d.r].toFixed(2)}${lv>1?` · Lv ${lv} +${5*(lv-1)}%`:''}${fac&&!ownHead?` · Factory <span style="color:${FIT_TIER[fac.t].col}">${fitName(fac)}</span>`:''}</div>`}
   if(o&&mode==='bag')h+=fitRow(id);
   if(d.perkText)h+=`<div class="perk">Perk: ${d.perkText}</div>`;
   if(d.blurb)h+=`<div class="blurb">${d.blurb}</div>`;
@@ -2144,7 +2173,13 @@ function renderSheet(){
   $('#coins').textContent=save.coins;$('#kits').textContent=save.kits;$('#hcpChip').textContent=hcp()==null?'36*':fmtH(hcp());
   $('.sheet-title').textContent=sheetTab==='shop'?'Pro shop':sheetTab==='all'?'Collection':sheetTab==='fit'?'Fittings':'Your bag';
   let h='';
-  if(sheetTab==='bag')h=TYPES.map(t=>clubCard(save.bag[t],'bag')).join('');
+  if(sheetTab==='bag'){
+    const cur=BALLS[save.ball]?save.ball:'';
+    h=`<div class="cc"><div class="cc-top"><div class="cc-name">Your ball</div><span class="chip">${cur?BALLS[cur].n:'Standard'}</span></div>
+      <div class="blurb">One ball, yours for good: it's never lost or used up. Swap whenever you like between shots.</div>
+      <div class="balls">${[['','Standard ball','No changes. Plays exactly as the clubs say.'],...Object.entries(BALLS).map(([k,B])=>[k,B.n,B.blurb])].map(([k,n,bl])=>`<button class="ballopt" data-act="ball" data-b="${k}" aria-pressed="${cur===k}"><b>${n}</b><small>${bl}</small></button>`).join('')}</div></div>`
+      +TYPES.map(t=>clubCard(save.bag[t],'bag')).join('');
+  }
   else if(sheetTab==='fit')h=fitTabHTML();
   else if(sheetTab==='shop'){
     h+=`<div class="cc"><div class="cc-top"><div class="cc-name">Tuning kit</div><span class="chip">You have ${save.kits}</span></div><div class="blurb">Breaks a club through its level cap at Lv 4 and Lv 7. They also drop from reward bags and rival rematches.</div><div class="acts"><button class="sbtn pri" data-act="kit" ${save.coins>=KIT_PRICE?'':'disabled'}>Buy · ${KIT_PRICE} coins</button></div></div>`;
@@ -2174,6 +2209,7 @@ $('#sheetBody').addEventListener('click',e=>{
     if(!wipeArm){wipeArm=true;setTimeout(()=>{wipeArm=false;if(!$('#sheet').hidden&&sheetTab==='all')renderSheet()},3000);renderSheet();return}
     wipeArm=false;save=freshSave();clearUndo();persist();renderSheet();return;
   }
+  if(act==='ball'){if(state==='flight'||state==='roll')return;save.ball=b.dataset.b||null;persist();if(gameOn)hud();renderSheet();return}
   if(act==='fit'){fitOpen=fitOpen===id?null:id;fitPick=null;swapOpen=null}
   else if(act==='fitclose'){fitOpen=null;fitPick=null}
   else if(act==='pickfit'){const sl=FIT_STYLES[fitById(b.dataset.f).s].slot;fitPick=fitPick&&fitPick.f===b.dataset.f?null:{id,sl,f:b.dataset.f}}
@@ -2217,7 +2253,7 @@ spSvg.addEventListener('pointerup',()=>spDrag=null);spSvg.addEventListener('poin
 function predictShot(c,o={}){
   const sf=spinF(),perk=eqPerk(),a=angTo(ball,aim),guide=o.d!=null,d=guide?o.d:dist(ball,aim),FX=fitFx(eqId());
   const bias=guide?(SET.lefty?-FX.bias:FX.bias):0,D0=dirOf(a),D1=dirOf(a+(SP.x*5*sf+bias)*RAD);
-  let wx=0,wy=0;if(o.wind){const wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1);wx=wind.x*d*.0045*wm;wy=wind.y*d*.0045*wm}
+  let wx=0,wy=0;if(o.wind){const wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1)*ballWind();wx=wind.x*d*.0045*wm;wy=wind.y*d*.0045*wm}
   const P0={x:ball.x+D0.x*d,y:ball.y+D0.y*d},P={x:ball.x+D1.x*d+wx,y:ball.y+D1.y*d+wy};
   const at=t=>({x:ball.x+(P0.x-ball.x)*t+(P.x-P0.x)*t*t,y:ball.y+(P0.y-ball.y)*t+(P.y-P0.y)*t*t});
   const s=surfaceAt(P.x,P.y),rm=rollMult();
@@ -3531,7 +3567,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='0.18.0';
+const GAME_VERSION='0.19.0';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -3898,12 +3934,14 @@ function openMenu(screen){
         <p>You get <b>one green read per hole</b>: the dotted preview line shows exactly where the putt will roll.</p>`)}
       ${sec('Changed your mind?',`<p>Mid-swing, <b>slide your thumb sideways into the red</b> and let go. No stroke is taken.</p>
         <p>You also get <b>one Mulligan per round</b> to retake your last shot. Practice has unlimited undo.</p>`)}
-      ${sec('Clubs and progress',`<p>Good swings earn <b>XP</b> for the club you used. At Lv 4 and Lv 7 a club needs a <b>tuning kit</b> to keep going.</p>
+      ${sec('Clubs and progress',`<p>Every club starts at <b>10</b> in every stat. What makes clubs different is their <b>perk</b>, their <b>rarity</b> and the <b>parts</b> fitted to them.</p>
+        <p>Good swings earn <b>XP</b> for the club you used. Each level makes that club's fitted parts <b>5% stronger</b>. At Lv 4 and Lv 7 a club needs a <b>tuning kit</b> to keep going.</p>
         <p>Your <b>handicap</b> comes from your best solo rounds, and a lower handicap unlocks better stock in the pro shop.</p>
         <p>Beat rivals in <b>Story</b> mode and finish rounds at par or better for <b>reward bags</b>. Collect 5 shards to forge a rival's Epic club.</p>`)}
       ${sec('Fittings',`<p>Every club has a <b>head</b>, <b>shaft</b> and <b>grip</b> slot (putters have a head and a grip). Each part boosts one thing and costs you another. A Max head adds power but loses control, and a Slim grip pulls your shots into a draw.</p>
+        <p>The club's rarity boosts every part you fit: Common ×1.0, Rare ×1.15, Epic ×1.3 and Legendary ×1.5. Clubs above Common come with a <b>factory head</b> that matches their character. Fit your own head and it replaces the factory one.</p>
         <p>Parts come in five rarities from Common to Legendary. Rarer parts give a bigger boost for a smaller cost. They're rare drops from reward bags, and the pro shop sells Common ones.</p>
-        <p>In the <b>Fittings</b> tab, trade 3 parts for 1 random part with the average rarity of the three, or one tier better 25% of the time. Test your setup on the <b>driving range</b> in Practice.</p>`)}
+        <p>Your <b>ball</b> is chosen in the Bag tab: Distance, Tour, Soft or Heavy. It's yours for good and never lost.</p><p>In the <b>Fittings</b> tab, trade 3 parts for 1 random part with the average rarity of the three, or one tier better 25% of the time. Test your setup on the <b>driving range</b> in Practice.</p>`)}
       <button id="mHome" class="mbtn pri"><b>Got it</b><span>Back to the menu</span></button>`;
     $('#mBack').onclick=$('#mHome').onclick=()=>openMenu('home');
     return;
