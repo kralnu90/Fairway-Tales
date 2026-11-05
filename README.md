@@ -46,6 +46,10 @@ There's a full guide on the main menu too.
 
 ## Changelog
 
+### 1.1.1 · 5 November 2026
+- **Rooms:** the live room standings now show on the card between holes, not just at the end of the round.
+- **Rooms:** pop-ups about your friends' holes no longer go missing if they arrive during the hole flyover. They wait and show as soon as you're ready to play, and the room is checked every 10 seconds.
+
 ### 1.1 · 5 November 2026
 - **Play with friends online.** A new button on the main menu:
   - **Make a room**, pick a course and choose own bags or the Clubhouse set, then send the 6-letter code or invite link to up to 3 friends.

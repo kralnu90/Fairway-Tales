@@ -1701,7 +1701,7 @@ function endHole(){
   setTimeout(()=>{
     const label=strokes===1?'Hole in one!':(NAMES[diff]||`+${diff}`);
     if(!last){
-      showEnd(`<div class="k">Hole ${holeIdx+1} · ${H.name}</div><div class="big">${label}</div><div class="sub">${strokes} stroke${strokes>1?'s':''} · Round ${toPar(playedStrokes()-playedPar())}</div>${rw}${cardHTML()}<div class="btns"><button id="nextHole" class="btn">Hole ${holeIdx+2}</button><button id="endBag" class="btn alt">Bag</button></div>`);
+      showEnd(`<div class="k">Hole ${holeIdx+1} · ${H.name}</div><div class="big">${label}</div><div class="sub">${strokes} stroke${strokes>1?'s':''} · Round ${toPar(playedStrokes()-playedPar())}</div>${rw}${CH&&CH.room?roomMiniHTML():''}${cardHTML()}<div class="btns"><button id="nextHole" class="btn">Hole ${holeIdx+2}</button><button id="endBag" class="btn alt">Bag</button></div>`);
       $('#nextHole').onclick=()=>loadHole(holeIdx+1);
       $('#endBag').onclick=()=>openSheet('bag');
     }else{
@@ -3762,7 +3762,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='1.1.0';
+const GAME_VERSION='1.1.1';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4791,15 +4791,17 @@ function roomBoardHTML(r){
 let roomSeen={},roomPlayT=0;
 function roomTicker(r){
   if(!r)return;const H9=COURSES[r.course].holes;
-  const lines=[];
+  const lines=[],canShow=gameOn&&$('#end').hidden&&state==='ready',onCard=!$('#end').hidden;
+  if(!canShow&&!onCard)return; // hold the news until there's a moment to show it
   for(const p of r.players){if(p.uid===gb.uid)continue;const was=roomSeen[p.uid]??p.h;
     if(p.h>was){const k=p.h-1,d=p.sc[k]-H9[k].par,word=p.sc[k]===1?'Hole in one!':NAMES[d]||(d>0?`+${d}`:`${d}`),tot=p.sc.reduce((a,b)=>a+b,0),rel=tot-H9.slice(0,p.h).reduce((a,h)=>a+h.par,0);
       lines.push(`<b>${esc(p.n)}</b> · ${word} on ${p.h} · ${p.d?'finished':'thru '+p.h} at ${toPar(rel)}`)}
     roomSeen[p.uid]=p.h}
-  if(lines.length&&gameOn&&$('#end').hidden&&state==='ready')toast(lines.join('<br>'))}
+  if(lines.length&&canShow)toast(lines.join('<br>'))}
 async function roomRefresh(){if(!ROOM||roomBusy)return;roomBusy=true;try{const r=await roomGet(ROOM.code);if(r){roomTicker(r);ROOM.doc=r;const box=$('#roomLive');if(box)box.innerHTML=roomBoardHTML(r)}}catch(e){}roomBusy=false}
-function roomPlayLoop(on){clearInterval(roomPlayT);if(on)roomPlayT=setInterval(()=>{if(!gameOn||!CH||!CH.room){clearInterval(roomPlayT);return}if(!document.hidden)roomRefresh()},15000)}
+function roomPlayLoop(on){clearInterval(roomPlayT);if(on)roomPlayT=setInterval(()=>{if(!gameOn||!CH||!CH.room){clearInterval(roomPlayT);return}if(!document.hidden)roomRefresh()},10000)}
 function roomHole(){if(!ROOM)return;roomPushMe().then(roomRefresh)}
+function roomMiniHTML(){return `<div class="cc chend"><div class="cc-top"><div class="cc-name">Room standings</div><span class="chip">Live</span></div><div id="roomLive">${roomBoardHTML(ROOM&&ROOM.doc)}</div></div>`}
 function roomEndHTML(){return `<div class="cc chend"><div class="cc-name">Room ${esc(ROOM?ROOM.code:'')}</div><div id="roomLive">${roomBoardHTML(ROOM&&ROOM.doc)}</div><div class="blurb">The board keeps updating as the others finish.</div><div class="acts"><button id="roomBack" class="sbtn pri">Back to the room</button></div></div>`}
 function roomStartRound(r){
   ROOM={code:r.code,doc:r};roomSeen=Object.fromEntries(r.players.map(p=>[p.uid,p.h]));
