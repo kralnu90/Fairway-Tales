@@ -296,6 +296,9 @@ details.cc.help[open]>summary::after{content:"−"}
 .ballopt{text-align:left;display:grid;gap:3px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--chalk);font:inherit;cursor:pointer}
 .ballopt b{font-size:14px}.ballopt small{font-size:12px;color:var(--muted);line-height:1.35}
 .ballopt[aria-pressed="true"]{border-color:var(--flag);box-shadow:inset 0 0 0 1px var(--flag)}
+.roomcode{font-family:"JetBrains Mono",ui-monospace,monospace;letter-spacing:.12em;color:var(--flag)}
+.roomin{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:22px;letter-spacing:.3em;text-transform:uppercase;text-align:center;width:100%;margin:6px 0}
+#rmName{width:100%;margin-top:6px}
 .cc.help p{margin:0;font-size:14px;line-height:1.5;color:var(--chalk);font-weight:600}
 .cc.help p b{color:var(--flag)}
 .demo{display:flex;justify-content:center}
@@ -1688,6 +1691,7 @@ function endHole(){
   if(mode==='rival')return setTimeout(endHoleRival,700);
   if(isCustom())return setTimeout(endHoleCustom,700);
   const diff=strokes-H.par, last=holeIdx===COURSE.length-1;
+  if(CH&&CH.room)roomHole();
   // Rewards: coins per hole; a tuning kit only for finishing the round under par
   let coins=strokes===1?300:diff<=-2?150:diff===-1?60:diff===0?25:diff===1?10:0, kits=0;
   if(last)coins+=100;
@@ -1707,10 +1711,11 @@ function endHole(){
       const gbPosted=isBest&&gbCourse(courseKey(),tot,rel);
       const hc=CH&&CH.g==='club'?null:recordRound(rel,CH?'challenge':'solo'),bags=rel<0?2:rel===0?1:0;
       roundStats(rel);
-      const chx=CH?chRecord(tot,rel):'';
+      const chx=CH?(CH.room?roomEndHTML():chRecord(tot,rel)):'';
       const bagBtn=bags?`<button id="openLoot" class="btn">Open reward bag${bags>1?` ×${bags}`:''}</button>`:'';
       showEnd(`<div class="k">Round complete · ${label} on the last</div><div class="big">${tot} (${toPar(rel)})</div><div class="sub">${isBest?'New best round!':`Best round: ${cb}`}${gbPosted?(myName()?' Posted to the leaderboard.':' Add a name in Leaderboards to post it.'):''}</div>${rw}${hc?hcpChangeHTML(hc):''}${chx}${bags?'':'<div class="blurb">Finish at par or better to earn a reward bag.</div>'}${cardHTML()}<div class="btns">${bagBtn}<button id="again" class="btn${bags?' alt':''}">Play again</button><button id="endBag" class="btn alt">Pro shop</button></div>`);
-      if(CH){const id=CH.id;$('#chShareRes').onclick=()=>shareText(resultShareText(id),'#chMsg');$('#chBoard').onclick=()=>{$('#end').hidden=true;gameOn=false;chOpen=id;openMenu('chview')}}
+      if(CH&&CH.room){const rc=CH.room;$('#roomBack').onclick=()=>{$('#end').hidden=true;gameOn=false;roomPlayLoop(false);openMenu('room:'+rc)}}
+      else if(CH){const id=CH.id;$('#chShareRes').onclick=()=>shareText(resultShareText(id),'#chMsg');$('#chBoard').onclick=()=>{$('#end').hidden=true;gameOn=false;chOpen=id;openMenu('chview')}}
       if(bags)$('#openLoot').onclick=()=>{$('#openLoot').remove();$('#again').classList.remove('alt');showLoot(bags>1?'Under par · 2 reward bags':'Level par · reward bag',openBag('clubhouse',bags))};
       $('#endBag').onclick=()=>openSheet('shop');
       $('#again').onclick=newRound;
@@ -3757,7 +3762,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='1.0.0';
+const GAME_VERSION='1.1.0';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4012,6 +4017,7 @@ let pnpCount=2, pnpNames=['Player 1','Player 2','Player 3','Player 4'];
 try{const n=JSON.parse(localStorage.getItem('fsl-names'));if(Array.isArray(n)&&n.length===4)pnpNames=n;const c=+localStorage.getItem('fsl-pcount');if(c>=2&&c<=4)pnpCount=c}catch(e){}
 function openMenu(screen){
   if(state==='flight'||state==='roll')return;
+  if(typeof roomT!=='undefined')clearInterval(roomT);
   $('#sheet').hidden=true;$('#pass').hidden=true;$('#menu').hidden=false;
   if(worldOn){storePos();persist()}
   $('#world').hidden=true;worldOn=false;
@@ -4261,6 +4267,8 @@ function openMenu(screen){
     return;
   }
   if(screen==='boards'){openBoards(b);return}
+  if(screen==='rooms'){openRooms(b);return}
+  if(screen.startsWith('room:')){openRooms(b,screen.slice(5));return}
   if(screen==='daily'){
     const T=dailyToday(),F=DFMT[T.fmt],D=dsave(),dn=dHist()[T.k],toNext=7-(D.days%7);
     const where=T.fmt==='ctp'?`${T.hole.name} · par 3 · ${T.hole.len} yds`:T.fmt==='putts'?`${PUTT_SURF[T.surf].n} greens · ${PUTT_SURF[T.surf].d.toLowerCase()}`:T.fmt==='long'?'Driver on a 26 yard wide fairway':'Fairway, rough and sand round the green';
@@ -4356,6 +4364,7 @@ function openMenu(screen){
     <button id="mStory" class="mbtn ico story${resume?'':' pri'}">${IC(ICONS.story)}<b>Story · Chapter ${SF().ch4champ?5:SF().ch3champ?4:SF().ch2champ?3:SF().champion?2:1}</b><span>${SF().ch5champ?'Tour Champion! Story complete. Every rival is up for a rematch.':SF().ch4champ?(SF().visitedSky?`Skyreach. ${['beatJonah','beatSofia','beatRex','ch5champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Tour card! Drive to Skyreach for the Tour Championship.'):SF().ch3champ?(SF().visitedFrost?`Frostpeak. ${['beatNils','beatYuki','beatBrock','ch4champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'County Champion! Drive to Frostpeak for the Winter Open.'):SF().ch2champ?(SF().visitedMesa?`Sun Mesa. ${['beatRicky','beatPriya','beatWes','ch3champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Qualified! Drive to Sun Mesa for the County Championship.'):SF().champion?(SF().visitedLinks?`Gullhaven Links. ${['beatCallum','beatFiona','beatTam','ch2champ'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:'Club Champion! Drive to Gullhaven Links for the county qualifier.'):SF().beatToby?`Ashby Green Golf Club. ${['beatToby','beatDot','beatMarcus','champion'].filter(k=>SF()[k]).length} of 4 rivals beaten.`:SF().intro?'Back to Ashby Green Golf Club.':'Walk the club, meet the members, take on your first rival.'}</span>${CHEV}</button>
     ${MB('mSolo','solo','Solo round','9 holes with your own bag. Earn coins and club XP.')}
     ${MB('mPnp','pnp','Pass &amp; play','2 to 4 players on one phone. Everyone on the Clubhouse set.')}
+    ${MB('mRooms','pnp','Play with friends online','Make a room, send the code, and play the same 9 holes on your own phones with live scores.',roomSaved()?' fresh':'')}
     ${(()=>{const T=dailyToday(),dn=dHist()[T.k];return MB('mDaily','daily','Daily challenge',dn?`Done today: ${fmtScore(dn.f,dn.s)} ${dn.m>=0?MEDAL[dn.m].ic:''} · new one tomorrow`:`Today: ${DFMT[T.fmt].n}. Win a medal and coins.`,dn?'':' fresh')})()}
     ${MB('mBoards','trophy','Leaderboards','Today\'s daily, best rounds and holes in one, from players everywhere.')}
     ${MB('mChal','chal','Challenges','Same course, same pins, same wind. Play your friends on your own phones.')}
@@ -4377,6 +4386,7 @@ function openMenu(screen){
   $('#mStory').onclick=()=>openWorld();
   $('#mSolo').onclick=()=>courseOpen('links')?openMenu('solo'):startGame({mode:'solo'});
   $('#mPnp').onclick=()=>openMenu('pnp');
+  $('#mRooms').onclick=()=>openMenu('rooms');
   $('#mPractice').onclick=()=>openMenu('practice');
   $('#mGround').onclick=()=>openMenu('ground');
   $('#mChal').onclick=()=>openMenu('challenges');
@@ -4722,6 +4732,141 @@ function openBoards(b){
   gbFill(coll,field,dir,limit,rowFn,empty);
 }
 window.addEventListener('online',()=>gbFlush());
+/* ---------- Live rooms: play the same round with friends, each on your own phone (1.1) ----------
+   One Firestore document per room (rooms/CODE). Each player only ever writes their own line (p_<uid>),
+   the host flips the state from lobby to play, and everyone polls the one document. A 4-player round
+   costs roughly 500 reads, well inside the free plan. Same seeded pins and wind as challenges. */
+const ROOM_ABC='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_MAX=4,ROOM_LIFE=864e5;
+let ROOM=null,roomT=0,roomMsg='',roomBusy=false,roomWasLobby=false;
+const roomSaved=()=>{try{const r=JSON.parse(localStorage.getItem('ft-room')||'null');return r&&Date.now()-r.t<ROOM_LIFE?r:null}catch(e){return null}};
+const roomRemember=code=>{try{localStorage.setItem('ft-room',JSON.stringify({code,t:Date.now()}))}catch(e){}};
+const newRoomCode=()=>{let s='';const a=new Uint32Array(6);(crypto.getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*1e9));for(const v of a)s+=ROOM_ABC[v%ROOM_ABC.length];return s};
+const cleanRoomCode=t=>String(t||'').toUpperCase().replace(/^.*ROOM=/,'').replace(/[^A-Z0-9]/g,'').slice(0,6);
+const roomUrl=code=>`${location.protocol.startsWith('http')&&!location.host.includes('claude')?location.origin+location.pathname:'https://kralnugames.com/Fairway-Tales/'}#room=${code}`;
+function roomVal(o){
+  if(typeof o==='boolean')return{booleanValue:o};
+  if(typeof o==='number')return{integerValue:String(Math.round(o))};
+  if(o instanceof Date)return{timestampValue:o.toISOString()};
+  if(o&&typeof o==='object'){const f={};for(const [k,v] of Object.entries(o))f[k]=roomVal(v);return{mapValue:{fields:f}}}
+  return{stringValue:String(o)}}
+function roomParse(doc){
+  const F=doc.fields||{},v=x=>x.mapValue?Object.fromEntries(Object.entries(x.mapValue.fields||{}).map(([k,y])=>[k,v(y)])):gbVal(x);
+  const r={code:doc.name.split('/').pop(),players:[]};
+  for(const [k,x] of Object.entries(F)){if(k.startsWith('p_')){const p=v(x);r.players.push({uid:k.slice(2),n:p.n||'Golfer',t:p.t||'',sc:p.sc?String(p.sc).split(',').map(Number):[],h:+p.h||0,d:!!p.d,at:p.at})}else r[k]=v(x)}
+  r.players.sort((a,b)=>a.uid===r.host?-1:b.uid===r.host?1:String(a.at).localeCompare(String(b.at)));
+  return r}
+const roomDocUrl=code=>`${gbBase()}/rooms/${code}`;
+async function roomGet(code){const tok=await gbAuth();try{return roomParse(await gbJSON(roomDocUrl(code),{headers:{Authorization:'Bearer '+tok}}))}catch(e){if(e.status===404||e.status===403)return null;throw e}}
+function myLine(){const s=COURSE&&CH&&CH.room?COURSE.map((_,k)=>scores[k]||0):[];let h=0;while(h<s.length&&s[h])h++;
+  return{n:(myName().trim()||'Golfer').slice(0,20),t:titleText().slice(0,30),sc:s.slice(0,h).join(','),h,d:h>=9,at:new Date()}}
+async function roomPatch(code,fields,mask,create){
+  const tok=await gbAuth(),q=create?'?currentDocument.exists=false':'?'+mask.map(m=>'updateMask.fieldPaths='+encodeURIComponent(m)).join('&');
+  const body={fields:Object.fromEntries(Object.entries(fields).map(([k,v])=>[k,roomVal(v)]))};
+  return gbJSON(roomDocUrl(code)+q,{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify(body)})}
+async function roomCreate(course,g){
+  await gbAuth();
+  for(let tries=0;tries<4;tries++){const code=newRoomCode();
+    try{await roomPatch(code,{host:gb.uid,hostName:(myName().trim()||'Golfer').slice(0,20),course,seed:Math.floor(Math.random()*2**31),g,state:'lobby',at:new Date(),ver:1,['p_'+gb.uid]:{...myLine(),sc:'',h:0,d:false}},null,true);
+      roomRemember(code);return code}catch(e){if(e.status!==409&&e.status!==400)throw e}}
+  throw new Error('Couldn\'t make a room. Try again.')}
+async function roomJoin(code){
+  const r=await roomGet(code);
+  if(!r)throw new Error('No room with that code. Check the letters and try again.');
+  if(Date.now()-Date.parse(r.at)>ROOM_LIFE)throw new Error('That room has closed. Rooms last a day.');
+  const mine=r.players.find(p=>p.uid===gb.uid);
+  if(!mine&&r.players.length>=ROOM_MAX)throw new Error('That room is full. Rooms hold up to 4 players.');
+  if(!mine&&r.state==='done')throw new Error('That round has finished.');
+  if(!mine)await roomPatch(code,{['p_'+gb.uid]:{...myLine(),sc:'',h:0,d:false}},['p_'+gb.uid]);
+  roomRemember(code);return code}
+async function roomPushMe(){if(!ROOM)return;try{await roomPatch(ROOM.code,{['p_'+gb.uid]:myLine()},['p_'+gb.uid])}catch(e){/* tried again on the next hole */}}
+// Standings: lowest score against par for the holes each player has finished
+function roomRows(r){const H9=COURSES[r.course]?COURSES[r.course].holes:HOLES;
+  return r.players.map(p=>{const tot=p.sc.reduce((a,b)=>a+b,0),par=H9.slice(0,p.h).reduce((a,h)=>a+h.par,0);return{...p,tot,rel:tot-par,me:p.uid===gb.uid}})
+    .sort((a,b)=>(b.h>0)-(a.h>0)||a.rel-b.rel||b.h-a.h)}
+function roomBoardHTML(r){
+  if(!r)return '<div class="blurb">Fetching the room…</div>';
+  const rows=roomRows(r),fresh=t=>t&&Date.now()-Date.parse(t)<6e5;
+  return `<div class="gblist">${rows.map((p,i)=>`<div class="gbrow${p.me?' me':''}"><span class="gbn">${p.h?i+1:'·'}</span><span class="gbw"><b>${esc(p.n)}</b><small>${[p.me?'You':'',p.uid===r.host?'Host':'',p.t?esc(p.t):'',r.state==='lobby'?'Ready':p.d?'Finished':p.h?`Thru ${p.h}`:'On the 1st tee',r.state==='play'&&!p.d&&!fresh(p.at)&&p.h?'Away':''].filter(Boolean).join(' · ')}</small></span><span class="gbs">${p.h?`${p.tot} (${toPar(p.rel)})`:'–'}</span></div>`).join('')}</div>`}
+// In-game: check the room every 15 seconds and after each hole, and call out other players' holes
+let roomSeen={},roomPlayT=0;
+function roomTicker(r){
+  if(!r)return;const H9=COURSES[r.course].holes;
+  const lines=[];
+  for(const p of r.players){if(p.uid===gb.uid)continue;const was=roomSeen[p.uid]??p.h;
+    if(p.h>was){const k=p.h-1,d=p.sc[k]-H9[k].par,word=p.sc[k]===1?'Hole in one!':NAMES[d]||(d>0?`+${d}`:`${d}`),tot=p.sc.reduce((a,b)=>a+b,0),rel=tot-H9.slice(0,p.h).reduce((a,h)=>a+h.par,0);
+      lines.push(`<b>${esc(p.n)}</b> · ${word} on ${p.h} · ${p.d?'finished':'thru '+p.h} at ${toPar(rel)}`)}
+    roomSeen[p.uid]=p.h}
+  if(lines.length&&gameOn&&$('#end').hidden&&state==='ready')toast(lines.join('<br>'))}
+async function roomRefresh(){if(!ROOM||roomBusy)return;roomBusy=true;try{const r=await roomGet(ROOM.code);if(r){roomTicker(r);ROOM.doc=r;const box=$('#roomLive');if(box)box.innerHTML=roomBoardHTML(r)}}catch(e){}roomBusy=false}
+function roomPlayLoop(on){clearInterval(roomPlayT);if(on)roomPlayT=setInterval(()=>{if(!gameOn||!CH||!CH.room){clearInterval(roomPlayT);return}if(!document.hidden)roomRefresh()},15000)}
+function roomHole(){if(!ROOM)return;roomPushMe().then(roomRefresh)}
+function roomEndHTML(){return `<div class="cc chend"><div class="cc-name">Room ${esc(ROOM?ROOM.code:'')}</div><div id="roomLive">${roomBoardHTML(ROOM&&ROOM.doc)}</div><div class="blurb">The board keeps updating as the others finish.</div><div class="acts"><button id="roomBack" class="sbtn pri">Back to the room</button></div></div>`}
+function roomStartRound(r){
+  ROOM={code:r.code,doc:r};roomSeen=Object.fromEntries(r.players.map(p=>[p.uid,p.h]));
+  clearInterval(roomT);
+  startGame({mode:'solo',course:COURSES[r.course].holes,challenge:{id:'room-'+r.code,c:r.course,seed:r.seed,g:r.g,host:r.hostName,room:r.code}});
+  roomPlayLoop(true)}
+// Menu screen: create, join, lobby and results
+let roomPick='ashby',roomGear='own',roomCodeIn='';
+function openRooms(b,code){
+  clearInterval(roomT);if(!code)roomWasLobby=false;
+  const head=`<div class="screen-h"><div class="sheet-title">Play with friends</div><button id="mBack" class="ghost">Back</button></div>`;
+  if(!gbOn()){b.innerHTML=head+'<div class="cc"><div class="blurb">Online rooms aren\'t switched on in this build yet.</div></div>';$('#mBack').onclick=()=>openMenu('home');return}
+  if(code){
+    b.innerHTML=head+`<div class="cc"><div class="cc-top"><div class="cc-name">Room <span class="roomcode">${esc(code)}</span></div><span class="chip" id="roomState">Lobby</span></div>
+      <div class="blurb" id="roomInfo">Send the code to your friends. Up to 4 players.</div>
+      <div class="acts"><button id="roomShare" class="sbtn pri">Invite friends</button></div><div id="roomShareMsg" class="blurb"></div></div>
+      <div class="cc"><div class="cc-name">Players</div><div id="roomLive">${roomBoardHTML(ROOM&&ROOM.code===code?ROOM.doc:null)}</div><div id="roomGo"></div><div id="roomErr" class="blurb"></div></div>`;
+    $('#mBack').onclick=()=>{clearInterval(roomT);openMenu('rooms')};
+    $('#roomShare').onclick=()=>{const r=ROOM&&ROOM.doc;shareText(`⛳ Join my Fairway Tales room${r?` on ${COURSES[r.course].name}`:''}! Same pins and wind for everyone, live scores.\n\nTap to join: ${roomUrl(code)}\n\nOr enter code ${code} in Play with friends.`,'#roomShareMsg')};
+    const paint=r=>{if(!$('#roomLive'))return clearInterval(roomT);
+      if(!r){$('#roomErr').textContent='This room has closed.';clearInterval(roomT);return}
+      ROOM={code,doc:r};const C=COURSES[r.course],host=r.host===gb.uid,mine=r.players.find(p=>p.uid===gb.uid);
+      $('#roomLive').innerHTML=roomBoardHTML(r);
+      $('#roomState').textContent=r.state==='lobby'?'Lobby':r.state==='play'?'Playing':'Finished';
+      $('#roomInfo').innerHTML=`<b>${esc(C.name)}</b> · 9 holes · par ${C.holes.reduce((a,h)=>a+h.par,0)} · ${r.g==='club'?'everyone on the Clubhouse set':'bring your own bag'}. Same pins and wind for everyone.`;
+      const go=$('#roomGo');
+      if(r.state==='lobby')go.innerHTML=host?`<button id="roomStart" class="mbtn pri"><b>Tee off</b><span>${r.players.length>1?`Start the round for all ${r.players.length} players`:'Waiting for friends? You can start on your own too'}</span></button>`:`<div class="blurb">Waiting for ${esc(r.hostName)} to tee off. The round starts by itself.</div>`;
+      else if(mine&&!mine.d)go.innerHTML=`<button id="roomPlay" class="mbtn pri"><b>${mine.h?'Carry on':'Tee off'}</b><span>${mine.h?`You're thru ${mine.h}. Your scores so far are saved in the room`:'The round has started'}</span></button>`;
+      else go.innerHTML='';
+      if($('#roomStart'))$('#roomStart').onclick=async()=>{$('#roomStart').disabled=true;try{await roomPatch(code,{state:'play'},['state']);r.state='play';roomStartRound(r)}catch(e){$('#roomErr').textContent='Couldn\'t start the round. Check your connection and try again.';$('#roomStart').disabled=false}};
+      if($('#roomPlay'))$('#roomPlay').onclick=()=>roomStartRound(r);
+      // guests jump straight in when the host tees off
+      if(r.state==='play'&&!host&&mine&&!mine.h&&roomWasLobby){roomWasLobby=false;roomStartRound(r);return}
+      roomWasLobby=r.state==='lobby'};
+    const tick=async()=>{if(document.hidden)return;try{paint(await roomGet(code))}catch(e){if($('#roomErr'))$('#roomErr').textContent='Can\'t reach the room right now. Still trying…'}};
+    tick();roomT=setInterval(tick,4000);
+    return}
+  const open=Object.entries(COURSES).filter(([k])=>courseOpen(k));if(!courseOpen(roomPick))roomPick='ashby';
+  const last=roomSaved();
+  b.innerHTML=head+`<div class="blurb">Play the same 9 holes at the same time as your friends, each on your own phone, wherever you are. Same pins, same wind, and a live scoreboard.</div>
+    ${roomMsg?`<div class="reward">${esc(roomMsg)}</div>`:''}
+    <div class="cc"><div class="cc-name">Your name</div><input id="rmName" class="sel" maxlength="20" value="${esc(myName())}" placeholder="How your friends will see you" autocomplete="off" aria-label="Your name"></div>
+    ${last?`<button id="rmLast" class="mbtn"><b>Back to room ${esc(last.code)}</b><span>Your last room, open for a day</span></button>`:''}
+    <div class="cc"><div class="cc-name">Join a room</div><div class="blurb">Got a code from a friend? Pop it in.</div>
+      <input id="rmCode" class="sel roomin" maxlength="6" value="${esc(roomCodeIn)}" placeholder="ABC123" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code">
+      <div class="acts"><button id="rmJoin" class="sbtn pri">Join</button></div></div>
+    <div class="cc"><div class="cc-name">Start a room</div>
+      <label class="blurb" for="rmCourse">Course</label><select id="rmCourse" class="sel">${open.map(([k,C])=>`<option value="${k}"${k===roomPick?' selected':''}>${C.name} · par ${C.holes.reduce((a,h)=>a+h.par,0)}</option>`).join('')}</select>
+      <div class="seg small" style="margin-top:8px"><button data-rg="own" aria-pressed="${roomGear==='own'}">Own bags</button><button data-rg="club" aria-pressed="${roomGear==='club'}">Clubhouse set</button></div>
+      <div class="blurb">${roomGear==='club'?'Everyone plays the same starter clubs: pure skill.':'Everyone brings their own clubs, parts and ball.'}</div>
+      <div class="acts"><button id="rmMake" class="sbtn pri">Create room</button></div></div>
+    <div id="rmErr" class="blurb"></div>
+    <div class="blurb">Rooms hold up to 4 players and close after a day. Your name, title and scores are shared with the people in your room.</div>`;
+  roomMsg='';
+  const needName=()=>{const n=$('#rmName').value.trim().slice(0,20);if(!n){$('#rmName').focus();$('#rmName').placeholder='Add your name first';return false}setMyName(n);return true};
+  const fail=e=>{$('#rmErr').textContent=e&&e.message&&!/^HTTP|PERMISSION|Missing/i.test(e.message)?e.message:'Can\'t reach the rooms right now. Check your connection and try again.'};
+  $('#mBack').onclick=()=>openMenu('home');
+  $('#rmName').onchange=()=>setMyName($('#rmName').value.trim().slice(0,20));
+  $('#rmCode').oninput=()=>{roomCodeIn=cleanRoomCode($('#rmCode').value);if($('#rmCode').value!==roomCodeIn)$('#rmCode').value=roomCodeIn};
+  $('#rmCourse').onchange=()=>{roomPick=$('#rmCourse').value};
+  b.querySelectorAll('[data-rg]').forEach(x=>x.onclick=()=>{roomGear=x.dataset.rg;roomPick=$('#rmCourse').value;openMenu('rooms')});
+  if($('#rmLast'))$('#rmLast').onclick=()=>{if(!needName())return;roomJoin(last.code).then(c=>openMenu('room:'+c),fail)};
+  $('#rmJoin').onclick=()=>{if(!needName())return;const c=cleanRoomCode($('#rmCode').value);if(c.length!==6){$('#rmErr').textContent='Room codes are 6 letters and numbers.';return}
+    $('#rmJoin').disabled=true;roomJoin(c).then(c2=>{roomCodeIn='';openMenu('room:'+c2)},e=>{fail(e);$('#rmJoin').disabled=false})};
+  $('#rmMake').onclick=()=>{if(!needName())return;$('#rmMake').disabled=true;roomCreate($('#rmCourse').value,roomGear).then(c=>openMenu('room:'+c),e=>{fail(e);$('#rmMake').disabled=false})};
+}
+
 setTimeout(()=>gbFlush(),2000);
 
 const chHash=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36).slice(0,5)};
@@ -4772,7 +4917,9 @@ function resultShareText(id){const e=chStore()[id],m=e.mine,tot=m.s.reduce((a,b)
 function playChallenge(id){const e=chStore()[id];startGame({mode:'solo',course:COURSES[e.ch.c].holes,challenge:e.ch})}
 // links like …/Fairway-Tales/#ch=CODE open straight into the challenge
 function handleLinkHash(){
-  const h=location.hash;if(!/^#(ch|r)=/.test(h))return false;
+  const h=location.hash;
+  if(/^#room=/.test(h)){roomCodeIn=cleanRoomCode(h);history.replaceState(null,'',location.pathname+location.search);roomMsg=`You've been invited to room ${roomCodeIn}. Add your name and tap Join.`;openMenu('rooms');return true}
+  if(!/^#(ch|r)=/.test(h))return false;
   try{const r=addCode(h);history.replaceState(null,'',location.pathname+location.search);chOpen=r.id;chFlash=r.msg;openMenu('chview');return true}catch(e){chFlash=e.message;openMenu('challenges');return true}
 }
 let chFlash='';

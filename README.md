@@ -17,6 +17,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Online leaderboards:** see how you stack up against players everywhere on today's daily, the best round on each course, and a wall of every hole in one. No account needed.
 - **Trophies:** 43 achievements with rewards, and titles to show off on challenge and online leaderboards.
 - **Legendary clubs:** seven clubs you can't buy or find. Complete each club's trial to earn it.
+- **Play with friends online:** make a room, send the code, and up to 4 of you play the same 9 holes at the same time on your own phones, with live scores.
 - **Pass & play:** 2 to 4 players on one phone.
 - **Practice ground:** a driving range, a chipping green (fairway, rough or bunker lies) and a putting green with four surfaces.
 - **Play a hole:** any hole, unlimited undo.
@@ -29,7 +30,7 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Guide line:** a rangefinder from the pro shop that shows where a clean strike will land while you swipe.
 - **Leave a review:** tell the developer what you think, right from the menu.
 
-The online leaderboards are the only part of the game that needs the internet. They share your name, title and scores, nothing else. Everything else works offline.
+The online leaderboards and rooms are the only parts of the game that need the internet. They share your name, title and scores, nothing else. Everything else works offline.
 
 ## How to play
 
@@ -44,6 +45,14 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 1.1 · 5 November 2026
+- **Play with friends online.** A new button on the main menu:
+  - **Make a room**, pick a course and choose own bags or the Clubhouse set, then send the 6-letter code or invite link to up to 3 friends.
+  - Everyone sees who's in the lobby. When the host tees off, the round starts for everyone, with the same pins and the same wind.
+  - **Live scores:** play at your own pace on your own phone. After each hole you see the room's standings, and a callout pops up when a friend finishes a hole ("Dan · Birdie on 4 · thru 4 at -1").
+  - Phone died mid-round? Open Play with friends and tap **Back to room**. Your scores so far are saved, and rooms stay open for a day.
+- Skyreach best rounds now post to the online leaderboard.
 
 ### 1.0 · 5 November 2026
 - **Chapter 5: Skyreach.** The story's finale: the Tour Championship on a clifftop course above the clouds.

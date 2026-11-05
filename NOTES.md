@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 5 November 2026 · game version **1.0.0**
+Last updated: 5 November 2026 · game version **1.1.0**
 
 ---
 
@@ -110,6 +110,7 @@ Last updated: 5 November 2026 · game version **1.0.0**
 - **Two dailies (0.15):** `dailyToday(c)` seeds with `ftd3` for 3-click. `dHist(c)` gives `save.daily.hist` (pad) or `hist3` (3-click). The streak (`days`) and Hawkeye only tick if neither track has today yet.
 - **Challenge results (0.15):** FTR1 carries `m:1` for 3-click, included in the hash. Older codes still validate. Leaderboard shows 🎯 3-click.
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
+- **Live rooms (1.1):** section `Live rooms` after the leaderboards. One Firestore doc per room, `rooms/CODE` (6 chars from `ROOM_ABC`). Fields: host, hostName, course, seed, g, state (lobby, play, done), at, ver, plus `p_<uid>` maps {n, t, sc (comma list), h, d, at}. Each player PATCHes only their own field with `updateMask`. The host flips `state`. Lobby polls every 4 s (`roomT`); in play `roomPlayLoop` polls every 15 s and after each hole (`roomHole()` from the hole-end code), and `roomTicker()` toasts other players' holes. The round is a challenge round (`CH.room` set), so seeded pins and wind and the challenge reward rules apply. `#room=CODE` links prefill the join box. Security rules are in `firestore.rules` in the repo: paste them into Firebase → Firestore → Rules whenever they change.
 - **Reviews:** the "Leave a review" button posts to Kris's Google Form.
 - **New-player help (0.18):** `coachTick()` (called from `hud()`) shows one-off tips on the pad (swing, aim, club, putt) with a ghost thumb. Stored in `fsl-coach`. Existing players get `{all:1}` on first load. `brandNew()` shows a welcome card on the menu instead of What's new (key `fsl-seen-v100`). How to play has a quick start, and its sections fold away.
 
@@ -121,9 +122,7 @@ Last updated: 5 November 2026 · game version **1.0.0**
 
 ## Agreed but not built yet (don't re-decide)
 
-1. **Live multiplayer rooms** (first big update after 1.0):
-   - Players join with a share code.
-   - It would use Firebase on the free Spark plan. Give Kris a cost heads-up before setting it up.
+1. **Fully live multiplayer** (seeing each other's balls, taking turns) is a possible later step. Rooms (1.1) cover playing together with live scores.
 
 Kris's rule: the Play Store release happens only once a game is completely finished, as the very last step. No Godot remake: Godot is a separate side project.
 
@@ -150,3 +149,4 @@ Kris's rule: the Play Store release happens only once a game is completely finis
   - Shipped 0.18: new-player pass (welcome card, first-shot coach tips, quick-start How to play, gentler first Toby match) and the Claude credit line.
   - Shipped 0.19: club rework (baseline 10, rarity and level boost parts, factory heads) and the ball slot.
   - Shipped 1.0: Chapter 5, Skyreach, with 4 rivals, 4 epic clubs, an ending and the Top of the World trophy.
+  - Shipped 1.1: live rooms (play with friends online) and updated Firestore rules (rooms plus the Skyreach board).
