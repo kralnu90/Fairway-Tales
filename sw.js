@@ -8,9 +8,11 @@ self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.
 self.addEventListener('fetch',e=>{
   const req=e.request; if(req.method!=='GET')return;
   const url=new URL(req.url);
+  // version.json is the update check: always ask the network, never keep a copy.
+  if (url.pathname.endsWith('/version.json')) return;
   if(req.mode==='navigate'||url.pathname.endsWith('/index.html')){
     // network first for the game itself
-    e.respondWith(fetch(req).then(r=>{const copy=r.clone();caches.open(VERSION).then(c=>c.put('index.html',copy));return r}).catch(()=>caches.match('index.html')));
+    e.respondWith(fetch(req,{cache:'no-cache'}).then(r=>{const copy=r.clone();caches.open(VERSION).then(c=>c.put('index.html',copy));return r}).catch(()=>caches.match('index.html')));
     return;
   }
   if(url.origin===location.origin||url.host.endsWith('fonts.googleapis.com')||url.host.endsWith('fonts.gstatic.com')){
