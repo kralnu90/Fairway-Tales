@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 5 November 2026 · game version **1.1.2**
+Last updated: 11 November 2026 · game version **1.2.0**
 
 ---
 
@@ -40,7 +40,8 @@ Last updated: 5 November 2026 · game version **1.1.2**
    - Add a changelog entry at the top of the README's `## Changelog` in the same style.
    - Update "What's in it" if features changed.
    - Publish the preview artifact, then send index.html and README.md.
-   - The preview artifact is index.html with a different wrapper: drop everything before the Google Fonts `<link>` and put `<title>Fairway Tales</title>` and `<meta name="claude:viewport-fit-sides" content="cover">` there instead. Remove `</head><body>` and the service-worker `<script>` at the end, along with `</body></html>`.
+   - Bump `version.json` and the `BUILD` value in the `kg-update` script to the same version, so players get the update notice and the red dot.
+   - The preview artifact is index.html with a different wrapper: keep everything from `<title>Fairway Tales</title>` onwards, put `<!DOCTYPE html><meta charset="utf-8"><meta name="viewport" ...>` in front, and drop the final `</body></html>`. Publish with `publish_files` from a file.
 6. **Service worker:** `sw.js` fetches the game page from the network first, so updates show without changes. Only bump its `VERSION` if icons or the manifest change.
 
 ## How the game is built (key systems)
@@ -112,6 +113,11 @@ Last updated: 5 November 2026 · game version **1.1.2**
 - **Shot summary (0.13.1):** tap it or its × to close. It clears itself after 10 seconds.
 - **Live rooms (1.1):** section `Live rooms` after the leaderboards. One Firestore doc per room, `rooms/CODE` (6 chars from `ROOM_ABC`). Fields: host, hostName, course, seed, g, state (lobby, play, done), at, ver, plus `p_<uid>` maps {n, t, sc (comma list), h, d, at}. Each player PATCHes only their own field with `updateMask`. The host flips `state`. Lobby polls every 4 s (`roomT`); in play `roomPlayLoop` polls every 15 s and after each hole (`roomHole()` from the hole-end code), and `roomTicker()` toasts other players' holes. The round is a challenge round (`CH.room` set), so seeded pins and wind and the challenge reward rules apply. `#room=CODE` links prefill the join box. Security rules are in `firestore.rules` in the repo: paste them into Firebase → Firestore → Rules whenever they change.
 - **Reviews:** the "Leave a review" button posts to Kris's Google Form.
+- **Main menu (1.2):** six buttons plus a footer. **Continue** (`#mCont`, opens the story; **Resume** replaces it mid-round), then group buttons that open slide-up panels (`menuPop(key)`, panels defined in `MPOPS`, section `Main menu pop-ups` just before the hero): **Play now** (Story, 9 holes, Practice ground, Play a hole, How to play), **Compete** (Pass & play, Play with friends online, Challenges, Leaderboards), **My golfer** (My bag, Trophies), **Course creator** (direct), **Under the hood** (Settings, Backup, Version info → screen `version`, Install the app). Footer pills: Review and ☕ Support the game.
+  - Icon helpers `MIC()`, `ICONS`, `CHEV`, `MB()` are top level (named `MIC` because `IC` is the Frostpeak hole builder). `storyCh()` and `storySub()` give the chapter and story line.
+  - Panels close with ✕, a tap on the backdrop, Escape or the phone's back button (`history.pushState({ftPop:1})`, `popstate`). An item with `back:'screen'` sets `mpopReturn`, so backing out of that screen to home reopens the panel (`'__bag'` handles the bag sheet). Starting a game clears it.
+  - **Shot of the Day** is the player-facing name of the daily challenge (code still says `daily`). It's the top card on the Challenges screen; the daily screen's Back goes to Challenges.
+  - **Update dot:** the `kg-update` check sets `window.kgNewVer`/`kgLatest` and `html.kg-has-update`. CSS shows a red dot and border on `#gHood`, "Update ready" text, and a NEW tag on Version info. Opening Under the hood stores `kg-upd-seen` and adds `kg-upd-seen`, which hides the outer dot; the NEW tag stays until they update.
 - **New-player help (0.18):** `coachTick()` (called from `hud()`) shows one-off tips on the pad (swing, aim, club, putt) with a ghost thumb. Stored in `fsl-coach`. Existing players get `{all:1}` on first load. `brandNew()` shows a welcome card on the menu instead of What's new (key `fsl-seen-v100`). How to play has a quick start, and its sections fold away.
 
 - **Graphics (0.17):**
@@ -133,6 +139,7 @@ Kris's rule: the Play Store release happens only once a game is completely finis
 
 ## Session log
 
+
 - **27 Oct 2026:**
   - Shipped 0.13: daily challenge, trophies, legendary clubs.
   - Shipped 0.13.1: closable shot summary.
@@ -151,3 +158,5 @@ Kris's rule: the Play Store release happens only once a game is completely finis
   - Shipped 1.0: Chapter 5, Skyreach, with 4 rivals, 4 epic clubs, an ending and the Top of the World trophy.
   - Shipped 1.1: live rooms (play with friends online) and updated Firestore rules (rooms plus the Skyreach board).
   - Shipped 1.1.1 (room standings between holes) and 1.1.2: fixed the long-standing freeze (divide by zero in `stepRoll()` when a ball stopped mid-bounce gave NaN, `draw()` then threw every frame, state stayed 'roll' so every button was blocked). `frame()` now schedules itself first and wraps physics and drawing in try/catch, with `rescueShot()` and a 25 s `busyT` watchdog. A shot fuzzer (thousands of random strikes on every course, frames stepped by hand) is the way to hunt this kind of bug.
+- **11 Nov 2026:**
+  - Shipped 1.2: main menu tidied into slide-up panels, Continue button, daily challenge renamed Shot of the Day, update dot on Under the hood.

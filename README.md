@@ -13,8 +13,8 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Story:** five chapters and 20 rivals. Ashby Green, then Gullhaven Links for the County Qualifier, Sun Mesa for the County Championship, Frostpeak for the Winter Open, and Skyreach for the Tour Championship.
 - **Solo round:** 9 holes on any course you've unlocked: Ashby Green, Gullhaven Links, Sun Mesa, Frostpeak or Skyreach. Earn coins, club XP and reward bags.
 - **Challenges:** send friends a link, everyone plays the same pins and wind on their own phone, then compare on a leaderboard.
-- **Daily challenge:** one quick mini-game a day, the same for everyone. Closest to the pin, long drive, up and in, or putting. Win gold, silver or bronze.
-- **Online leaderboards:** see how you stack up against players everywhere on today's daily, the best round on each course, and a wall of every hole in one. No account needed.
+- **Shot of the Day:** one quick mini-game a day, the same for everyone. Closest to the pin, long drive, up and in, or putting. Win gold, silver or bronze.
+- **Online leaderboards:** see how you stack up against players everywhere on today's Shot of the Day, the best round on each course, and a wall of every hole in one. No account needed.
 - **Trophies:** 43 achievements with rewards, and titles to show off on challenge and online leaderboards.
 - **Legendary clubs:** seven clubs you can't buy or find. Complete each club's trial to earn it.
 - **Play with friends online:** make a room, send the code, and up to 4 of you play the same 9 holes at the same time on your own phones, with live scores.
@@ -26,15 +26,16 @@ A top-down golf RPG. Swipe to swing, shape your shots with spin, collect and lev
 - **Fittings:** every club starts at 10 in every stat. Heads, shafts and grips in five rarities trade one stat for another, boosted by your club's rarity and level. Trade 3 in for 1 new one.
 - **Your ball:** Distance, Tour, Soft or Heavy. Yours for good.
 - **Bag & pro shop:** 53 clubs to collect, level, tune up and forge. Better stock unlocks as your handicap drops.
-- **3-click swing:** an optional tap-tap-tap meter for players who'd rather not swipe, with its own daily challenge.
+- **3-click swing:** an optional tap-tap-tap meter for players who'd rather not swipe, with its own Shot of the Day.
 - **Guide line:** a rangefinder from the pro shop that shows where a clean strike will land while you swipe.
-- **Leave a review:** tell the developer what you think, right from the menu.
+- **Leave a review:** tell the developer what you think, right from the main menu.
+- **Updates:** when a new version is out, the game tells you, and Under the hood gets a red dot until you've had a look.
 
 The online leaderboards and rooms are the only parts of the game that need the internet. They share your name, title and scores, nothing else. Everything else works offline.
 
 ## How to play
 
-There's a full guide on the main menu too.
+There's a full guide in the game too: **Play now → How to play**.
 
 - **Swing:** swipe down for your backswing, pause, then swipe up. How straight you swipe shapes the shot.
 - **3-click swing:** switch to it in Settings. Tap to start, tap for power, then tap on the line.
@@ -45,6 +46,19 @@ There's a full guide on the main menu too.
 - **Mulligan:** one per round lets you retake your last shot. You also get one green read (putt preview) per hole.
 
 ## Changelog
+
+### 1.2 · 11 November 2026
+- **A tidier main menu.** Nearly 20 buttons are now six, and each one opens a panel that slides up from the bottom:
+  - **Continue** (or **Resume** mid-round) takes you straight back into the story.
+  - **Play now:** Story mode, 9 holes, Practice ground, Play a hole and How to play.
+  - **Compete:** Pass & play, Play with friends online, Challenges and Leaderboards.
+  - **My golfer:** your bag and your trophies.
+  - **Course creator.**
+  - **Under the hood:** Settings, Backup, Version info and Install the app.
+  - **Review** and **Support the game** are small buttons along the bottom.
+- Close a panel with the ✕, by tapping outside it, or with your phone's back button. Backing out of a screen takes you back to the panel you came from.
+- **Shot of the Day** is the new name for the daily challenge. It sits at the top of Challenges.
+- **Update dot:** when a new version is out, Under the hood shows a red dot and Version info shows a NEW tag.
 
 ### 1.1.2 · 5 November 2026
 - **Fixed the freeze.** On some short shots, mostly ones with backspin, the ball could stop dead in the middle of its landing bounce. The game then divided by zero, lost track of the ball and froze: the picture looked shifted to one side, and the swing pad and every button stopped responding until you closed the game. That's fixed.
