@@ -620,7 +620,7 @@ const DEFS=[
   {id:'cd',t:'driver',n:'Clubhouse Driver',r:'common',st:[6,5,4,6],f:['P'],src:'starter'},
   {id:'thunder',tier:'low',t:'driver',n:'Thunderhead',r:'rare',st:[11,4,5,5],f:['P'],src:'shop',price:2400,blurb:'Massive carry. Mind the miss.'},
   {id:'needle',tier:'low',t:'driver',n:'Needle',r:'rare',st:[6,11,5,6],f:['C'],src:'shop',price:2400,blurb:'Threads the tightest fairways.'},
-  {id:'gale',t:'driver',n:'Gale Breaker',r:'epic',st:[11,8,6,7],f:['P','C'],src:'rival',srcText:'Beat Toby Crane for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 30% less.'},
+  {id:'gale',t:'driver',n:'Gale Breaker',r:'epic',st:[11,8,6,7],f:['P','C'],src:'rival',srcText:'Beat Toby Crane for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 20% less. All wind bonuses together max out at 30%.'},
   {id:'sun',t:'driver',n:'Sunforged',r:'legendary',st:[14,10,8,10],f:['P','F'],src:'legend',srcText:'Trial: carry a drive 300 yards or more in a real round',perk:'noover',perkText:'No overswing penalty. Swinging past 100% just sends it further.'},
   {id:'c3',t:'wood3',n:'Clubhouse 3 Wood',r:'common',st:[6,5,4,6],f:['C'],src:'starter'},
   {id:'finder',tier:'low',t:'wood3',n:'Fairway Finder',r:'rare',st:[7,9,4,9],f:['F'],src:'shop',price:1800,blurb:'Sweeps it clean from any lie.'},
@@ -647,7 +647,7 @@ const DEFS=[
   {id:'bumprun',t:'pw',n:'Bump & Run',r:'epic',st:[6,10,8,9],f:['C','F'],src:'rival',srcText:'Beat Callum Reid for shards, then collect 5 to forge it',perk:'roll',perkText:'+25% rollout on every landing.'},
   {id:'stinger',t:'iron5',n:'Stinger',r:'epic',st:[9,10,6,8],f:['C','P'],src:'rival',srcText:'Beat Fiona Baird for shards, then collect 5 to forge it',perk:'pot',perkText:'Pot bunkers play like normal bunkers.'},
   {id:'tidewater',t:'putter',n:'Tidewater',r:'epic',st:[0,12,0,11],f:['C'],src:'rival',srcText:'Beat Old Tam for shards, then collect 5 to forge it',perk:'read2',perkText:'Two green reads per hole.'},
-  {id:'northerly',t:'wood3',n:'Northerly',r:'epic',st:[12,10,7,8],f:['P','C'],src:'rival',srcText:'Win the County Qualifier in Story mode',perk:'wind',perkText:'Wind moves your shots 30% less.'},
+  {id:'northerly',t:'wood3',n:'Northerly',r:'epic',st:[12,10,7,8],f:['P','C'],src:'rival',srcText:'Win the County Qualifier in Story mode',perk:'wind',perkText:'Wind moves your shots 20% less. All wind bonuses together max out at 30%.'},
   {id:'sidewinder',t:'iron7',n:'Sidewinder',r:'epic',st:[8,11,8,9],f:['C','F'],src:'rival',srcText:'Beat Ricky Salazar for shards, then collect 5 to forge it',perk:'waste',perkText:'Waste areas play like the fairway.'},
   {id:'oasis',t:'iron9',n:'Oasis',r:'epic',st:[7,11,12,7],f:['S','C'],src:'rival',srcText:'Beat Dr Priya Shah for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
   {id:'thunderclap',t:'driver',n:'Thunderclap',r:'epic',st:[14,7,6,7],f:['P'],src:'rival',srcText:'Beat Big Wes Calder for shards, then collect 5 to forge it',perk:'air',perkText:'+6% carry on every shot.'},
@@ -655,7 +655,7 @@ const DEFS=[
   {id:'snowplough',t:'sw',n:'Snowplough',r:'epic',st:[6,9,12,11],f:['F','S'],src:'rival',srcText:'Beat Nils Bergqvist for shards, then collect 5 to forge it',perk:'snow',perkText:'Snowdrifts play like normal bunkers.'},
   {id:'katana',t:'iron5',n:'Katana',r:'epic',st:[10,12,8,7],f:['C','S'],src:'rival',srcText:'Beat Yuki Tanaka for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
   {id:'avalanche',t:'driver',n:'Avalanche',r:'epic',st:[13,9,6,9],f:['P','F'],src:'rival',srcText:'Beat Brock Harlan for shards, then collect 5 to forge it',perk:'roll',perkText:'+25% rollout on every landing.'},
-  {id:'jetstream',t:'driver',n:'Jetstream',r:'epic',st:[12,9,6,8],f:['P','C'],src:'rival',srcText:'Beat Jonah Flint for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 30% less.'},
+  {id:'jetstream',t:'driver',n:'Jetstream',r:'epic',st:[12,9,6,8],f:['P','C'],src:'rival',srcText:'Beat Jonah Flint for shards, then collect 5 to forge it',perk:'wind',perkText:'Wind moves your shots 20% less. All wind bonuses together max out at 30%.'},
   {id:'cirrus',t:'iron9',n:'Cirrus',r:'epic',st:[7,11,12,8],f:['S','C'],src:'rival',srcText:'Beat Sofia Marchetti for shards, then collect 5 to forge it',perk:'hold',perkText:'Half the rollout on greens.'},
   {id:'bigsky',t:'wood3',n:'Big Sky',r:'epic',st:[13,9,6,8],f:['P'],src:'rival',srcText:'Beat Rex Holloway for shards, then collect 5 to forge it',perk:'air',perkText:'+6% carry on every shot.'},
   {id:'zenith',t:'putter',n:'Zenith',r:'epic',st:[0,13,0,12],f:['C','F'],src:'rival',srcText:'Win the Tour Championship in Story mode',perk:'capture',perkText:'The cup plays 40% bigger.'},
@@ -712,10 +712,14 @@ const BALLS={
   distance:{n:'Distance ball',d:{P:5,S:-2},blurb:'Flies further and spins less. About 4% more carry.'},
   tour:{n:'Tour ball',d:{S:3,P:-2},blurb:'Grabs and checks up on the greens. A touch shorter.'},
   soft:{n:'Soft ball',d:{C:2,F:1,P:-2},blurb:'Lovely feel. Straighter, and kinder on putts. A touch shorter.'},
-  heavy:{n:'Heavy ball',d:{F:2,S:-1},wind:.8,blurb:'Bores through the breeze: wind moves it 20% less. Spins a little less.'}
+  heavy:{n:'Heavy ball',d:{F:2,S:-1},wind:.85,blurb:'Bores through the breeze: wind moves it 15% less. Spins a little less. All wind bonuses together max out at 30%.'}
 };
 const ballOn=()=>!clubGear()&&BALLS[save.ball]?save.ball:null;
 const ballWind=()=>{const b=ballOn();return b&&BALLS[b].wind||1};
+// Wind on a shot: topspin up to 15% less, backspin up to 35% more, wind perk 20% less, heavy ball 15% less.
+// Bonuses multiply, but together they can never cut the wind by more than WIND_CAP. Tempest ('nowind') ignores it all.
+const WIND_CAP=.3;
+function windMul(perk){if(perk==='nowind')return 0;const m=(SP.y>0?1-.15*SP.y:1-.35*SP.y)*(perk==='wind'?.8:1)*ballWind();return Math.max(1-WIND_CAP,m)}
 const fitBias=f=>FIT_STYLES[f.s].bias?FIT_STYLES[f.s].bias*(1.2+.3*f.t):0;
 function fitsOn(id,over){const m={...((save.fitOn||{})[id]||{}),...(over||{})};const out=Object.values(m).map(fitById).filter(Boolean);const fac=facFit(id);if(fac&&!fitById(m.head))out.push(fac);return out}
 function fitFx(id){const fs=clubGear()?[]:fitsOn(id);let launch=1,roll=1,bias=0;for(const f of fs){const S=FIT_STYLES[f.s];if(S.launch)launch+=S.launch;if(S.roll)roll+=S.roll;bias+=fitBias(f)}return{launch,roll,bias}}
@@ -824,11 +828,11 @@ function hcpChangeHTMLb(c){
 // sens: how much an off-line swipe bends the ball · win: how close to dead straight counts as Straight · noise: random scatter
 // drift/wob: how much backswing drift and a wobbly upswing count · rush/hang: timing windows (ms)
 const DIFF=[
-  {n:'Relaxed',sens:1,  win:1.2,noise:1,   drift:0,  wob:0,  rush:70, hang:700,hcp:'36+'},
-  {n:'Standard',sens:2,  win:.6, noise:1.4, drift:.5, wob:.5, rush:110,hang:650,hcp:'about 18'},
-  {n:'Hard',sens:2.4,win:.5, noise:1.75,drift:.7, wob:.7, rush:140,hang:600,hcp:'about 5'},
-  {n:'Very hard',sens:2.8,win:.45,noise:2.1, drift:.85,wob:.85,rush:170,hang:550,hcp:'about scratch'},
-  {n:'Pro',sens:3.2,win:.4, noise:2.5, drift:1,  wob:1,  rush:200,hang:500,hcp:'+5 and better'}];
+  {n:'Relaxed',sens:1.25,win:1.2,noise:1,   drift:0,  wob:0,  rush:70, hang:700,hcp:'36+'},
+  {n:'Standard',sens:2.5,win:.6, noise:1.4, drift:.5, wob:.5, rush:110,hang:650,hcp:'about 18'},
+  {n:'Hard',sens:3,  win:.5, noise:1.75,drift:.7, wob:.7, rush:140,hang:600,hcp:'about 5'},
+  {n:'Very hard',sens:3.5,win:.45,noise:2.1, drift:.85,wob:.85,rush:170,hang:550,hcp:'about scratch'},
+  {n:'Pro',sens:4,  win:.4, noise:2.5, drift:1,  wob:1,  rush:200,hang:500,hcp:'+5 and better'}];
 const lvlForHcp=h=>h==null?0:h>=27?0:h>=11.5?1:h>=2.5?2:h>=-2.5?3:4;
 const naturalLv=()=>{if(save.swingLv==null)save.swingLv=lvlForHcp(hcp());return save.swingLv};
 const swingLv=()=>mode==='pnp'?0:SET.swingLock!=null&&SET.swingLock!==''?+SET.swingLock:naturalLv();
@@ -1325,7 +1329,7 @@ function strike(r){
   const curveDeg=(trueShot?0:r.path*.2*ps*DP.sens+dft*.12*ps+wbl*.35*ps+gauss()*noise*.6)+SP.x*5*sf+(SET.lefty?-FX.bias:FX.bias);
   if(trueShot)notes.push('Heartwood: dead straight');
   mult*=1-.04*Math.abs(SP.y);
-  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1)*ballWind();
+  const carry=c.c*(1+S.P*.008)*mult*pow*(H.air||1)*(perk==='air'?1.06:1), wm=windMul(perk);
   // XP: a clean, well-tempoed swing earns the most
   const clean=p<=1.02&&r.pause>=70&&r.pause<=700&&Math.abs(r.path)<4&&r.follow>=.6&&r.speed>=.45;
   const okay=p<=1.06&&r.pause>=50&&Math.abs(r.path)<8;
@@ -2315,7 +2319,7 @@ spSvg.addEventListener('pointerup',()=>spDrag=null);spSvg.addEventListener('poin
 function predictShot(c,o={}){
   const sf=spinF(),perk=eqPerk(),a=angTo(ball,aim),guide=o.d!=null,d=guide?o.d:dist(ball,aim),FX=fitFx(eqId());
   const bias=guide?(SET.lefty?-FX.bias:FX.bias):0,D0=dirOf(a),D1=dirOf(a+(SP.x*5*sf+bias)*RAD);
-  let wx=0,wy=0;if(o.wind){const wm=(1-.35*SP.y)*(perk==='wind'?.7:1)*(perk==='nowind'?0:1)*ballWind();wx=wind.x*d*.0045*wm;wy=wind.y*d*.0045*wm}
+  let wx=0,wy=0;if(o.wind){const wm=windMul(perk);wx=wind.x*d*.0045*wm;wy=wind.y*d*.0045*wm}
   const P0={x:ball.x+D0.x*d,y:ball.y+D0.y*d},P={x:ball.x+D1.x*d+wx,y:ball.y+D1.y*d+wy};
   const at=t=>({x:ball.x+(P0.x-ball.x)*t+(P.x-P0.x)*t*t,y:ball.y+(P0.y-ball.y)*t+(P.y-P0.y)*t*t});
   const s=surfaceAt(P.x,P.y),rm=rollMult();
@@ -3782,7 +3786,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='1.2.0';
+const GAME_VERSION='1.2.1';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4158,7 +4162,7 @@ function openMenu(screen){
         <p>Your level moves one step at most after each solo round or championship, never mid-round. Harder levels pay <b>+10% XP and coins per level</b> above Standard, plus better odds of finding fittings.</p>
         <p>You can <b>lock</b> your level in Settings. Pass &amp; play is always Relaxed, so anyone can join in. The shot report tells you what went wrong, for example <i>outside-in</i>, <i>wobbly upswing</i> or <i>rushed transition</i>.</p>`)}
       ${sec('Aim',`<p><b>Drag anywhere on the course</b> to nudge your aim, or <b>tap</b> to jump it to a spot. The dashed line shows the curve, the gold ring is where it should land, and the arrow shows the roll.</p>`)}
-      ${sec('Strike ball',`<p>Drag the dot on the ball at the bottom of the course. <b>Top</b> gives topspin: lower flight and lots of roll. <b>Bottom</b> gives backspin: higher flight, and it stops or spins back on greens. <b>Sideways</b> adds a draw or fade. Double-tap to centre it.</p>`)}
+      ${sec('Strike ball',`<p>Drag the dot on the ball at the bottom of the course. <b>Top</b> gives topspin: lower flight, up to 15% less wind and lots of roll. <b>Bottom</b> gives backspin: higher flight, and it stops or spins back on greens. <b>Sideways</b> adds a draw or fade. Double-tap to centre it.</p><p>Wind bonuses from topspin, wind clubs and the Heavy ball stack, but never cut the wind by more than <b>30%</b> in total. Backspin makes the wind bite harder.</p>`)}
       ${sec('Putting',`<p><b>Pull down</b> on the pad and let go. Further means harder. The chevrons on the green flow downhill, and redder and faster means steeper.</p>
         <p>You get <b>one green read per hole</b>: the dotted preview line shows exactly where the putt will roll.</p>`)}
       ${sec('Changed your mind?',`<p>Mid-swing, <b>slide your thumb sideways into the red</b> and let go. No stroke is taken.</p>

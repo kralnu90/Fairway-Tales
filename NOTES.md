@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 11 November 2026 · game version **1.2.0**
+Last updated: 14 November 2026 · game version **1.2.1**
 
 ---
 
@@ -54,7 +54,7 @@ Last updated: 11 November 2026 · game version **1.2.0**
 - **Clubs (`DEFS`):**
   - 53 clubs with rarities common, rare, epic and legendary.
   - **0.19 rework:** `statsOf()` starts every club at 10 (putters have no P or S). Fitted parts are boosted by `partBoost(id,lv)` = `RAR_MUL` (1, 1.15, 1.3, 1.5) × (1 + 5% per level above 1), applied to bonuses only. Clubs above Common get a virtual factory head (`facFit()`, style from the club's first focus stat, tier by rarity) unless a real head is fitted. `DEF.st` is no longer used for stats.
-  - **Ball (0.19):** `save.ball` is distance, tour, soft or heavy (`BALLS`). Stat deltas are added in `statsOf()`. Heavy also scales wind by `ballWind()`. Ignored when `clubGear()`.
+  - **Ball (0.19):** `save.ball` is distance, tour, soft or heavy (`BALLS`). Stat deltas are added in `statsOf()`. Heavy also scales wind by `ballWind()` (0.85 since 1.2.1, inside the 30% `WIND_CAP` in `windMul()`). Ignored when `clubGear()`.
   - Sources: shop, rival shards (5 forge an epic), loot (rares only), daily, legend.
   - Clubs level up to 10, with caps at Lv 4 and Lv 7 that need tuning kits plus coins.
 - **Fittings:**
@@ -160,3 +160,4 @@ Kris's rule: the Play Store release happens only once a game is completely finis
   - Shipped 1.1.1 (room standings between holes) and 1.1.2: fixed the long-standing freeze (divide by zero in `stepRoll()` when a ball stopped mid-bounce gave NaN, `draw()` then threw every frame, state stayed 'roll' so every button was blocked). `frame()` now schedules itself first and wraps physics and drawing in try/catch, with `rescueShot()` and a 25 s `busyT` watchdog. A shot fuzzer (thousands of random strikes on every course, frames stepped by hand) is the way to hunt this kind of bug.
 - **11 Nov 2026:**
   - Shipped 1.2: main menu tidied into slide-up panels, Continue button, daily challenge renamed Shot of the Day, update dot on Under the hood.
+  - Shipped 1.2.1: wind now goes through one helper, `windMul(perk)` (next to `ballWind()`), used by `strike()` and `predictShot()`. Topspin up to 15% less, backspin up to 35% more, `perk:'wind'` ×0.8, Heavy ball ×0.85, and the total reduction is capped by `WIND_CAP` (0.3). `nowind` (Tempest) returns 0. Swing `DIFF` sens raised 25%: 1.25 / 2.5 / 3 / 3.5 / 4.

@@ -47,6 +47,14 @@ There's a full guide in the game too: **Play now → How to play**.
 
 ## Changelog
 
+### 1.2.1 · 14 November 2026
+- **Wind resistance is capped at 30%.** Wind bonuses still stack, but together they can never cut the wind by more than 30%. Before, a Heavy ball, the Gale Breaker and topspin added up to nearly two-thirds less wind.
+  - **Wind clubs** (Gale Breaker, Northerly, Jetstream): 20% less wind, down from 30%.
+  - **Heavy ball:** 15% less wind, down from 20%.
+  - **Topspin:** up to 15% less wind, down from 35%. Backspin still makes the wind bite harder.
+  - **Tempest** still ignores the wind completely.
+- **Swing is more sensitive.** An off-line swipe now bends the ball 25% more on every swing level, so a clean, straight swipe matters more. Relaxed and pass & play feel it too.
+
 ### 1.2 · 11 November 2026
 - **A tidier main menu.** Nearly 20 buttons are now six, and each one opens a panel that slides up from the bottom:
   - **Continue** (or **Resume** mid-round) takes you straight back into the story.
