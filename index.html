@@ -1265,7 +1265,7 @@ function hud(){
   $('#topin').textContent=`${fmtDist(dist(ball,PIN),c.putter)} to pin`;
   $('#preview').hidden=!c.putter; previewBtn(); guideBtn(); undoBtn();
   $('#spin').hidden=c.putter; $('.stage').classList.toggle('has-spin',!c.putter);
-  $('#padHint').textContent=clickOn()?'':c.putter?'Pull down and let go':'Swipe down · pause · swipe up';if(clickOn()&&!mtr)drawPad();
+  $('#padHint').textContent=clickOn()?'':motionOn()?(c.putter?'Hold · rock back · swing through · let go':'Hold · tilt back · pause · swing through · let go'):c.putter?'Pull down and let go':'Swipe down · pause · swipe up';if(clickOn()&&!mtr)drawPad();
   coachTick();
 }
 const surfName=s=>s==='rough'?(H.theme==='links'?'Fescue':H.theme==='ice'?'Snowy rough':H.theme==='sky'?'Alpine rough':'Rough'):s==='water'&&H.theme==='sky'?'Chasm':SURF[s].name;
@@ -1896,14 +1896,70 @@ let sw=null, PW=0, PH=0;
 const padPt=e=>{const r=pad.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()}};
 const maxBack=()=>PH*.62;
 const cancelGap=s=>Math.max(60,PW*(s.phase==='through'?.4:.26));
+/* ---------- Motion swing: hold the pad, tilt the phone back, pause, swing through, let go ---------- */
+// Angles come from adding up the phone's turning speed while the pad is held, so it works however you hold it.
+// Whichever way you tilt first counts as "back". Twisting the phone left or right is the club face (path, drift, wobble).
+// SET.motionFull: degrees of back tilt for a 100% swing. Putts use half of it for a 30-yard putt.
+let msw=null;const MS={seen:false,on:false};
+const motionFull=()=>SET.motionFull||70, MS_K=.35;
+const motionOn=()=>!!SET.motion&&MS.seen&&!clickOn();
+function onMS(e){const r=e.rotationRate;if(!r||r.beta==null)return;MS.seen=true;const m=msw;if(!m)return;
+  const t=performance.now(),dt=Math.min(.05,(t-m.tl)/1000);m.tl=t;
+  m.a+=r.beta*dt;m.tw+=(r.gamma||0)*dt;
+  if(!m.dir){if(Math.abs(m.a)>6)m.dir=Math.sign(m.a);else return}
+  const b=m.a*m.dir;
+  if(m.phase==='back'){
+    if(b>m.back){m.back=b;m.tTop=t;m.twTop=m.tw;if(!m.buzz&&!m.putt&&b>=motionFull()){m.buzz=1;try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}}}
+    else if(m.back>8&&m.back-b>6){m.phase='through';m.pause=t-m.tTop;m.tStart=t;m.tUp=t;m.twMin=m.twMax=m.tw}
+  }else{const up=m.back-b;if(up>m.up){m.up=up;m.tUp=t}m.twMin=Math.min(m.twMin,m.tw);m.twMax=Math.max(m.twMax,m.tw)}
+  msRead();
+}
+function startMS(){
+  if(MS.on)return Promise.resolve(true);
+  const go=()=>{MS.on=true;addEventListener('devicemotion',onMS)};
+  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function')
+    return DeviceMotionEvent.requestPermission().then(r=>{if(r==='granted'){go();return true}return false}).catch(()=>false);
+  if(typeof DeviceMotionEvent==='undefined')return Promise.resolve(false);
+  go();return Promise.resolve(true);
+}
+if(SET.motion)startMS();
+function msBegin(p){msw={s:p,tl:performance.now(),a:0,tw:0,dir:0,phase:'back',back:0,up:0,twTop:0,putt:club().putter};lastSw=null;
+  $('#padHint').hidden=true;coachHide();msRead()}
+function msRead(){const m=msw,r=$('#padRead');if(!m)return;
+  if(m.cancel){r.textContent='Release to cancel';r.style.color='var(--hazard)'}
+  else if(m.putt){const k=Math.min(1,m.back/(motionFull()/2));r.textContent=`${Math.round(Math.pow(k,1.3)*90)} ft`;r.style.color='var(--chalk)'}
+  else{const p=Math.min(1.15,m.back/motionFull());r.textContent=`${Math.round(p*100)}%`+(m.phase==='through'?' · swing!':'');r.style.color=p>1?'var(--hazard)':'var(--chalk)'}
+  // power meter on the pad edge, like the swipe pad
+  pctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);pctx.clearRect(0,0,PW,PH);
+  const mx=SET.lefty?10:PW-18,top=10,bot=PH-10,full=m.putt?motionFull()/2:motionFull(),p=Math.min(1.15,m.back/full),h=(bot-top)*p/1.15;
+  pctx.fillStyle='rgba(255,255,255,.08)';pctx.fillRect(mx,top,8,bot-top);
+  pctx.fillStyle=p>1?'#ec7a55':'#8fd88a';pctx.fillRect(mx,bot-h,8,h);
+  const t100=bot-(bot-top)/1.15;pctx.fillStyle='#f2c14e';pctx.fillRect(mx-4,t100-1,16,2);
+  pctx.font='800 12px "Nunito Sans",system-ui,sans-serif';pctx.fillStyle='rgba(255,255,255,.75)';pctx.textAlign='center';
+  pctx.fillText(m.phase==='through'?'Let go to hit':m.putt?'Rock back, swing through, let go':'Tilt back · pause · swing through',PW/2,PH/2);
+  pctx.fillStyle='rgba(236,122,85,.95)';pctx.font='800 11px "Nunito Sans",system-ui,sans-serif';pctx.fillText('Slide your thumb sideways to cancel',PW/2,PH-10);pctx.textAlign='left';
+}
+function msEnd(){const m=msw;msw=null;$('#padRead').textContent='';pad.classList.remove('cancel');pctx.clearRect(0,0,PW,PH);
+  const cl=(v,a)=>Math.max(-a,Math.min(a,v));
+  if(m.cancel){$('#padHint').hidden=false;$('#log').textContent='Shot cancelled. No stroke taken.';return}
+  if(m.putt){if(m.back<4){$('#padHint').hidden=false;return}
+    const k=Math.min(1,m.back/(motionFull()/2));startPutt({yd:Math.pow(k,1.3)*30,tilt:cl(m.tw*MS_K,20)});return}
+  if(m.phase!=='through'||m.back<motionFull()*.08){$('#padHint').hidden=false;$('#log').textContent='No swing. Hold the pad, tilt the phone back, pause, then swing it through and let go.';return}
+  const span=m.tw-m.twTop,wob=((m.twMax-m.twMin)-Math.abs(span))*MS_K*.5*(span<0?-1:1);
+  strike({p:Math.min(1.15,m.back/motionFull()),path:cl(span*MS_K,14),pause:m.pause,speed:m.up/Math.max(1,m.tUp-m.tStart)*3,follow:m.up/m.back,drift:cl(m.twTop*MS_K,14),wob:cl(wob,8)});
+}
+
 pad.addEventListener('pointerdown',e=>{
   if(fly){endFly();return}
   if(clickOn()){meterTap(e);return}
   if(state!=='ready'||!$('#end').hidden)return; pad.setPointerCapture(e.pointerId);
+  if(SET.motion&&!MS.on)startMS();
+  if(motionOn()){msBegin(padPt(e));return}
   const p=padPt(e); sw={phase:'back',s:p,low:p,pts:[p],putt:club().putter};
   $('#padHint').hidden=true; coachHide(); drawPad();
 });
 pad.addEventListener('pointermove',e=>{
+  if(msw){const q=padPt(e);msw.cancel=Math.abs(q.x-msw.s.x)>Math.max(60,PW*.26);pad.classList.toggle('cancel',msw.cancel);msRead();return}
   if(!sw)return; const p=padPt(e); sw.pts.push(p);
   // slide sideways past the red lines to cancel (a bit further once the upswing has started)
   sw.cancel=Math.abs(p.x-sw.s.x)>cancelGap(sw);
@@ -1916,6 +1972,7 @@ pad.addEventListener('pointermove',e=>{
   readout(); drawPad();
 });
 function endSwing(e){
+  if(msw){msEnd();return}
   if(!sw)return; const p=padPt(e), s=sw; sw.done=true; drawPad(); sw=null;
   $('#padRead').textContent=''; pad.classList.remove('cancel');
   if(s.cancel){lastSw=null;drawPad();$('#padHint').hidden=false;$('#log').textContent='Shot cancelled. No stroke taken.';return}
@@ -1938,7 +1995,7 @@ function endSwing(e){
   if(charge){save.guides--;const u=undoStack[undoStack.length-1];if(u&&u.strokes===strokes-1)u.g=1;persist();guideBtn()}
 }
 pad.addEventListener('pointerup',endSwing);
-pad.addEventListener('pointercancel',()=>{sw=null;pad.classList.remove('cancel');$('#padRead').textContent='';$('#padHint').hidden=false;drawPad()});
+pad.addEventListener('pointercancel',()=>{msw=null;sw=null;pad.classList.remove('cancel');$('#padRead').textContent='';$('#padHint').hidden=false;drawPad()});
 function readout(){
   const r=$('#padRead'); if(!sw){r.textContent='';return}
   const back=Math.max(0,sw.low.y-sw.s.y);
@@ -3786,7 +3843,7 @@ function drawWorld(){
 function worldFrame(dt){if(driving){driveStep(dt);return}worldStep(dt);drawWorld()}
 
 /* ---------- Player reviews (sent to Kris's Google Form) ---------- */
-const GAME_VERSION='1.2.1';
+const GAME_VERSION='1.3.0';
 const FORM_ID='1FAIpQLSe__mPhU5YGi9um01BreqNND9mJwaaChi_4ZCp-7P5JcCJKcw';
 const FORM_FIELDS={rating:'entry.1904387170',liked:'entry.2084220988',change:'entry.1413261780',name:'entry.1767709403',version:'entry.1994593489'};
 function reviewParams(r){const q=new URLSearchParams();q.set(FORM_FIELDS.rating,String(r.rating));q.set(FORM_FIELDS.liked,r.liked);q.set(FORM_FIELDS.change,r.change);q.set(FORM_FIELDS.name,r.name);q.set(FORM_FIELDS.version,GAME_VERSION);return q}
@@ -4128,6 +4185,11 @@ function openMenu(screen){
         <div class="blurb">Swipe on the swing pad, or tap a meter three times instead: start, power, then accuracy on the line. Shaping a draw or fade with the strike ball makes the sweet spot smaller.</div>
         <div class="seg small pg-seg"><button data-ctl="pad" aria-pressed="${SET.ctl!=='3'}">Swing pad</button><button data-ctl="3" aria-pressed="${SET.ctl==='3'}">3-click</button></div>
         <div class="blurb">${gameOn&&state!=='done'&&(SET.ctl==='3'?'3':'pad')!==CTL?'<b>Starts from your next round.</b> Control can\'t change mid-round.':'Set for the whole round once you tee off. Each control has its own Shot of the Day, and challenge results played with 3-click show 🎯.'}</div></div>
+      <div class="cc"><div class="cc-top"><div class="cc-name">Motion swing</div><span class="chip">${SET.motion?'On':'Off'}</span></div>
+        <div class="blurb">Swing with the phone instead of swiping. Hold your thumb on the swing pad, tilt the phone back, pause, then swing it through and let go. How far back you tilt is your power, the pause is your tempo, and twisting the phone left or right opens or closes the club face. Putts are a gentle rock back and through. It only works with the Swing pad control, and if your device has no motion sensor the pad swipes as normal. Keep a firm grip.</div>
+        <div class="seg small pg-seg"><button data-motion="0" aria-pressed="${!SET.motion}">Off</button><button data-motion="1" aria-pressed="${!!SET.motion}">On</button></div>
+        <div class="blurb" id="msMsg">Tilt needed for a full swing:</div>
+        <div class="seg small pg-seg">${[[50,'Short · 50°'],[70,'Medium · 70°'],[90,'Long · 90°']].map(([d,n])=>`<button data-mfull="${d}" aria-pressed="${motionFull()===d}">${n}</button>`).join('')}</div></div>
       <div class="cc"><div class="cc-top"><div class="cc-name">Swing difficulty</div><span class="chip">${DIFF[swingLv()].n}</span></div>
         <div class="blurb">The better your handicap, the harder it is to hit it straight. Your level moves up or down one step at most after each counting round, and harder levels earn more XP, coins and fittings. Pass &amp; play is always Relaxed.</div>
         <div class="seg small pg-seg"><button data-lock="" aria-pressed="${SET.swingLock==null||SET.swingLock===''}">Auto</button>${DIFF.map((d,i)=>`<button data-lock="${i}" aria-pressed="${SET.swingLock!=null&&SET.swingLock!==''&&+SET.swingLock===i}">${d.n}</button>`).join('')}</div>
@@ -4136,6 +4198,12 @@ function openMenu(screen){
       <div class="acts"><button id="sTest" class="sbtn">Test sound</button></div>`;
     $('#mBack').onclick=()=>openMenu('home');
     b.querySelectorAll('[data-ctl]').forEach(x=>x.onclick=()=>{SET.ctl=x.dataset.ctl;saveSettings();openMenu('settings')});
+    b.querySelectorAll('[data-mfull]').forEach(x=>x.onclick=()=>{SET.motionFull=+x.dataset.mfull;saveSettings();openMenu('settings')});
+    b.querySelectorAll('[data-motion]').forEach(x=>x.onclick=()=>{
+      if(x.dataset.motion==='0'){SET.motion=false;saveSettings();openMenu('settings');return}
+      startMS().then(ok=>{if(!ok){$('#msMsg').textContent='Your phone didn\'t allow motion access, so motion swing can\'t work. Check your browser\'s motion sensor permission.';return}
+        SET.motion=true;saveSettings();openMenu('settings');
+        setTimeout(()=>{const el=$('#msMsg');if(el&&!MS.seen)el.textContent='No motion sensor reading yet. Give the phone a little shake. If nothing changes, this device has no sensor and the pad will swipe as normal.'},1500)})});
     b.querySelectorAll('[data-lock]').forEach(x=>x.onclick=()=>{SET.swingLock=x.dataset.lock===''?null:+x.dataset.lock;saveSettings();openMenu('settings')});
     b.querySelectorAll('.setrow').forEach(x=>x.onclick=()=>{const k=x.dataset.k;SET[k]=!SET[k];x.setAttribute('aria-pressed',SET[k]);saveSettings();if(k==='sound'&&SET.sound)SFX.cup()});
     $('#sTest').onclick=()=>{if(!SET.sound){$('#sTest').textContent='Sound is off';return}SFX.swing(1);SFX.strike(1,true);SFX.land('fairway');setTimeout(()=>{SFX.cup();SFX.chime()},700)};
@@ -4158,6 +4226,7 @@ function openMenu(screen){
       ${sec('3-click swing (optional)',`<p>Rather tap than swipe? Set <b>Swing control</b> to 3-click in Settings. <b>Tap</b> to start the meter, <b>tap</b> again to set power (past the gold 100% line overswings), then <b>tap as the needle crosses the white line</b>. Early pulls it, late pushes it.</p>
         <p>Shape a draw or fade with the strike ball as usual, but the gold sweet spot shrinks the more you shape it. Harder swing levels run the meter faster with a smaller sweet spot. Putting works the same way with a gentler meter.</p>
         <p>Your choice is locked for the whole round. 3-click has its own Shot of the Day, and its challenge results show 🎯.</p>`)}
+      ${sec('Motion swing',`<p>Turn on <b>Motion swing</b> in Settings to swing with the phone. Hold your thumb on the swing pad, tilt the phone back (either way, whichever you tilt first counts as back), pause at the top, then swing it through and let go. The phone buzzes when you reach a full swing. Tilt back less for a shorter shot. Twisting the phone to the right through the swing sends the ball right, and to the left sends it left. For putts, rock gently back and through: further back hits it harder. Slide your thumb sideways to cancel. Try it on the Practice ground first, and hold on tight.</p>`)}
       ${sec('Swing difficulty',`<p>As your <b>handicap</b> drops, your swing gets harder to hit straight, from <b>Relaxed</b> through Standard, Hard and Very hard to <b>Pro</b>. Small swipe errors bend the ball more, timing is stricter and there's more random scatter. Control and Forgiveness on your clubs, and fittings like Tacky grips and Cavity heads, win some of it back.</p>
         <p>Your level moves one step at most after each solo round or championship, never mid-round. Harder levels pay <b>+10% XP and coins per level</b> above Standard, plus better odds of finding fittings.</p>
         <p>You can <b>lock</b> your level in Settings. Pass &amp; play is always Relaxed, so anyone can join in. The shot report tells you what went wrong, for example <i>outside-in</i>, <i>wobbly upswing</i> or <i>rushed transition</i>.</p>`)}

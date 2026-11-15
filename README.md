@@ -47,6 +47,15 @@ There's a full guide in the game too: **Play now → How to play**.
 
 ## Changelog
 
+### 1.3 · 15 November 2026
+- **Motion swing (new setting).** Swing with the phone instead of swiping. Turn it on in Settings, under Motion swing.
+  - Hold your thumb on the swing pad, tilt the phone back, pause, then swing it through and let go.
+  - How far back you tilt is your power, and the phone buzzes at a full swing. The pause at the top is your tempo.
+  - Twisting the phone left or right through the swing sends the ball that way.
+  - Putts are a gentle rock back and through. Further back hits it harder.
+  - Slide your thumb sideways to cancel. Pick a short, medium or long tilt for a full swing.
+  - It works with the Swing pad control. On a device with no motion sensor, the pad swipes as normal.
+
 ### 1.2.1 · 14 November 2026
 - **Wind resistance is capped at 30%.** Wind bonuses still stack, but together they can never cut the wind by more than 30%. Before, a Heavy ball, the Gale Breaker and topspin added up to nearly two-thirds less wind.
   - **Wind clubs** (Gale Breaker, Northerly, Jetstream): 20% less wind, down from 30%.
