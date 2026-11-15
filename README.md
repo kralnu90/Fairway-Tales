@@ -47,6 +47,9 @@ There's a full guide in the game too: **Play now → How to play**.
 
 ## Changelog
 
+### 1.3.1 · 15 November 2026
+- **Motion swing: a pause before the ball goes.** After you let go, the game waits a moment before the hit, so you can bring the phone back up and watch the shot. It's 1.2 seconds by default, and you can pick none, 0.7, 1.2 or 2 seconds in Settings.
+
 ### 1.3 · 15 November 2026
 - **Motion swing (new setting).** Swing with the phone instead of swiping. Turn it on in Settings, under Motion swing.
   - Hold your thumb on the swing pad, tilt the phone back, pause, then swing it through and let go.

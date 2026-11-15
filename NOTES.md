@@ -2,7 +2,7 @@
 
 *Kris uploads this at the start of a new session. Read it first, then ask for the repo or index.html if you need the code. Update this file at the end of each session and send it back.*
 
-Last updated: 15 November 2026 · game version **1.3.0**
+Last updated: 15 November 2026 · game version **1.3.1**
 
 ---
 
@@ -161,4 +161,4 @@ Kris's rule: the Play Store release happens only once a game is completely finis
 - **11 Nov 2026:**
   - Shipped 1.2: main menu tidied into slide-up panels, Continue button, daily challenge renamed Shot of the Day, update dot on Under the hood.
   - Shipped 1.2.1: wind now goes through one helper, `windMul(perk)` (next to `ballWind()`), used by `strike()` and `predictShot()`. Topspin up to 15% less, backspin up to 35% more, `perk:'wind'` ×0.8, Heavy ball ×0.85, and the total reduction is capped by `WIND_CAP` (0.3). `nowind` (Tempest) returns 0. Swing `DIFF` sens raised 25%: 1.25 / 2.5 / 3 / 3.5 / 4.
-  - Shipped 1.3: motion swing (`SET.motion`, section `Motion swing` just above the pad's pointerdown). `onMS()` adds up `devicemotion` rotationRate while the pad is held (`msw`): beta is the swing angle (first direction past 6° is back), gamma is face twist ×`MS_K` 0.35. `msEnd()` calls the same `strike({p,path,pause,speed,follow,drift,wob})` or `startPutt({yd,tilt})` as the swipe pad. Full swing is `SET.motionFull` degrees (50/70/90, default 70); putts use half. Falls back to swiping when no sensor has reported (`MS.seen`). Counts as the Swing pad control for Shot of the Day and leaderboards. Untuned on a real phone: Kris is testing. To simulate, dispatch `DeviceMotionEvent`s with real sleeps and stub `pad.setPointerCapture`.
+  - Shipped 1.3: motion swing (`SET.motion`, section `Motion swing` just above the pad's pointerdown). `onMS()` adds up `devicemotion` rotationRate while the pad is held (`msw`): beta is the swing angle (first direction past 6° is back), gamma is face twist ×`MS_K` 0.35. `msEnd()` calls the same `strike({p,path,pause,speed,follow,drift,wob})` or `startPutt({yd,tilt})` as the swipe pad. Full swing is `SET.motionFull` degrees (50/70/90, default 70); putts use half. Falls back to swiping when no sensor has reported (`MS.seen`). Counts as the Swing pad control for Shot of the Day and leaderboards. 1.3.1 added `msFire()`: the strike or putt fires after `SET.motionDelay` ms (default 1200, 0 = off) so the player can watch the shot; `msPending` blocks the pad meanwhile. Untuned on a real phone: Kris is testing. To simulate, dispatch `DeviceMotionEvent`s with real sleeps and stub `pad.setPointerCapture`.
