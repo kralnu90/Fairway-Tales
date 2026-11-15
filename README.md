@@ -47,6 +47,13 @@ There's a full guide in the game too: **Play now → How to play**.
 
 ## Changelog
 
+### 1.4 · 15 November 2026
+- **Tougher courses.** All five courses have been tightened up:
+  - **More sand:** about one new bunker a hole, at the driver landing zone on par 4s and 5s, a second on par 5s, and one more by greens that had little protection. On Gullhaven they're pot bunkers, and on Frostpeak they're snowdrifts.
+  - **Tighter out of bounds:** the white stakes have moved in on both sides and behind the greens. Courses are about a fifth narrower, with a strip of rough still left outside the fairway.
+  - **Sharper doglegs:** every bend in a fairway now turns harder, by up to 14 yards at the corner.
+- Tees, greens, water and pars haven't moved. Best rounds set before 1.4 were played on the easier layouts.
+
 ### 1.3.1 · 15 November 2026
 - **Motion swing: a pause before the ball goes.** After you let go, the game waits a moment before the hit, so you can bring the phone back up and watch the shot. It's 1.2 seconds by default, and you can pick none, 0.7, 1.2 or 2 seconds in Settings.
 
